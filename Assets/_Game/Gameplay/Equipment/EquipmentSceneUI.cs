@@ -128,11 +128,11 @@ namespace ConquerChronicles.Gameplay.Equipment
                 itemGO.transform.SetParent(_bagContainer, false);
 
                 var rt = itemGO.GetComponent<RectTransform>();
-                rt.anchorMin = new Vector2(0, 1);
-                rt.anchorMax = new Vector2(1, 1);
-                rt.pivot = new Vector2(0.5f, 1);
-                rt.anchoredPosition = new Vector2(0, -i * 50);
                 rt.sizeDelta = new Vector2(0, 48);
+
+                var layoutElem = itemGO.AddComponent<LayoutElement>();
+                layoutElem.preferredHeight = 48;
+                layoutElem.flexibleWidth = 1;
 
                 var img = itemGO.AddComponent<Image>();
                 img.color = new Color(0.15f, 0.15f, 0.22f, 0.8f);

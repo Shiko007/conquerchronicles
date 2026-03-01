@@ -79,37 +79,25 @@ namespace ConquerChronicles.Gameplay.Market
                 _boothPanel.SetActive(false);
 
             // Cache listing text entries from the container
+            // Each child is a Button GO with a child TextMeshProUGUI
             if (_listingsContainer != null)
             {
                 _listingTexts = new TextMeshProUGUI[_listingsContainer.childCount];
                 for (int i = 0; i < _listingsContainer.childCount; i++)
                 {
-                    _listingTexts[i] = _listingsContainer.GetChild(i).GetComponent<TextMeshProUGUI>();
+                    var child = _listingsContainer.GetChild(i);
+                    _listingTexts[i] = child.GetComponentInChildren<TextMeshProUGUI>();
 
-                    // Wire click via button if present, otherwise add one
                     int index = i;
-                    var btn = _listingsContainer.GetChild(i).GetComponent<Button>();
-                    if (btn == null)
+                    var btn = child.GetComponent<Button>();
+                    if (btn != null)
                     {
-                        // Add an Image for raycast target then a Button
-                        var img = _listingsContainer.GetChild(i).gameObject.GetComponent<Image>();
-                        if (img == null)
+                        btn.onClick.AddListener(() =>
                         {
-                            img = _listingsContainer.GetChild(i).gameObject.AddComponent<Image>();
-                            img.color = new Color(0, 0, 0, 0); // transparent
-                        }
-                        btn = _listingsContainer.GetChild(i).gameObject.AddComponent<Button>();
-                        btn.targetGraphic = img;
-                    }
-                    btn.onClick.AddListener(() =>
-                    {
-                        if (_listingTexts[index] != null && !string.IsNullOrEmpty(_listingTexts[index].name))
-                        {
-                            // The listing ID is stored in the name of the text GO
                             string listingID = _listingsContainer.GetChild(index).gameObject.name;
                             OnListingPressed?.Invoke(listingID);
-                        }
-                    });
+                        });
+                    }
                 }
             }
         }
@@ -140,6 +128,9 @@ namespace ConquerChronicles.Gameplay.Market
             {
                 if (_listingTexts[i] == null) continue;
 
+                // The parent GO holds the Button + listing ID; child TMP holds display text
+                var parentGO = _listingsContainer.GetChild(i).gameObject;
+
                 if (i < listings.Count)
                 {
                     var listing = listings[i];
@@ -162,13 +153,13 @@ namespace ConquerChronicles.Gameplay.Market
 
                     string qtyStr = listing.Quantity > 1 ? $" x{listing.Quantity}" : "";
                     _listingTexts[i].text = $"{typeLabel} {listing.ItemName}{qtyStr}  —  {listing.Price:N0} Gold";
-                    _listingTexts[i].gameObject.name = listing.ListingID;
-                    _listingTexts[i].gameObject.SetActive(true);
+                    parentGO.name = listing.ListingID;
+                    parentGO.SetActive(true);
                 }
                 else
                 {
                     _listingTexts[i].text = "";
-                    _listingTexts[i].gameObject.SetActive(false);
+                    parentGO.SetActive(false);
                 }
             }
         }

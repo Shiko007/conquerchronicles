@@ -61,13 +61,23 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 1.0f;
             canvasGO.AddComponent<GraphicRaycaster>();
+
+            // SafeArea container
+            var safeAreaGO = new GameObject("SafeArea", typeof(RectTransform));
+            safeAreaGO.transform.SetParent(canvasGO.transform, false);
+            var safeAreaRT = safeAreaGO.GetComponent<RectTransform>();
+            safeAreaRT.anchorMin = Vector2.zero;
+            safeAreaRT.anchorMax = Vector2.one;
+            safeAreaRT.offsetMin = Vector2.zero;
+            safeAreaRT.offsetMax = Vector2.zero;
+            safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
 
             // ======================
             // 1. Title Area (top 20%)
             // ======================
-            var titleGO = CreateUIText(canvasGO.transform, "TitleText", "CONQUER CHRONICLES",
+            var titleGO = CreateUIText(safeAreaGO.transform, "TitleText", "CONQUER CHRONICLES",
                 new Vector2(0, 0.80f), new Vector2(1, 1),
                 Vector2.zero, Vector2.zero, 64);
             var titleTMP = titleGO.GetComponent<TextMeshProUGUI>();
@@ -84,7 +94,7 @@ namespace ConquerChronicles.Editor
             // ======================
             // 2. Player Info Panel
             // ======================
-            var infoPanelGO = CreateUIImage(canvasGO.transform, "PlayerInfoPanel",
+            var infoPanelGO = CreateUIImage(safeAreaGO.transform, "PlayerInfoPanel",
                 new Vector2(0.1f, 0.68f), new Vector2(0.9f, 0.78f),
                 Vector2.zero, Vector2.zero,
                 new Color(0.1f, 0.1f, 0.15f, 0.9f));
@@ -138,35 +148,35 @@ namespace ConquerChronicles.Editor
             // Battle button (green)
             float y = startY;
             y -= buttonHeightNorm;
-            var battleBtn = CreateButton(canvasGO.transform, "BattleButton", "Battle",
+            var battleBtn = CreateButton(safeAreaGO.transform, "BattleButton", "Battle",
                 new Vector2(buttonLeft, y), new Vector2(buttonRight, y + buttonHeightNorm),
                 new Color(0.2f, 0.65f, 0.2f, 1f));
+
+            // Character button (blue) — opens Equipment scene
+            y -= spacingNorm;
+            y -= buttonHeightNorm;
+            var equipmentBtn = CreateButton(safeAreaGO.transform, "CharacterButton", "Character",
+                new Vector2(buttonLeft, y), new Vector2(buttonRight, y + buttonHeightNorm),
+                new Color(0.2f, 0.4f, 0.75f, 1f));
 
             // Mining button (amber/brown)
             y -= spacingNorm;
             y -= buttonHeightNorm;
-            var miningBtn = CreateButton(canvasGO.transform, "MiningButton", "Mining",
+            var miningBtn = CreateButton(safeAreaGO.transform, "MiningButton", "Mining",
                 new Vector2(buttonLeft, y), new Vector2(buttonRight, y + buttonHeightNorm),
                 new Color(0.65f, 0.45f, 0.15f, 1f));
-
-            // Equipment button (blue)
-            y -= spacingNorm;
-            y -= buttonHeightNorm;
-            var equipmentBtn = CreateButton(canvasGO.transform, "EquipmentButton", "Equipment",
-                new Vector2(buttonLeft, y), new Vector2(buttonRight, y + buttonHeightNorm),
-                new Color(0.2f, 0.4f, 0.75f, 1f));
 
             // Market button (purple)
             y -= spacingNorm;
             y -= buttonHeightNorm;
-            var marketBtn = CreateButton(canvasGO.transform, "MarketButton", "Market",
+            var marketBtn = CreateButton(safeAreaGO.transform, "MarketButton", "Market",
                 new Vector2(buttonLeft, y), new Vector2(buttonRight, y + buttonHeightNorm),
                 new Color(0.55f, 0.25f, 0.7f, 1f));
 
             // ======================
             // 4. Version Text (bottom)
             // ======================
-            var versionGO = CreateUIText(canvasGO.transform, "VersionText", "v0.1",
+            var versionGO = CreateUIText(safeAreaGO.transform, "VersionText", "v0.1",
                 new Vector2(0, 0), new Vector2(1, 0.05f),
                 Vector2.zero, Vector2.zero, 20);
             var versionTMP = versionGO.GetComponent<TextMeshProUGUI>();

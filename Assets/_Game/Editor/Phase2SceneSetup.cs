@@ -301,74 +301,174 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<UnityEngine.UI.CanvasScaler>();
             scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 1.0f;
             canvasGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
 
-            // Top-left panel
-            var panelGO = CreateUIPanel(canvasGO.transform, "HUD_Panel",
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(20, -20), new Vector2(400, 200));
+            // SafeArea container
+            var safeAreaGO = new GameObject("SafeArea", typeof(RectTransform));
+            safeAreaGO.transform.SetParent(canvasGO.transform, false);
+            var safeAreaRT = safeAreaGO.GetComponent<RectTransform>();
+            safeAreaRT.anchorMin = Vector2.zero;
+            safeAreaRT.anchorMax = Vector2.one;
+            safeAreaRT.offsetMin = Vector2.zero;
+            safeAreaRT.offsetMax = Vector2.zero;
+            safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
 
-            // HP Bar
-            var hpBarBG = CreateUIImage(panelGO.transform, "HP_Bar_BG",
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(10, -10), new Vector2(300, 30),
-                new Color(0.2f, 0.0f, 0.0f, 0.8f));
-            var hpFill = CreateUIImage(hpBarBG.transform, "HP_Fill",
-                new Vector2(0, 0.5f), new Vector2(0, 0.5f),
-                new Vector2(2, 0), new Vector2(296, 26),
-                new Color(0.8f, 0.1f, 0.1f, 1f));
-            hpFill.GetComponent<UnityEngine.UI.Image>().type = UnityEngine.UI.Image.Type.Filled;
-            hpFill.GetComponent<UnityEngine.UI.Image>().fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+            // Top-left panel (anchor-based proportional: left 35%, top 12%)
+            var panelGO = new GameObject("HUD_Panel", typeof(RectTransform));
+            panelGO.transform.SetParent(safeAreaGO.transform, false);
+            var panelRT = panelGO.GetComponent<RectTransform>();
+            panelRT.anchorMin = new Vector2(0, 0.88f);
+            panelRT.anchorMax = new Vector2(0.35f, 1f);
+            panelRT.offsetMin = new Vector2(20, 0);
+            panelRT.offsetMax = new Vector2(0, -20);
+
+            // HP Bar (stretch full panel width with margins)
+            var hpBarBG = new GameObject("HP_Bar_BG", typeof(RectTransform));
+            hpBarBG.transform.SetParent(panelGO.transform, false);
+            var hpBgRT = hpBarBG.GetComponent<RectTransform>();
+            hpBgRT.anchorMin = new Vector2(0, 1);
+            hpBgRT.anchorMax = new Vector2(1, 1);
+            hpBgRT.pivot = new Vector2(0.5f, 1);
+            hpBgRT.anchoredPosition = new Vector2(0, -10);
+            hpBgRT.sizeDelta = new Vector2(-20, 30);
+            var hpBgImg = hpBarBG.AddComponent<Image>();
+            hpBgImg.color = new Color(0.2f, 0.0f, 0.0f, 0.8f);
+
+            var hpFill = new GameObject("HP_Fill", typeof(RectTransform));
+            hpFill.transform.SetParent(hpBarBG.transform, false);
+            var hpFillRT = hpFill.GetComponent<RectTransform>();
+            hpFillRT.anchorMin = Vector2.zero;
+            hpFillRT.anchorMax = Vector2.one;
+            hpFillRT.offsetMin = new Vector2(2, 2);
+            hpFillRT.offsetMax = new Vector2(-2, -2);
+            var hpFillImg = hpFill.AddComponent<Image>();
+            hpFillImg.color = new Color(0.8f, 0.1f, 0.1f, 1f);
+            hpFillImg.type = UnityEngine.UI.Image.Type.Filled;
+            hpFillImg.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+
             var hpText = CreateUIText(hpBarBG.transform, "HP_Text", "100/100",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 18);
 
-            // MP Bar
-            var mpBarBG = CreateUIImage(panelGO.transform, "MP_Bar_BG",
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(10, -50), new Vector2(300, 25),
-                new Color(0.0f, 0.0f, 0.2f, 0.8f));
-            var mpFill = CreateUIImage(mpBarBG.transform, "MP_Fill",
-                new Vector2(0, 0.5f), new Vector2(0, 0.5f),
-                new Vector2(2, 0), new Vector2(296, 21),
-                new Color(0.1f, 0.3f, 0.9f, 1f));
-            mpFill.GetComponent<UnityEngine.UI.Image>().type = UnityEngine.UI.Image.Type.Filled;
-            mpFill.GetComponent<UnityEngine.UI.Image>().fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+            // MP Bar (stretch full panel width with margins)
+            var mpBarBG = new GameObject("MP_Bar_BG", typeof(RectTransform));
+            mpBarBG.transform.SetParent(panelGO.transform, false);
+            var mpBgRT = mpBarBG.GetComponent<RectTransform>();
+            mpBgRT.anchorMin = new Vector2(0, 1);
+            mpBgRT.anchorMax = new Vector2(1, 1);
+            mpBgRT.pivot = new Vector2(0.5f, 1);
+            mpBgRT.anchoredPosition = new Vector2(0, -50);
+            mpBgRT.sizeDelta = new Vector2(-20, 25);
+            var mpBgImg = mpBarBG.AddComponent<Image>();
+            mpBgImg.color = new Color(0.0f, 0.0f, 0.2f, 0.8f);
+
+            var mpFill = new GameObject("MP_Fill", typeof(RectTransform));
+            mpFill.transform.SetParent(mpBarBG.transform, false);
+            var mpFillRT = mpFill.GetComponent<RectTransform>();
+            mpFillRT.anchorMin = Vector2.zero;
+            mpFillRT.anchorMax = Vector2.one;
+            mpFillRT.offsetMin = new Vector2(2, 2);
+            mpFillRT.offsetMax = new Vector2(-2, -2);
+            var mpFillImg = mpFill.AddComponent<Image>();
+            mpFillImg.color = new Color(0.1f, 0.3f, 0.9f, 1f);
+            mpFillImg.type = UnityEngine.UI.Image.Type.Filled;
+            mpFillImg.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+
             var mpText = CreateUIText(mpBarBG.transform, "MP_Text", "50/50",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 14);
 
-            // XP Bar
-            var xpBarBG = CreateUIImage(panelGO.transform, "XP_Bar_BG",
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(10, -85), new Vector2(300, 18),
-                new Color(0.1f, 0.1f, 0.1f, 0.8f));
-            var xpFill = CreateUIImage(xpBarBG.transform, "XP_Fill",
-                new Vector2(0, 0.5f), new Vector2(0, 0.5f),
-                new Vector2(2, 0), new Vector2(296, 14),
-                new Color(0.9f, 0.8f, 0.1f, 1f));
-            xpFill.GetComponent<UnityEngine.UI.Image>().type = UnityEngine.UI.Image.Type.Filled;
-            xpFill.GetComponent<UnityEngine.UI.Image>().fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+            // XP Bar (stretch full panel width with margins)
+            var xpBarBG = new GameObject("XP_Bar_BG", typeof(RectTransform));
+            xpBarBG.transform.SetParent(panelGO.transform, false);
+            var xpBgRT = xpBarBG.GetComponent<RectTransform>();
+            xpBgRT.anchorMin = new Vector2(0, 1);
+            xpBgRT.anchorMax = new Vector2(1, 1);
+            xpBgRT.pivot = new Vector2(0.5f, 1);
+            xpBgRT.anchoredPosition = new Vector2(0, -85);
+            xpBgRT.sizeDelta = new Vector2(-20, 18);
+            var xpBgImg = xpBarBG.AddComponent<Image>();
+            xpBgImg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
 
-            // Level text
-            var levelText = CreateUIText(panelGO.transform, "Level_Text", "Lv.1",
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(10, -108), new Vector2(120, 35), 24);
+            var xpFill = new GameObject("XP_Fill", typeof(RectTransform));
+            xpFill.transform.SetParent(xpBarBG.transform, false);
+            var xpFillRT = xpFill.GetComponent<RectTransform>();
+            xpFillRT.anchorMin = Vector2.zero;
+            xpFillRT.anchorMax = Vector2.one;
+            xpFillRT.offsetMin = new Vector2(2, 2);
+            xpFillRT.offsetMax = new Vector2(-2, -2);
+            var xpFillImg = xpFill.AddComponent<Image>();
+            xpFillImg.color = new Color(0.9f, 0.8f, 0.1f, 1f);
+            xpFillImg.type = UnityEngine.UI.Image.Type.Filled;
+            xpFillImg.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
 
-            // Kill counter
-            var killText = CreateUIText(panelGO.transform, "Kill_Text", "Kills: 0",
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(10, -145), new Vector2(200, 30), 20);
+            // Level text (stretch to panel width)
+            var levelText = new GameObject("Level_Text", typeof(RectTransform));
+            levelText.transform.SetParent(panelGO.transform, false);
+            var levelTextRT = levelText.GetComponent<RectTransform>();
+            levelTextRT.anchorMin = new Vector2(0, 1);
+            levelTextRT.anchorMax = new Vector2(0.5f, 1);
+            levelTextRT.pivot = new Vector2(0, 1);
+            levelTextRT.anchoredPosition = new Vector2(10, -108);
+            levelTextRT.sizeDelta = new Vector2(0, 35);
+            var levelTMP = levelText.AddComponent<TextMeshProUGUI>();
+            levelTMP.text = "Lv.1";
+            levelTMP.fontSize = 24;
+            levelTMP.color = Color.white;
+            levelTMP.alignment = TextAlignmentOptions.Left;
+
+            // Kill counter (stretch to panel width)
+            var killText = new GameObject("Kill_Text", typeof(RectTransform));
+            killText.transform.SetParent(panelGO.transform, false);
+            var killTextRT = killText.GetComponent<RectTransform>();
+            killTextRT.anchorMin = new Vector2(0, 1);
+            killTextRT.anchorMax = new Vector2(1, 1);
+            killTextRT.pivot = new Vector2(0, 1);
+            killTextRT.anchoredPosition = new Vector2(10, -145);
+            killTextRT.sizeDelta = new Vector2(-20, 30);
+            var killTMP = killText.AddComponent<TextMeshProUGUI>();
+            killTMP.text = "Kills: 0";
+            killTMP.fontSize = 20;
+            killTMP.color = Color.white;
+            killTMP.alignment = TextAlignmentOptions.Left;
+
+            // Back button (top-right)
+            var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
+            backBtnGO.transform.SetParent(safeAreaGO.transform, false);
+            var backBtnRT = backBtnGO.GetComponent<RectTransform>();
+            backBtnRT.anchorMin = new Vector2(1, 1);
+            backBtnRT.anchorMax = new Vector2(1, 1);
+            backBtnRT.pivot = new Vector2(1, 1);
+            backBtnRT.anchoredPosition = new Vector2(-20, -20);
+            backBtnRT.sizeDelta = new Vector2(160, 60);
+            var backBtnImg = backBtnGO.AddComponent<Image>();
+            backBtnImg.color = new Color(0.6f, 0.15f, 0.15f, 0.9f);
+            var backBtn = backBtnGO.AddComponent<Button>();
+            backBtn.targetGraphic = backBtnImg;
+
+            var backBtnTextGO = new GameObject("Text", typeof(RectTransform));
+            backBtnTextGO.transform.SetParent(backBtnGO.transform, false);
+            var backBtnTextRT = backBtnTextGO.GetComponent<RectTransform>();
+            backBtnTextRT.anchorMin = Vector2.zero;
+            backBtnTextRT.anchorMax = Vector2.one;
+            backBtnTextRT.offsetMin = Vector2.zero;
+            backBtnTextRT.offsetMax = Vector2.zero;
+            var backBtnTMP = backBtnTextGO.AddComponent<TextMeshProUGUI>();
+            backBtnTMP.text = "Leave";
+            backBtnTMP.fontSize = 28;
+            backBtnTMP.color = Color.white;
+            backBtnTMP.alignment = TextAlignmentOptions.Center;
 
             // Wire PlayerHUD
             var hud = canvasGO.AddComponent<PlayerHUD>();
             var hudSO = new SerializedObject(hud);
-            hudSO.FindProperty("_hpFill").objectReferenceValue = hpFill.GetComponent<UnityEngine.UI.Image>();
+            hudSO.FindProperty("_hpFill").objectReferenceValue = hpFillImg;
             hudSO.FindProperty("_hpText").objectReferenceValue = hpText.GetComponent<TextMeshProUGUI>();
-            hudSO.FindProperty("_mpFill").objectReferenceValue = mpFill.GetComponent<UnityEngine.UI.Image>();
+            hudSO.FindProperty("_mpFill").objectReferenceValue = mpFillImg;
             hudSO.FindProperty("_mpText").objectReferenceValue = mpText.GetComponent<TextMeshProUGUI>();
-            hudSO.FindProperty("_xpFill").objectReferenceValue = xpFill.GetComponent<UnityEngine.UI.Image>();
-            hudSO.FindProperty("_levelText").objectReferenceValue = levelText.GetComponent<TextMeshProUGUI>();
-            hudSO.FindProperty("_killCountText").objectReferenceValue = killText.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("_xpFill").objectReferenceValue = xpFillImg;
+            hudSO.FindProperty("_levelText").objectReferenceValue = levelTMP;
+            hudSO.FindProperty("_killCountText").objectReferenceValue = killTMP;
+            hudSO.FindProperty("_backButton").objectReferenceValue = backBtn;
             hudSO.ApplyModifiedPropertiesWithoutUndo();
 
             return hud;
@@ -385,7 +485,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 1.0f;
 
             // Center text container with CanvasGroup for fading
             var containerGO = new GameObject("AnnouncerContainer", typeof(RectTransform));
@@ -435,7 +535,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 1.0f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
             // Dark overlay panel

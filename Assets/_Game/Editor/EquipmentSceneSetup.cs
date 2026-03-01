@@ -60,15 +60,25 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 1.0f;
             canvasGO.AddComponent<GraphicRaycaster>();
+
+            // SafeArea container
+            var safeAreaGO = new GameObject("SafeArea", typeof(RectTransform));
+            safeAreaGO.transform.SetParent(canvasGO.transform, false);
+            var safeAreaRT = safeAreaGO.GetComponent<RectTransform>();
+            safeAreaRT.anchorMin = Vector2.zero;
+            safeAreaRT.anchorMax = Vector2.one;
+            safeAreaRT.offsetMin = Vector2.zero;
+            safeAreaRT.offsetMax = Vector2.zero;
+            safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
 
             // ============================================================
             // HEADER
             // ============================================================
 
             // Title text - "EQUIPMENT" in gold, centered
-            var titleGO = CreateUIText(canvasGO.transform, "TitleText", "EQUIPMENT",
+            var titleGO = CreateUIText(safeAreaGO.transform, "TitleText", "EQUIPMENT",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -20), new Vector2(0, 70), 48);
             var titleRT = titleGO.GetComponent<RectTransform>();
@@ -84,7 +94,7 @@ namespace ConquerChronicles.Editor
 
             // Back button - top-left
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
-            backBtnGO.transform.SetParent(canvasGO.transform, false);
+            backBtnGO.transform.SetParent(safeAreaGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
             backBtnRT.anchorMin = new Vector2(0, 1);
             backBtnRT.anchorMax = new Vector2(0, 1);
@@ -102,7 +112,7 @@ namespace ConquerChronicles.Editor
             backBtnTMP.alignment = TextAlignmentOptions.Center;
 
             // Gold display - top-right
-            var goldGO = CreateUIText(canvasGO.transform, "GoldText", "0 Gold",
+            var goldGO = CreateUIText(safeAreaGO.transform, "GoldText", "0 Gold",
                 new Vector2(1, 1), new Vector2(1, 1),
                 new Vector2(-20, -20), new Vector2(200, 60), 28);
             var goldRT = goldGO.GetComponent<RectTransform>();
@@ -119,7 +129,7 @@ namespace ConquerChronicles.Editor
             // LEFT PANEL - Equipped Slots (40% width, below header)
             // ============================================================
 
-            var leftPanelGO = CreateUIImage(canvasGO.transform, "EquippedSlotsPanel",
+            var leftPanelGO = CreateUIImage(safeAreaGO.transform, "EquippedSlotsPanel",
                 new Vector2(0, 0.35f), new Vector2(0.4f, 0.93f),
                 Vector2.zero, Vector2.zero,
                 new Color(0.1f, 0.1f, 0.15f, 0.9f));
@@ -142,6 +152,22 @@ namespace ConquerChronicles.Editor
             slotsTitleTMP.fontStyle = FontStyles.Bold;
             slotsTitleTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
+            // Slot container with VerticalLayoutGroup
+            var slotContainerGO = new GameObject("SlotContainer", typeof(RectTransform));
+            slotContainerGO.transform.SetParent(leftPanelGO.transform, false);
+            var slotContainerRT = slotContainerGO.GetComponent<RectTransform>();
+            slotContainerRT.anchorMin = new Vector2(0.05f, 0);
+            slotContainerRT.anchorMax = new Vector2(0.95f, 1);
+            slotContainerRT.offsetMin = new Vector2(0, 10);
+            slotContainerRT.offsetMax = new Vector2(0, -50); // below "EQUIPPED" title
+            var slotVLG = slotContainerGO.AddComponent<VerticalLayoutGroup>();
+            slotVLG.spacing = 5f;
+            slotVLG.padding = new RectOffset(0, 0, 0, 0);
+            slotVLG.childForceExpandWidth = true;
+            slotVLG.childForceExpandHeight = false;
+            slotVLG.childControlWidth = true;
+            slotVLG.childControlHeight = false;
+
             // Create 7 slot buttons
             string[] slotLabels = { "Head:", "Neck:", "Armor:", "Weapon:", "Shield:", "Ring:", "Boots:" };
             var slotButtons = new Button[7];
@@ -150,13 +176,12 @@ namespace ConquerChronicles.Editor
             for (int i = 0; i < 7; i++)
             {
                 var slotBtnGO = new GameObject($"SlotButton_{i}", typeof(RectTransform));
-                slotBtnGO.transform.SetParent(leftPanelGO.transform, false);
+                slotBtnGO.transform.SetParent(slotContainerGO.transform, false);
                 var slotBtnRT = slotBtnGO.GetComponent<RectTransform>();
-                slotBtnRT.anchorMin = new Vector2(0.05f, 1);
-                slotBtnRT.anchorMax = new Vector2(0.95f, 1);
-                slotBtnRT.pivot = new Vector2(0.5f, 1);
-                slotBtnRT.anchoredPosition = new Vector2(0, -50 - i * 75);
                 slotBtnRT.sizeDelta = new Vector2(0, 70);
+                var slotLayout = slotBtnGO.AddComponent<LayoutElement>();
+                slotLayout.preferredHeight = 70;
+                slotLayout.flexibleWidth = 1;
                 var slotBtnImg = slotBtnGO.AddComponent<Image>();
                 slotBtnImg.color = new Color(0.15f, 0.15f, 0.22f, 0.9f);
                 var slotBtn = slotBtnGO.AddComponent<Button>();
@@ -177,7 +202,7 @@ namespace ConquerChronicles.Editor
             // RIGHT PANEL - Stats Display (60% width)
             // ============================================================
 
-            var rightPanelGO = CreateUIImage(canvasGO.transform, "StatsPanel",
+            var rightPanelGO = CreateUIImage(safeAreaGO.transform, "StatsPanel",
                 new Vector2(0.4f, 0.35f), new Vector2(1, 0.93f),
                 Vector2.zero, Vector2.zero,
                 new Color(0.1f, 0.1f, 0.15f, 0.9f));
@@ -217,7 +242,7 @@ namespace ConquerChronicles.Editor
             // BOTTOM AREA - Bag + Gems
             // ============================================================
 
-            var bottomPanelGO = CreateUIImage(canvasGO.transform, "BottomPanel",
+            var bottomPanelGO = CreateUIImage(safeAreaGO.transform, "BottomPanel",
                 new Vector2(0, 0), new Vector2(1, 0.35f),
                 Vector2.zero, Vector2.zero,
                 new Color(0.1f, 0.1f, 0.15f, 0.9f));
@@ -331,7 +356,7 @@ namespace ConquerChronicles.Editor
 
             // Backdrop (full-screen semi-transparent)
             var detailPanelGO = new GameObject("DetailPanel", typeof(RectTransform));
-            detailPanelGO.transform.SetParent(canvasGO.transform, false);
+            detailPanelGO.transform.SetParent(safeAreaGO.transform, false);
             var detailPanelRT = detailPanelGO.GetComponent<RectTransform>();
             detailPanelRT.anchorMin = Vector2.zero;
             detailPanelRT.anchorMax = Vector2.one;

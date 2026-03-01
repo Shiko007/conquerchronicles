@@ -61,15 +61,25 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 1.0f;
             canvasGO.AddComponent<GraphicRaycaster>();
+
+            // SafeArea container
+            var safeAreaGO = new GameObject("SafeArea", typeof(RectTransform));
+            safeAreaGO.transform.SetParent(canvasGO.transform, false);
+            var safeAreaRT = safeAreaGO.GetComponent<RectTransform>();
+            safeAreaRT.anchorMin = Vector2.zero;
+            safeAreaRT.anchorMax = Vector2.one;
+            safeAreaRT.offsetMin = Vector2.zero;
+            safeAreaRT.offsetMax = Vector2.zero;
+            safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
 
             // ============================================================
             // HEADER
             // ============================================================
 
             // Title text - centered at top
-            var titleGO = CreateUIText(canvasGO.transform, "TitleText", "MINING",
+            var titleGO = CreateUIText(safeAreaGO.transform, "TitleText", "MINING",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -20), new Vector2(0, 70), 48);
             var titleRT = titleGO.GetComponent<RectTransform>();
@@ -85,7 +95,7 @@ namespace ConquerChronicles.Editor
 
             // Back button - top-left
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
-            backBtnGO.transform.SetParent(canvasGO.transform, false);
+            backBtnGO.transform.SetParent(safeAreaGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
             backBtnRT.anchorMin = new Vector2(0, 1);
             backBtnRT.anchorMax = new Vector2(0, 1);
@@ -108,7 +118,7 @@ namespace ConquerChronicles.Editor
 
             // Scroll View container
             var scrollGO = new GameObject("MineListScroll", typeof(RectTransform));
-            scrollGO.transform.SetParent(canvasGO.transform, false);
+            scrollGO.transform.SetParent(safeAreaGO.transform, false);
             var scrollRT = scrollGO.GetComponent<RectTransform>();
             scrollRT.anchorMin = new Vector2(0, 0.15f);
             scrollRT.anchorMax = new Vector2(1, 0.93f);
@@ -155,7 +165,7 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var activePanelGO = new GameObject("ActiveMiningPanel", typeof(RectTransform));
-            activePanelGO.transform.SetParent(canvasGO.transform, false);
+            activePanelGO.transform.SetParent(safeAreaGO.transform, false);
             var activePanelRT = activePanelGO.GetComponent<RectTransform>();
             activePanelRT.anchorMin = new Vector2(0, 0);
             activePanelRT.anchorMax = new Vector2(1, 0.15f);
@@ -234,7 +244,7 @@ namespace ConquerChronicles.Editor
 
             // Backdrop (full-screen semi-transparent)
             var yieldPanelGO = new GameObject("YieldPanel", typeof(RectTransform));
-            yieldPanelGO.transform.SetParent(canvasGO.transform, false);
+            yieldPanelGO.transform.SetParent(safeAreaGO.transform, false);
             var yieldPanelRT = yieldPanelGO.GetComponent<RectTransform>();
             yieldPanelRT.anchorMin = Vector2.zero;
             yieldPanelRT.anchorMax = Vector2.one;

@@ -60,15 +60,25 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 1.0f;
             canvasGO.AddComponent<GraphicRaycaster>();
+
+            // SafeArea container
+            var safeAreaGO = new GameObject("SafeArea", typeof(RectTransform));
+            safeAreaGO.transform.SetParent(canvasGO.transform, false);
+            var safeAreaRT = safeAreaGO.GetComponent<RectTransform>();
+            safeAreaRT.anchorMin = Vector2.zero;
+            safeAreaRT.anchorMax = Vector2.one;
+            safeAreaRT.offsetMin = Vector2.zero;
+            safeAreaRT.offsetMax = Vector2.zero;
+            safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
 
             // ============================================================
             // HEADER
             // ============================================================
 
             // Title text - centered at top
-            var titleGO = CreateUIText(canvasGO.transform, "TitleText", "MARKET",
+            var titleGO = CreateUIText(safeAreaGO.transform, "TitleText", "MARKET",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -20), new Vector2(0, 70), 48);
             var titleRT = titleGO.GetComponent<RectTransform>();
@@ -84,7 +94,7 @@ namespace ConquerChronicles.Editor
 
             // Back button - top-left
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
-            backBtnGO.transform.SetParent(canvasGO.transform, false);
+            backBtnGO.transform.SetParent(safeAreaGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
             backBtnRT.anchorMin = new Vector2(0, 1);
             backBtnRT.anchorMax = new Vector2(0, 1);
@@ -102,7 +112,7 @@ namespace ConquerChronicles.Editor
             backBtnTMP.alignment = TextAlignmentOptions.Center;
 
             // Gold display - top-right
-            var goldGO = CreateUIText(canvasGO.transform, "GoldText", "0 Gold",
+            var goldGO = CreateUIText(safeAreaGO.transform, "GoldText", "0 Gold",
                 new Vector2(1, 1), new Vector2(1, 1),
                 new Vector2(-20, -20), new Vector2(200, 60), 28);
             var goldRT = goldGO.GetComponent<RectTransform>();
@@ -120,7 +130,7 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var tabBarGO = new GameObject("TabBar", typeof(RectTransform));
-            tabBarGO.transform.SetParent(canvasGO.transform, false);
+            tabBarGO.transform.SetParent(safeAreaGO.transform, false);
             var tabBarRT = tabBarGO.GetComponent<RectTransform>();
             tabBarRT.anchorMin = new Vector2(0, 1);
             tabBarRT.anchorMax = new Vector2(1, 1);
@@ -171,7 +181,7 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var buyPanelGO = new GameObject("BuyPanel", typeof(RectTransform));
-            buyPanelGO.transform.SetParent(canvasGO.transform, false);
+            buyPanelGO.transform.SetParent(safeAreaGO.transform, false);
             var buyPanelRT = buyPanelGO.GetComponent<RectTransform>();
             buyPanelRT.anchorMin = new Vector2(0, 0);
             buyPanelRT.anchorMax = new Vector2(1, 1);
@@ -226,7 +236,7 @@ namespace ConquerChronicles.Editor
 
             scrollRect.content = contentRT;
 
-            // Create 12 listing text entries
+            // Create 12 listing entries (Button+Image parent with child TMP text)
             for (int i = 0; i < 12; i++)
             {
                 var listingGO = new GameObject($"Listing_{i}", typeof(RectTransform));
@@ -237,13 +247,32 @@ namespace ConquerChronicles.Editor
                 layoutElement.preferredHeight = 60;
                 layoutElement.flexibleWidth = 1;
 
-                var listingTMP = listingGO.AddComponent<TextMeshProUGUI>();
+                // Add Image (transparent) as raycast target + Button for click
+                var listingImg = listingGO.AddComponent<Image>();
+                listingImg.color = new Color(0, 0, 0, 0);
+                var listingBtn = listingGO.AddComponent<Button>();
+                listingBtn.targetGraphic = listingImg;
+                var btnColors = listingBtn.colors;
+                btnColors.highlightedColor = new Color(1, 1, 1, 0.1f);
+                btnColors.pressedColor = new Color(1, 1, 1, 0.2f);
+                listingBtn.colors = btnColors;
+
+                // Child text object
+                var textGO = new GameObject("Text", typeof(RectTransform));
+                textGO.transform.SetParent(listingGO.transform, false);
+                var textRT = textGO.GetComponent<RectTransform>();
+                textRT.anchorMin = Vector2.zero;
+                textRT.anchorMax = Vector2.one;
+                textRT.offsetMin = new Vector2(10, 0);
+                textRT.offsetMax = new Vector2(-10, 0);
+
+                var listingTMP = textGO.AddComponent<TextMeshProUGUI>();
                 listingTMP.text = $"[Equip] Item {i + 1}  --  0 Gold";
                 listingTMP.fontSize = 24;
                 listingTMP.color = Color.white;
                 listingTMP.alignment = TextAlignmentOptions.Left;
                 listingTMP.verticalAlignment = VerticalAlignmentOptions.Middle;
-                listingTMP.raycastTarget = true;
+                listingTMP.raycastTarget = false;
             }
 
             // ============================================================
@@ -252,7 +281,7 @@ namespace ConquerChronicles.Editor
 
             // Backdrop (full-screen semi-transparent)
             var detailPanelGO = new GameObject("ListingDetailPanel", typeof(RectTransform));
-            detailPanelGO.transform.SetParent(canvasGO.transform, false);
+            detailPanelGO.transform.SetParent(safeAreaGO.transform, false);
             var detailPanelRT = detailPanelGO.GetComponent<RectTransform>();
             detailPanelRT.anchorMin = Vector2.zero;
             detailPanelRT.anchorMax = Vector2.one;
@@ -360,7 +389,7 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var boothPanelGO = new GameObject("BoothPanel", typeof(RectTransform));
-            boothPanelGO.transform.SetParent(canvasGO.transform, false);
+            boothPanelGO.transform.SetParent(safeAreaGO.transform, false);
             var boothPanelRT = boothPanelGO.GetComponent<RectTransform>();
             boothPanelRT.anchorMin = new Vector2(0, 0);
             boothPanelRT.anchorMax = new Vector2(1, 1);

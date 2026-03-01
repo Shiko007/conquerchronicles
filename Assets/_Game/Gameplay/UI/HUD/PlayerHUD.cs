@@ -23,6 +23,11 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         [Header("Kill Counter")]
         [SerializeField] private TextMeshProUGUI _killCountText;
 
+        [Header("Navigation")]
+        [SerializeField] private Button _backButton;
+
+        public System.Action OnBackPressed;
+
         private CharacterView _player;
         private CombatManager _combatManager;
 
@@ -35,6 +40,9 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             {
                 _combatManager.OnKillCountChanged += UpdateKillCount;
             }
+
+            if (_backButton != null)
+                _backButton.onClick.AddListener(() => OnBackPressed?.Invoke());
         }
 
         private void Update()
@@ -76,6 +84,8 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         {
             if (_combatManager != null)
                 _combatManager.OnKillCountChanged -= UpdateKillCount;
+            if (_backButton != null)
+                _backButton.onClick.RemoveAllListeners();
         }
     }
 }

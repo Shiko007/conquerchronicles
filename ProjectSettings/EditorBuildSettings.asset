@@ -17,6 +17,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Mining.unity
     guid: 08d290967c6b64feea59afa9a932a585
+  - enabled: 1
+    path: Assets/Scenes/Equipment.unity
+    guid: 8c91e3911b5de4036aa1259f7b5a1c43
+  - enabled: 1
+    path: Assets/Scenes/Market.unity
+    guid: 4768c1766b7e149ce837c963a3df27a6
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

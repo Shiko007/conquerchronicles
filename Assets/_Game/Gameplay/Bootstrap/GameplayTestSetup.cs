@@ -13,6 +13,7 @@ using ConquerChronicles.Gameplay.Map;
 using ConquerChronicles.Gameplay.Save;
 using ConquerChronicles.Gameplay.Stage;
 using ConquerChronicles.Gameplay.UI.HUD;
+using UnityEngine.SceneManagement;
 
 namespace ConquerChronicles.Gameplay.Bootstrap
 {
@@ -91,6 +92,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             if (_playerHUD != null)
             {
                 _playerHUD.Initialize(_characterView, _combatManager);
+                _playerHUD.OnBackPressed = () => SceneManager.LoadScene("MainMenu");
             }
 
             // Build enemy catalog from TestMaps
