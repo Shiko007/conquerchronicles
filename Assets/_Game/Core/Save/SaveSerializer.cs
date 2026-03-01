@@ -42,7 +42,6 @@ namespace ConquerChronicles.Core.Save
                 Gold = inventory.Gold,
                 EquippedItems = SerializeEquippedItems(inventory.EquippedItems),
                 BagItems = SerializeBagItems(inventory.Bag),
-                GemBag = SerializeGemBag(inventory.GemBag),
 
                 // Map Progress
                 UnlockedMapIDs = unlockedMapIDs ?? new[] { "map_slime_fields" },
@@ -116,26 +115,28 @@ namespace ConquerChronicles.Core.Save
                 }
             }
 
-            // Restore bag items
+            // Restore bag items (unified: equipment + gems)
             if (data.BagItems != null)
             {
                 for (int i = 0; i < data.BagItems.Length; i++)
                 {
-                    var instance = DeserializeEquipment(data.BagItems[i], equipmentCatalog);
-                    if (instance != null)
+                    var bagItem = data.BagItems[i];
+                    if (bagItem.ItemType == 0) // Equipment
                     {
-                        inventory.AddToBag(instance);
+                        var instance = DeserializeEquipment(bagItem.Equipment, equipmentCatalog);
+                        if (instance != null)
+                        {
+                            inventory.AddToBag(instance);
+                        }
                     }
-                }
-            }
-
-            // Restore gem bag
-            if (data.GemBag != null)
-            {
-                for (int i = 0; i < data.GemBag.Length; i++)
-                {
-                    var gem = new GemData((GemType)data.GemBag[i].Type, data.GemBag[i].Tier);
-                    inventory.AddGem(gem);
+                    else if (bagItem.ItemType == 1) // Gem
+                    {
+                        if (bagItem.Gem.Tier > 0)
+                        {
+                            var gem = new GemData((GemType)bagItem.Gem.Type, bagItem.Gem.Tier);
+                            inventory.AddGem(gem);
+                        }
+                    }
                 }
             }
 
@@ -179,13 +180,25 @@ namespace ConquerChronicles.Core.Save
             return result;
         }
 
-        private static SerializedEquipment[] SerializeBagItems(List<EquipmentInstance> bag)
+        private static SerializedBagItem[] SerializeBagItems(List<BagItem> bag)
         {
-            var result = new SerializedEquipment[bag.Count];
+            var result = new SerializedBagItem[bag.Count];
 
             for (int i = 0; i < bag.Count; i++)
             {
-                result[i] = SerializeEquipmentInstance(bag[i]);
+                var item = bag[i];
+                if (item.Type == BagItemType.Equipment)
+                {
+                    result[i] = SerializedBagItem.FromEquipment(SerializeEquipmentInstance(item.Equipment));
+                }
+                else
+                {
+                    result[i] = SerializedBagItem.FromGem(new SerializedGem
+                    {
+                        Type = (int)item.Gem.Type,
+                        Tier = item.Gem.Tier
+                    });
+                }
             }
 
             return result;
@@ -214,22 +227,6 @@ namespace ConquerChronicles.Core.Save
                 UpgradeLevel = instance.UpgradeLevel,
                 Gems = gems
             };
-        }
-
-        private static SerializedGem[] SerializeGemBag(List<GemData> gemBag)
-        {
-            var result = new SerializedGem[gemBag.Count];
-
-            for (int i = 0; i < gemBag.Count; i++)
-            {
-                result[i] = new SerializedGem
-                {
-                    Type = (int)gemBag[i].Type,
-                    Tier = gemBag[i].Tier
-                };
-            }
-
-            return result;
         }
 
         // --- Deserialization Helpers ---

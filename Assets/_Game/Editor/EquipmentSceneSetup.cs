@@ -239,7 +239,7 @@ namespace ConquerChronicles.Editor
             statsTextTMP.alignment = TextAlignmentOptions.TopLeft;
 
             // ============================================================
-            // BOTTOM AREA - Bag + Gems
+            // BOTTOM AREA - Unified Bag Grid
             // ============================================================
 
             var bottomPanelGO = CreateUIImage(safeAreaGO.transform, "BottomPanel",
@@ -250,13 +250,13 @@ namespace ConquerChronicles.Editor
             bottomPanelRT.offsetMin = new Vector2(10, 10);
             bottomPanelRT.offsetMax = new Vector2(-10, 0);
 
-            // Bag count text
+            // Bag count text (full width)
             var bagCountGO = CreateUIText(bottomPanelGO.transform, "BagCountText", "Bag: 0/50",
-                new Vector2(0, 1), new Vector2(0.5f, 1),
+                new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -5), new Vector2(0, 35), 24);
             var bagCountRT = bagCountGO.GetComponent<RectTransform>();
             bagCountRT.anchorMin = new Vector2(0, 1);
-            bagCountRT.anchorMax = new Vector2(0.5f, 1);
+            bagCountRT.anchorMax = new Vector2(1, 1);
             bagCountRT.pivot = new Vector2(0, 1);
             bagCountRT.anchoredPosition = new Vector2(10, -5);
             bagCountRT.sizeDelta = new Vector2(0, 35);
@@ -264,14 +264,14 @@ namespace ConquerChronicles.Editor
             bagCountTMP.alignment = TextAlignmentOptions.Left;
             bagCountTMP.fontStyle = FontStyles.Bold;
 
-            // Bag container (scrollable) - left half of bottom
+            // Bag container (scrollable, full width)
             var bagScrollGO = new GameObject("BagScroll", typeof(RectTransform));
             bagScrollGO.transform.SetParent(bottomPanelGO.transform, false);
             var bagScrollRT = bagScrollGO.GetComponent<RectTransform>();
             bagScrollRT.anchorMin = new Vector2(0, 0);
-            bagScrollRT.anchorMax = new Vector2(0.5f, 1);
+            bagScrollRT.anchorMax = new Vector2(1, 1);
             bagScrollRT.offsetMin = new Vector2(5, 5);
-            bagScrollRT.offsetMax = new Vector2(0, -42);
+            bagScrollRT.offsetMax = new Vector2(-5, -42);
             var bagScrollRect = bagScrollGO.AddComponent<ScrollRect>();
             bagScrollRect.horizontal = false;
             bagScrollRect.vertical = true;
@@ -286,69 +286,19 @@ namespace ConquerChronicles.Editor
             bagContentRT.anchoredPosition = Vector2.zero;
             var bagContentSizeFitter = bagContentGO.AddComponent<ContentSizeFitter>();
             bagContentSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            var bagVertLayout = bagContentGO.AddComponent<VerticalLayoutGroup>();
-            bagVertLayout.spacing = 2f;
-            bagVertLayout.padding = new RectOffset(0, 0, 0, 0);
-            bagVertLayout.childForceExpandWidth = true;
-            bagVertLayout.childForceExpandHeight = false;
-            bagVertLayout.childControlWidth = true;
-            bagVertLayout.childControlHeight = false;
+
+            // GridLayoutGroup: 5 columns of square cells
+            var bagGridLayout = bagContentGO.AddComponent<GridLayoutGroup>();
+            bagGridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            bagGridLayout.constraintCount = 5;
+            bagGridLayout.cellSize = new Vector2(190, 190);
+            bagGridLayout.spacing = new Vector2(8, 8);
+            bagGridLayout.padding = new RectOffset(8, 8, 8, 8);
+            bagGridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
+            bagGridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
+            bagGridLayout.childAlignment = TextAnchor.UpperLeft;
 
             bagScrollRect.content = bagContentRT;
-
-            // Gem bag count text
-            var gemBagCountGO = CreateUIText(bottomPanelGO.transform, "GemBagCountText", "Gems: 0/100",
-                new Vector2(0.5f, 1), new Vector2(1, 1),
-                new Vector2(0, -5), new Vector2(0, 35), 24);
-            var gemBagCountRT = gemBagCountGO.GetComponent<RectTransform>();
-            gemBagCountRT.anchorMin = new Vector2(0.5f, 1);
-            gemBagCountRT.anchorMax = new Vector2(1, 1);
-            gemBagCountRT.pivot = new Vector2(0, 1);
-            gemBagCountRT.anchoredPosition = new Vector2(10, -5);
-            gemBagCountRT.sizeDelta = new Vector2(0, 35);
-            var gemBagCountTMP = gemBagCountGO.GetComponent<TextMeshProUGUI>();
-            gemBagCountTMP.alignment = TextAlignmentOptions.Left;
-            gemBagCountTMP.fontStyle = FontStyles.Bold;
-
-            // Gem list text (scrollable) - right half of bottom
-            var gemScrollGO = new GameObject("GemScroll", typeof(RectTransform));
-            gemScrollGO.transform.SetParent(bottomPanelGO.transform, false);
-            var gemScrollRT = gemScrollGO.GetComponent<RectTransform>();
-            gemScrollRT.anchorMin = new Vector2(0.5f, 0);
-            gemScrollRT.anchorMax = new Vector2(1, 1);
-            gemScrollRT.offsetMin = new Vector2(5, 5);
-            gemScrollRT.offsetMax = new Vector2(-5, -42);
-            var gemScrollRect = gemScrollGO.AddComponent<ScrollRect>();
-            gemScrollRect.horizontal = false;
-            gemScrollRect.vertical = true;
-            gemScrollGO.AddComponent<RectMask2D>();
-
-            var gemContentGO = new GameObject("GemContent", typeof(RectTransform));
-            gemContentGO.transform.SetParent(gemScrollGO.transform, false);
-            var gemContentRT = gemContentGO.GetComponent<RectTransform>();
-            gemContentRT.anchorMin = new Vector2(0, 1);
-            gemContentRT.anchorMax = new Vector2(1, 1);
-            gemContentRT.pivot = new Vector2(0.5f, 1);
-            gemContentRT.anchoredPosition = Vector2.zero;
-            var gemContentSizeFitter = gemContentGO.AddComponent<ContentSizeFitter>();
-            gemContentSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            var gemListTextGO = CreateUIText(gemContentGO.transform, "GemListText", "No gems",
-                new Vector2(0, 1), new Vector2(1, 1),
-                Vector2.zero, new Vector2(0, 400), 20);
-            var gemListTextRT = gemListTextGO.GetComponent<RectTransform>();
-            gemListTextRT.anchorMin = new Vector2(0, 1);
-            gemListTextRT.anchorMax = new Vector2(1, 1);
-            gemListTextRT.pivot = new Vector2(0.5f, 1);
-            gemListTextRT.anchoredPosition = Vector2.zero;
-            gemListTextRT.sizeDelta = new Vector2(0, 400);
-            var gemListTMP = gemListTextGO.GetComponent<TextMeshProUGUI>();
-            gemListTMP.alignment = TextAlignmentOptions.TopLeft;
-            var gemListLayout = gemListTextGO.AddComponent<LayoutElement>();
-            gemListLayout.preferredHeight = 400;
-            gemListLayout.flexibleWidth = 1;
-
-            gemScrollRect.content = gemContentRT;
 
             // ============================================================
             // ITEM DETAIL PANEL (center overlay, hidden by default)
@@ -533,10 +483,6 @@ namespace ConquerChronicles.Editor
             uiSO.FindProperty("_upgradeButton").objectReferenceValue = upgradeBtn;
             uiSO.FindProperty("_upgradeRateText").objectReferenceValue = upgradeRateTMP;
             uiSO.FindProperty("_closeDetailButton").objectReferenceValue = closeBtn;
-
-            // Gem Panel
-            uiSO.FindProperty("_gemBagCountText").objectReferenceValue = gemBagCountTMP;
-            uiSO.FindProperty("_gemListText").objectReferenceValue = gemListTMP;
 
             uiSO.ApplyModifiedPropertiesWithoutUndo();
 

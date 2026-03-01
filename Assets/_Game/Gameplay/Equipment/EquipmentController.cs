@@ -19,7 +19,8 @@ namespace ConquerChronicles.Gameplay.Equipment
         private int _playerLevel;
         private CharacterClass _playerClass;
         private Dictionary<string, EquipmentData> _equipmentCatalog;
-        private EquipmentInstance _selectedItem;
+        private BagItem _selectedBagItem;       // non-null when a bag item is selected
+        private EquipmentInstance _selectedItem;  // non-null when an equipped item is selected
         private int _selectedSlotIndex = -1;
         private bool _selectedIsEquipped;
 
@@ -75,46 +76,44 @@ namespace ConquerChronicles.Gameplay.Equipment
                 }
             }
 
-            // Restore bag items
+            // Restore bag items (unified: equipment + gems)
             if (_saveData.BagItems != null)
             {
                 for (int i = 0; i < _saveData.BagItems.Length; i++)
                 {
-                    var serialized = _saveData.BagItems[i];
-                    if (serialized.IsEmpty) continue;
-
-                    if (_equipmentCatalog.TryGetValue(serialized.DataID, out var data))
+                    var bagItem = _saveData.BagItems[i];
+                    if (bagItem.ItemType == 0) // Equipment
                     {
-                        var instance = new EquipmentInstance(data);
-                        instance.UpgradeLevel = serialized.UpgradeLevel;
+                        var serialized = bagItem.Equipment;
+                        if (serialized.IsEmpty) continue;
 
-                        if (serialized.Gems != null)
+                        if (_equipmentCatalog.TryGetValue(serialized.DataID, out var data))
                         {
-                            for (int g = 0; g < serialized.Gems.Length && g < instance.SocketedGems.Length; g++)
+                            var instance = new EquipmentInstance(data);
+                            instance.UpgradeLevel = serialized.UpgradeLevel;
+
+                            if (serialized.Gems != null)
                             {
-                                if (serialized.Gems[g].Tier > 0)
+                                for (int g = 0; g < serialized.Gems.Length && g < instance.SocketedGems.Length; g++)
                                 {
-                                    var gem = new GemData((GemType)serialized.Gems[g].Type, serialized.Gems[g].Tier);
-                                    instance.Socket(g, gem);
+                                    if (serialized.Gems[g].Tier > 0)
+                                    {
+                                        var gem = new GemData((GemType)serialized.Gems[g].Type, serialized.Gems[g].Tier);
+                                        instance.Socket(g, gem);
+                                    }
                                 }
                             }
+
+                            _inventory.AddToBag(instance);
                         }
-
-                        _inventory.AddToBag(instance);
                     }
-                }
-            }
-
-            // Restore gem bag
-            if (_saveData.GemBag != null)
-            {
-                for (int i = 0; i < _saveData.GemBag.Length; i++)
-                {
-                    var serializedGem = _saveData.GemBag[i];
-                    if (serializedGem.Tier > 0)
+                    else if (bagItem.ItemType == 1) // Gem
                     {
-                        var gem = new GemData((GemType)serializedGem.Type, serializedGem.Tier);
-                        _inventory.AddGem(gem);
+                        if (bagItem.Gem.Tier > 0)
+                        {
+                            var gem = new GemData((GemType)bagItem.Gem.Type, bagItem.Gem.Tier);
+                            _inventory.AddGem(gem);
+                        }
                     }
                 }
             }
@@ -128,6 +127,7 @@ namespace ConquerChronicles.Gameplay.Equipment
                 if (equippedItem != null)
                 {
                     _selectedItem = equippedItem;
+                    _selectedBagItem = null;
                     _selectedSlotIndex = slotIndex;
                     _selectedIsEquipped = true;
                     _equipmentUI.ShowItemDetail(equippedItem, false, true);
@@ -139,12 +139,22 @@ namespace ConquerChronicles.Gameplay.Equipment
                 if (bagIndex >= 0 && bagIndex < _inventory.Bag.Count)
                 {
                     var bagItem = _inventory.Bag[bagIndex];
-                    _selectedItem = bagItem;
-                    _selectedSlotIndex = (int)bagItem.Data.Slot;
+                    _selectedBagItem = bagItem;
                     _selectedIsEquipped = false;
 
-                    bool canEquip = _inventory.CanEquip(bagItem, _playerLevel, _playerClass);
-                    _equipmentUI.ShowItemDetail(bagItem, canEquip, false);
+                    if (bagItem.Type == BagItemType.Equipment)
+                    {
+                        _selectedItem = bagItem.Equipment;
+                        _selectedSlotIndex = (int)bagItem.Equipment.Data.Slot;
+                        bool canEquip = _inventory.CanEquip(bagItem.Equipment, _playerLevel, _playerClass);
+                        _equipmentUI.ShowItemDetail(bagItem, canEquip, false);
+                    }
+                    else
+                    {
+                        _selectedItem = null;
+                        _selectedSlotIndex = -1;
+                        _equipmentUI.ShowItemDetail(bagItem, false, false);
+                    }
                 }
             };
 
@@ -159,17 +169,19 @@ namespace ConquerChronicles.Gameplay.Equipment
                     _inventory.Unequip(slot);
                     _equipmentUI.HideItemDetail();
                     _selectedItem = null;
+                    _selectedBagItem = null;
                     _selectedSlotIndex = -1;
                 }
                 else
                 {
-                    // Equip from bag
+                    // Equip from bag (only equipment can be equipped)
                     var slot = _selectedItem.Data.Slot;
                     if (_inventory.CanEquip(_selectedItem, _playerLevel, _playerClass))
                     {
                         _inventory.Equip(_selectedItem, slot);
                         _equipmentUI.HideItemDetail();
                         _selectedItem = null;
+                        _selectedBagItem = null;
                         _selectedSlotIndex = -1;
                     }
                 }
@@ -200,13 +212,13 @@ namespace ConquerChronicles.Gameplay.Equipment
 
                     _equipmentUI.HideItemDetail();
                     _selectedItem = null;
+                    _selectedBagItem = null;
                     _selectedSlotIndex = -1;
                     Debug.Log("[Equipment] Item destroyed during upgrade!");
                 }
                 else if (result.Success)
                 {
                     Debug.Log($"[Equipment] Upgrade success! Now +{result.NewLevel}");
-                    // Item's UpgradeLevel is already updated by TryUpgrade
                     bool canEquip = !_selectedIsEquipped && _inventory.CanEquip(_selectedItem, _playerLevel, _playerClass);
                     _equipmentUI.ShowItemDetail(_selectedItem, canEquip, _selectedIsEquipped);
                 }
@@ -225,6 +237,7 @@ namespace ConquerChronicles.Gameplay.Equipment
             {
                 _equipmentUI.HideItemDetail();
                 _selectedItem = null;
+                _selectedBagItem = null;
                 _selectedSlotIndex = -1;
             };
 
@@ -238,7 +251,6 @@ namespace ConquerChronicles.Gameplay.Equipment
             _equipmentUI.RefreshEquippedSlots(_inventory.EquippedItems);
             _equipmentUI.RefreshStats(_inventory.GetEquippedStats());
             _equipmentUI.RefreshBag(_inventory.Bag);
-            _equipmentUI.RefreshGems(_inventory.GemBag);
             _equipmentUI.RefreshGold(_inventory.Gold);
         }
 
@@ -259,22 +271,23 @@ namespace ConquerChronicles.Gameplay.Equipment
                 }
             }
 
-            // Serialize bag items
-            _saveData.BagItems = new SerializedEquipment[_inventory.Bag.Count];
+            // Serialize bag items (unified: equipment + gems)
+            _saveData.BagItems = new SerializedBagItem[_inventory.Bag.Count];
             for (int i = 0; i < _inventory.Bag.Count; i++)
             {
-                _saveData.BagItems[i] = SerializeEquipment(_inventory.Bag[i]);
-            }
-
-            // Serialize gem bag
-            _saveData.GemBag = new SerializedGem[_inventory.GemBag.Count];
-            for (int i = 0; i < _inventory.GemBag.Count; i++)
-            {
-                _saveData.GemBag[i] = new SerializedGem
+                var bagItem = _inventory.Bag[i];
+                if (bagItem.Type == BagItemType.Equipment)
                 {
-                    Type = (int)_inventory.GemBag[i].Type,
-                    Tier = _inventory.GemBag[i].Tier
-                };
+                    _saveData.BagItems[i] = SerializedBagItem.FromEquipment(SerializeEquipment(bagItem.Equipment));
+                }
+                else
+                {
+                    _saveData.BagItems[i] = SerializedBagItem.FromGem(new SerializedGem
+                    {
+                        Type = (int)bagItem.Gem.Type,
+                        Tier = bagItem.Gem.Tier
+                    });
+                }
             }
 
             _saveData.Gold = _inventory.Gold;

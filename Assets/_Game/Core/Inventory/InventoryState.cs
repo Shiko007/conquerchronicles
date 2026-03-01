@@ -4,41 +4,46 @@ using ConquerChronicles.Core.Equipment;
 
 namespace ConquerChronicles.Core.Inventory
 {
+    public enum BagItemType
+    {
+        Equipment = 0,
+        Gem = 1
+    }
+
+    public class BagItem
+    {
+        public BagItemType Type;
+        public EquipmentInstance Equipment;
+        public GemData Gem;
+
+        public static BagItem FromEquipment(EquipmentInstance equipment)
+        {
+            return new BagItem { Type = BagItemType.Equipment, Equipment = equipment };
+        }
+
+        public static BagItem FromGem(GemData gem)
+        {
+            return new BagItem { Type = BagItemType.Gem, Gem = gem };
+        }
+    }
+
     public class InventoryState
     {
         public const int EquipmentSlotCount = 7;
         public const int BagCapacity = 50;
-        public const int GemBagCapacity = 100;
 
-        /// <summary>
-        /// Equipped items indexed by EquipmentSlot. Null means the slot is empty.
-        /// </summary>
         public EquipmentInstance[] EquippedItems { get; private set; }
-
-        /// <summary>
-        /// Unequipped equipment items in the bag.
-        /// </summary>
-        public List<EquipmentInstance> Bag { get; private set; }
-
-        /// <summary>
-        /// Stored gems in the gem bag.
-        /// </summary>
-        public List<GemData> GemBag { get; private set; }
+        public List<BagItem> Bag { get; private set; }
 
         public int Gold;
 
         public InventoryState()
         {
             EquippedItems = new EquipmentInstance[EquipmentSlotCount];
-            Bag = new List<EquipmentInstance>();
-            GemBag = new List<GemData>();
+            Bag = new List<BagItem>();
             Gold = 0;
         }
 
-        /// <summary>
-        /// Checks whether the given item can be equipped by a character of the specified
-        /// level and class. Validates level requirement and class requirement.
-        /// </summary>
         public bool CanEquip(EquipmentInstance item, int characterLevel, CharacterClass characterClass)
         {
             if (item == null)
@@ -53,11 +58,6 @@ namespace ConquerChronicles.Core.Inventory
             return true;
         }
 
-        /// <summary>
-        /// Equips an item from the bag into the specified slot.
-        /// If the slot is already occupied, the old item is swapped back to the bag.
-        /// The item must already be in the bag.
-        /// </summary>
         public bool Equip(EquipmentInstance item, EquipmentSlot slot)
         {
             if (item == null)
@@ -66,7 +66,16 @@ namespace ConquerChronicles.Core.Inventory
             if (item.Data.Slot != slot)
                 return false;
 
-            int bagIndex = Bag.IndexOf(item);
+            // Find the bag item wrapping this equipment
+            int bagIndex = -1;
+            for (int i = 0; i < Bag.Count; i++)
+            {
+                if (Bag[i].Type == BagItemType.Equipment && Bag[i].Equipment == item)
+                {
+                    bagIndex = i;
+                    break;
+                }
+            }
             if (bagIndex < 0)
                 return false;
 
@@ -79,18 +88,13 @@ namespace ConquerChronicles.Core.Inventory
             // If something is already equipped, swap it to the bag
             if (currentEquipped != null)
             {
-                Bag.Add(currentEquipped);
+                Bag.Add(BagItem.FromEquipment(currentEquipped));
             }
 
-            // Equip the new item
             EquippedItems[slotIndex] = item;
             return true;
         }
 
-        /// <summary>
-        /// Unequips the item in the specified slot and moves it to the bag.
-        /// Returns false if the slot is empty or the bag is full.
-        /// </summary>
         public bool Unequip(EquipmentSlot slot)
         {
             int slotIndex = (int)slot;
@@ -103,13 +107,10 @@ namespace ConquerChronicles.Core.Inventory
                 return false;
 
             EquippedItems[slotIndex] = null;
-            Bag.Add(item);
+            Bag.Add(BagItem.FromEquipment(item));
             return true;
         }
 
-        /// <summary>
-        /// Returns the sum of ComputeStats() for all currently equipped items.
-        /// </summary>
         public CharacterStats GetEquippedStats()
         {
             var total = new CharacterStats();
@@ -125,10 +126,6 @@ namespace ConquerChronicles.Core.Inventory
             return total;
         }
 
-        /// <summary>
-        /// Adds an equipment item to the bag if capacity allows.
-        /// Returns true if added successfully, false if the bag is full.
-        /// </summary>
         public bool AddToBag(EquipmentInstance item)
         {
             if (item == null)
@@ -137,69 +134,53 @@ namespace ConquerChronicles.Core.Inventory
             if (Bag.Count >= BagCapacity)
                 return false;
 
-            Bag.Add(item);
+            Bag.Add(BagItem.FromEquipment(item));
             return true;
         }
 
-        /// <summary>
-        /// Removes an equipment item from the bag.
-        /// Returns true if the item was found and removed.
-        /// </summary>
+        public bool AddGem(GemData gem)
+        {
+            if (Bag.Count >= BagCapacity)
+                return false;
+
+            Bag.Add(BagItem.FromGem(gem));
+            return true;
+        }
+
         public bool RemoveFromBag(EquipmentInstance item)
         {
             if (item == null)
                 return false;
 
-            return Bag.Remove(item);
-        }
-
-        /// <summary>
-        /// Adds a gem to the gem bag if capacity allows.
-        /// Returns true if added successfully, false if the gem bag is full.
-        /// </summary>
-        public bool AddGem(GemData gem)
-        {
-            if (GemBag.Count >= GemBagCapacity)
-                return false;
-
-            GemBag.Add(gem);
-            return true;
-        }
-
-        /// <summary>
-        /// Removes a gem from the gem bag.
-        /// Returns true if a matching gem was found and removed.
-        /// </summary>
-        public bool RemoveGem(GemData gem)
-        {
-            for (int i = 0; i < GemBag.Count; i++)
+            for (int i = 0; i < Bag.Count; i++)
             {
-                if (GemBag[i].Type == gem.Type && GemBag[i].Tier == gem.Tier)
+                if (Bag[i].Type == BagItemType.Equipment && Bag[i].Equipment == item)
                 {
-                    GemBag.RemoveAt(i);
+                    Bag.RemoveAt(i);
                     return true;
                 }
             }
-
             return false;
         }
 
-        /// <summary>
-        /// Returns the equipped item in the given slot, or null if empty.
-        /// </summary>
+        public bool RemoveGem(GemData gem)
+        {
+            for (int i = 0; i < Bag.Count; i++)
+            {
+                if (Bag[i].Type == BagItemType.Gem && Bag[i].Gem.Type == gem.Type && Bag[i].Gem.Tier == gem.Tier)
+                {
+                    Bag.RemoveAt(i);
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public EquipmentInstance GetEquipped(EquipmentSlot slot)
         {
             return EquippedItems[(int)slot];
         }
 
-        /// <summary>
-        /// Returns true if the bag has reached maximum capacity.
-        /// </summary>
         public bool IsBagFull => Bag.Count >= BagCapacity;
-
-        /// <summary>
-        /// Returns true if the gem bag has reached maximum capacity.
-        /// </summary>
-        public bool IsGemBagFull => GemBag.Count >= GemBagCapacity;
     }
 }

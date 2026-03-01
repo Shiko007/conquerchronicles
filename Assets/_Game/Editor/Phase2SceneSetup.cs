@@ -9,6 +9,7 @@ using ConquerChronicles.Gameplay.Camera;
 using ConquerChronicles.Gameplay.Character;
 using ConquerChronicles.Gameplay.Combat;
 using ConquerChronicles.Gameplay.Enemy;
+using ConquerChronicles.Gameplay.Loot;
 using ConquerChronicles.Gameplay.Map;
 using ConquerChronicles.Gameplay.Stage;
 using ConquerChronicles.Gameplay.UI.HUD;
@@ -44,10 +45,17 @@ namespace ConquerChronicles.Editor
             var enemyPrefab = CreateEnemyPrefab();
             DamageNumberView dmgNumPrefabView = null;
             HitEffectView hitFxPrefabView = null;
+            GoldCoinView goldCoinPrefabView = null;
+            EquipmentDropView equipDropPrefabView = null;
             if (withCombat)
             {
                 dmgNumPrefabView = CreateDamageNumberPrefab();
                 hitFxPrefabView = CreateHitEffectPrefab();
+            }
+            if (withStage)
+            {
+                goldCoinPrefabView = CreateGoldCoinPrefab();
+                equipDropPrefabView = CreateEquipmentDropPrefab();
             }
 
             // --- Clear current scene objects (except camera) ---
@@ -169,6 +177,9 @@ namespace ConquerChronicles.Editor
             MapManager mapManager = null;
             WaveAnnouncerUI waveAnnouncer = null;
             RunSummaryUI runSummary = null;
+            GoldCoinPool goldCoinPool = null;
+            EquipmentDropPool equipmentDropPool = null;
+            LootVisualManager lootVisualManager = null;
 
             if (withStage)
             {
@@ -181,6 +192,38 @@ namespace ConquerChronicles.Editor
 
                 // Session summary
                 runSummary = CreateRunSummaryUI();
+
+                // GoldCoinPool
+                var goldPoolGO = new GameObject("GoldCoinPool");
+                goldCoinPool = goldPoolGO.AddComponent<GoldCoinPool>();
+                if (goldCoinPrefabView != null)
+                {
+                    var gcSO = new SerializedObject(goldCoinPool);
+                    gcSO.FindProperty("_prefab").objectReferenceValue = goldCoinPrefabView;
+                    gcSO.FindProperty("_warmupCount").intValue = 32;
+                    gcSO.ApplyModifiedPropertiesWithoutUndo();
+                }
+
+                // EquipmentDropPool
+                var equipPoolGO = new GameObject("EquipmentDropPool");
+                equipmentDropPool = equipPoolGO.AddComponent<EquipmentDropPool>();
+                if (equipDropPrefabView != null)
+                {
+                    var edSO = new SerializedObject(equipmentDropPool);
+                    edSO.FindProperty("_prefab").objectReferenceValue = equipDropPrefabView;
+                    edSO.FindProperty("_warmupCount").intValue = 16;
+                    edSO.ApplyModifiedPropertiesWithoutUndo();
+                }
+
+                // LootVisualManager
+                var lootGO = new GameObject("LootVisualManager");
+                lootVisualManager = lootGO.AddComponent<LootVisualManager>();
+                var lvmSO = new SerializedObject(lootVisualManager);
+                lvmSO.FindProperty("_goldCoinPool").objectReferenceValue = goldCoinPool;
+                lvmSO.FindProperty("_equipmentDropPool").objectReferenceValue = equipmentDropPool;
+                lvmSO.FindProperty("_damageNumberPool").objectReferenceValue = damageNumberPool;
+                lvmSO.FindProperty("_playerTransform").objectReferenceValue = characterView.transform;
+                lvmSO.ApplyModifiedPropertiesWithoutUndo();
             }
 
             // --- GameManager (Test Setup) ---
@@ -206,6 +249,9 @@ namespace ConquerChronicles.Editor
                 tsSO.FindProperty("_runSummary").objectReferenceValue = runSummary;
                 tsSO.FindProperty("_testMapIndex").intValue = 0;
                 tsSO.FindProperty("_testAreaIndex").intValue = 0;
+                tsSO.FindProperty("_lootVisualManager").objectReferenceValue = lootVisualManager;
+                tsSO.FindProperty("_goldCoinPool").objectReferenceValue = goldCoinPool;
+                tsSO.FindProperty("_equipmentDropPool").objectReferenceValue = equipmentDropPool;
             }
             tsSO.ApplyModifiedPropertiesWithoutUndo();
 
@@ -287,6 +333,59 @@ namespace ConquerChronicles.Editor
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/_Game/Data/Prefabs/HitEffect.prefab");
             Object.DestroyImmediate(go);
             return prefab.GetComponent<HitEffectView>();
+        }
+
+        private static GoldCoinView CreateGoldCoinPrefab()
+        {
+            EnsureFolder("Assets/_Game/Data/Prefabs");
+
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Data/Prefabs/GoldCoin.prefab");
+            if (existing != null) return existing.GetComponent<GoldCoinView>();
+
+            var go = new GameObject("GoldCoin");
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateCircleSprite("GoldCoinSprite", new Color(1f, 0.85f, 0.2f, 1f), 12);
+            sr.sortingLayerName = "Default";
+            sr.sortingOrder = 80;
+
+            var view = go.AddComponent<GoldCoinView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_spriteRenderer").objectReferenceValue = sr;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            go.SetActive(false);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/_Game/Data/Prefabs/GoldCoin.prefab");
+            Object.DestroyImmediate(go);
+            return prefab.GetComponent<GoldCoinView>();
+        }
+
+        private static EquipmentDropView CreateEquipmentDropPrefab()
+        {
+            EnsureFolder("Assets/_Game/Data/Prefabs");
+
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Data/Prefabs/EquipmentDrop.prefab");
+            if (existing != null) return existing.GetComponent<EquipmentDropView>();
+
+            var go = new GameObject("EquipmentDrop");
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateCircleSprite("EquipmentDropSprite", new Color(0.7f, 0.3f, 0.9f, 1f), 16);
+            sr.sortingLayerName = "Default";
+            sr.sortingOrder = 75;
+
+            var col = go.AddComponent<CircleCollider2D>();
+            col.radius = 0.5f;
+
+            var view = go.AddComponent<EquipmentDropView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_spriteRenderer").objectReferenceValue = sr;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            go.SetActive(false);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/_Game/Data/Prefabs/EquipmentDrop.prefab");
+            Object.DestroyImmediate(go);
+            return prefab.GetComponent<EquipmentDropView>();
         }
 
         // --- HUD Canvas ---

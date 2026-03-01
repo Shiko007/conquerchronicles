@@ -28,6 +28,9 @@ namespace ConquerChronicles.Gameplay.Map
         public event Action<AreaResult> OnAreaSessionEnd;
         public event Action<string, int> OnItemDropped;
         public event Action<int> OnEnemyKilledInArea;
+        public event Action<GoldDropInfo> OnGoldDropped;
+        public event Action<LootDropInfo> OnEquipmentDropped;
+        public event Action OnAreaSessionEnding;
 
         public void Initialize(
             EnemySpawner spawner,
@@ -103,9 +106,12 @@ namespace ConquerChronicles.Gameplay.Map
             _areaState.EnemiesKilled++;
             OnEnemyKilledInArea?.Invoke(_areaState.EnemiesKilled);
 
+            var deathPos = enemy.transform.position;
+
             // Track gold with area multiplier
             int gold = (int)(enemy.State.Data.GoldReward * _areaState.Data.GoldMultiplier);
             _areaState.TotalGoldEarned += gold;
+            OnGoldDropped?.Invoke(new GoldDropInfo(gold, deathPos.x, deathPos.y));
 
             // Track XP with area multiplier (bonus portion — base already granted by CombatManager)
             int baseXP = enemy.State.Data.XPReward;
@@ -121,8 +127,7 @@ namespace ConquerChronicles.Gameplay.Map
             var areaDrops = DropTable.Roll(_areaState.Data.AreaDropTable, _dropSeed);
             foreach (var (itemID, qty) in areaDrops)
             {
-                _droppedItems.Add(itemID);
-                OnItemDropped?.Invoke(itemID, qty);
+                OnEquipmentDropped?.Invoke(new LootDropInfo(itemID, qty, deathPos.x, deathPos.y));
                 Debug.Log($"[Loot] Area drop: {itemID} x{qty}");
             }
 
@@ -130,14 +135,22 @@ namespace ConquerChronicles.Gameplay.Map
             var enemyDrops = DropTable.Roll(enemy.State.Data.DropTable, _dropSeed + 1);
             foreach (var (itemID, qty) in enemyDrops)
             {
-                _droppedItems.Add(itemID);
-                OnItemDropped?.Invoke(itemID, qty);
+                OnEquipmentDropped?.Invoke(new LootDropInfo(itemID, qty, deathPos.x, deathPos.y));
                 Debug.Log($"[Loot] Enemy drop: {itemID} x{qty}");
             }
         }
 
+        public void CollectItem(string itemID, int quantity)
+        {
+            for (int i = 0; i < quantity; i++)
+                _droppedItems.Add(itemID);
+            OnItemDropped?.Invoke(itemID, quantity);
+            Debug.Log($"[Loot] Collected: {itemID} x{quantity}");
+        }
+
         private void EndSession()
         {
+            OnAreaSessionEnding?.Invoke();
             var result = AreaResult.Calculate(_areaState, _currentMap.ID, _droppedItems.ToArray());
             OnAreaSessionEnd?.Invoke(result);
             _enemySpawner.DespawnAll();

@@ -230,34 +230,34 @@ namespace ConquerChronicles.Gameplay.Market
 
         private void AddGemToSave(int gemType, int gemTier, int quantity)
         {
-            var currentGems = _saveData.GemBag ?? System.Array.Empty<SerializedGem>();
-            var newGems = new SerializedGem[currentGems.Length + quantity];
-            System.Array.Copy(currentGems, newGems, currentGems.Length);
+            var currentBag = _saveData.BagItems ?? System.Array.Empty<SerializedBagItem>();
+            var newBag = new SerializedBagItem[currentBag.Length + quantity];
+            System.Array.Copy(currentBag, newBag, currentBag.Length);
 
             for (int i = 0; i < quantity; i++)
             {
-                newGems[currentGems.Length + i] = new SerializedGem
+                newBag[currentBag.Length + i] = SerializedBagItem.FromGem(new SerializedGem
                 {
                     Type = gemType,
                     Tier = gemTier
-                };
+                });
             }
 
-            _saveData.GemBag = newGems;
+            _saveData.BagItems = newBag;
         }
 
         private void AddEquipmentToSave(string itemID)
         {
-            var currentBag = _saveData.BagItems ?? System.Array.Empty<SerializedEquipment>();
-            var newBag = new SerializedEquipment[currentBag.Length + 1];
+            var currentBag = _saveData.BagItems ?? System.Array.Empty<SerializedBagItem>();
+            var newBag = new SerializedBagItem[currentBag.Length + 1];
             System.Array.Copy(currentBag, newBag, currentBag.Length);
 
-            newBag[currentBag.Length] = new SerializedEquipment
+            newBag[currentBag.Length] = SerializedBagItem.FromEquipment(new SerializedEquipment
             {
                 DataID = itemID,
                 UpgradeLevel = 0,
                 Gems = System.Array.Empty<SerializedGem>()
-            };
+            });
 
             _saveData.BagItems = newBag;
             Debug.Log($"[Market] Added equipment to bag: {itemID}");

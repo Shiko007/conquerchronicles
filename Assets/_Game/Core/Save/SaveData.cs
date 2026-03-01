@@ -29,8 +29,7 @@ namespace ConquerChronicles.Core.Save
         // --- Inventory ---
         public int Gold;
         public SerializedEquipment[] EquippedItems; // 7 entries, empty ID = empty slot
-        public SerializedEquipment[] BagItems;
-        public SerializedGem[] GemBag;
+        public SerializedBagItem[] BagItems;
 
         // --- Map Progress ---
         public string[] UnlockedMapIDs;
@@ -68,8 +67,7 @@ namespace ConquerChronicles.Core.Save
                 Spirit = 0,
                 Gold = 0,
                 EquippedItems = new SerializedEquipment[7],
-                BagItems = System.Array.Empty<SerializedEquipment>(),
-                GemBag = System.Array.Empty<SerializedGem>(),
+                BagItems = System.Array.Empty<SerializedBagItem>(),
                 UnlockedMapIDs = new[] { "map_slime_fields" },
                 LastAreaID = string.Empty,
                 MetaCurrency = 0,
@@ -98,6 +96,28 @@ namespace ConquerChronicles.Core.Save
         /// Returns true if this entry represents an empty slot (no equipment).
         /// </summary>
         public bool IsEmpty => string.IsNullOrEmpty(DataID);
+    }
+
+    /// <summary>
+    /// Unified bag item: wraps either an equipment or a gem.
+    /// ItemType 0 = Equipment, 1 = Gem.
+    /// </summary>
+    [System.Serializable]
+    public struct SerializedBagItem
+    {
+        public int ItemType; // 0 = Equipment, 1 = Gem
+        public SerializedEquipment Equipment;
+        public SerializedGem Gem;
+
+        public static SerializedBagItem FromEquipment(SerializedEquipment equipment)
+        {
+            return new SerializedBagItem { ItemType = 0, Equipment = equipment };
+        }
+
+        public static SerializedBagItem FromGem(SerializedGem gem)
+        {
+            return new SerializedBagItem { ItemType = 1, Gem = gem };
+        }
     }
 
     /// <summary>

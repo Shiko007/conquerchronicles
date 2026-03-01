@@ -9,6 +9,7 @@ using ConquerChronicles.Gameplay.Camera;
 using ConquerChronicles.Gameplay.Character;
 using ConquerChronicles.Gameplay.Combat;
 using ConquerChronicles.Gameplay.Enemy;
+using ConquerChronicles.Gameplay.Loot;
 using ConquerChronicles.Gameplay.Map;
 using ConquerChronicles.Gameplay.Save;
 using ConquerChronicles.Gameplay.Stage;
@@ -40,6 +41,11 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         [SerializeField] private WaveAnnouncerUI _waveAnnouncer;
         [SerializeField] private RunSummaryUI _runSummary;
 
+        [Header("Loot")]
+        [SerializeField] private LootVisualManager _lootVisualManager;
+        [SerializeField] private GoldCoinPool _goldCoinPool;
+        [SerializeField] private EquipmentDropPool _equipmentDropPool;
+
         [Header("UI")]
         [SerializeField] private PlayerHUD _playerHUD;
 
@@ -70,6 +76,12 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             if (_damageNumberPool != null) _damageNumberPool.Warmup();
             if (_hitEffectPool != null) _hitEffectPool.Warmup();
 
+            // Loot pools
+            if (_goldCoinPool != null) _goldCoinPool.Warmup();
+            if (_equipmentDropPool != null) _equipmentDropPool.Warmup();
+            if (_lootVisualManager != null)
+                _lootVisualManager.Initialize(_goldCoinPool, _equipmentDropPool, _damageNumberPool, _characterView.transform);
+
             // Set up class skills
             var skills = new List<SkillState>();
             foreach (var skillData in ClassSkills.GetSkillsForClass(_testClass))
@@ -92,7 +104,12 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             if (_playerHUD != null)
             {
                 _playerHUD.Initialize(_characterView, _combatManager);
-                _playerHUD.OnBackPressed = () => SceneManager.LoadScene("MainMenu");
+                _playerHUD.OnBackPressed = () =>
+                {
+                    if (_mapManager != null)
+                        _mapManager.LeaveArea();
+                    SceneManager.LoadScene("MainMenu");
+                };
             }
 
             // Build enemy catalog from TestMaps
@@ -127,12 +144,26 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _combatManager.OnEnemyKilled += _mapManager.OnEnemyDied;
                 }
 
+                // Wire loot visuals
+                if (_lootVisualManager != null)
+                {
+                    _mapManager.OnGoldDropped += _lootVisualManager.SpawnGoldCoin;
+                    _mapManager.OnEquipmentDropped += _lootVisualManager.SpawnEquipmentDrop;
+                    _lootVisualManager.OnEquipmentCollected += _mapManager.CollectItem;
+                }
+
                 // Enter the test area
                 var maps = TestMaps.AllMaps;
                 int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
                 var map = maps[mapIdx];
                 int areaIdx = Mathf.Clamp(_testAreaIndex, 0, map.Areas.Length - 1);
                 _mapManager.EnterArea(map, map.Areas[areaIdx]);
+            }
+
+            // Wire session ending to auto-collect remaining loot before result is calculated
+            if (_mapManager != null && _lootVisualManager != null)
+            {
+                _mapManager.OnAreaSessionEnding += OnAutoCollectLoot;
             }
 
             // Save system
@@ -143,33 +174,51 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             }
         }
 
+        private void OnAutoCollectLoot()
+        {
+            if (_lootVisualManager != null)
+                _lootVisualManager.ReturnAllDrops();
+        }
+
         private void OnAutoSave(AreaResult result)
         {
             if (_saveManager == null) return;
 
-            var saveData = new SaveData
+            // Load existing save to preserve inventory, or create default
+            var saveData = _saveManager.LoadGame() ?? SaveData.CreateDefault();
+
+            // Update character state
+            saveData.Version = 2;
+            saveData.SelectedClass = _testClass;
+            saveData.CharacterLevel = _characterView.State != null ? _characterView.State.Level : 1;
+            saveData.CharacterXP = _characterView.State != null ? _characterView.State.XP : 0;
+            saveData.LastAreaID = result.AreaID;
+
+            // Add earned gold to existing total
+            saveData.Gold += result.GoldEarned;
+
+            // Add collected items to bag
+            if (result.ItemsDropped != null && result.ItemsDropped.Length > 0)
             {
-                Version = 2,
-                SelectedClass = _testClass,
-                CharacterLevel = _characterView.State != null ? _characterView.State.Level : 1,
-                CharacterXP = _characterView.State != null ? _characterView.State.XP : 0,
-                Gold = result.GoldEarned,
-                EquippedItems = new SerializedEquipment[7],
-                BagItems = System.Array.Empty<SerializedEquipment>(),
-                GemBag = System.Array.Empty<SerializedGem>(),
-                UnlockedMapIDs = new[] { "map_slime_fields" },
-                LastAreaID = result.AreaID,
-                MetaCurrency = 0,
-                MetaUpgradeLevels = new int[8],
-                MiningStartTimestamp = 0,
-                ActiveMineID = string.Empty,
-                PlayerBoothItemIDs = System.Array.Empty<string>(),
-                PlayerBoothPrices = System.Array.Empty<int>(),
-                BoothRevenue = 0
-            };
+                var existingBag = saveData.BagItems ?? System.Array.Empty<SerializedBagItem>();
+                var newBag = new SerializedBagItem[existingBag.Length + result.ItemsDropped.Length];
+                System.Array.Copy(existingBag, newBag, existingBag.Length);
+
+                for (int i = 0; i < result.ItemsDropped.Length; i++)
+                {
+                    newBag[existingBag.Length + i] = SerializedBagItem.FromEquipment(new SerializedEquipment
+                    {
+                        DataID = result.ItemsDropped[i],
+                        UpgradeLevel = 0,
+                        Gems = System.Array.Empty<SerializedGem>()
+                    });
+                }
+
+                saveData.BagItems = newBag;
+            }
 
             _saveManager.SaveGame(saveData);
-            Debug.Log($"[SaveSystem] Auto-saved after area session. Level={saveData.CharacterLevel}, Gold={saveData.Gold}");
+            Debug.Log($"[SaveSystem] Auto-saved after area session. Level={saveData.CharacterLevel}, Gold={saveData.Gold}, Bag={saveData.BagItems.Length} items");
         }
 
         private void OnAreaContinue()
@@ -194,6 +243,13 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _mapManager.OnAreaSessionEnd -= OnAutoSave;
                 if (_combatManager != null)
                     _combatManager.OnEnemyKilled -= _mapManager.OnEnemyDied;
+                if (_lootVisualManager != null)
+                {
+                    _mapManager.OnGoldDropped -= _lootVisualManager.SpawnGoldCoin;
+                    _mapManager.OnEquipmentDropped -= _lootVisualManager.SpawnEquipmentDrop;
+                    _lootVisualManager.OnEquipmentCollected -= _mapManager.CollectItem;
+                    _mapManager.OnAreaSessionEnding -= OnAutoCollectLoot;
+                }
             }
             if (_runSummary != null)
                 _runSummary.OnContinue -= OnAreaContinue;

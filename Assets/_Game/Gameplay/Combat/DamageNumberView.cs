@@ -17,11 +17,20 @@ namespace ConquerChronicles.Gameplay.Combat
 
         public void Play(int damage, bool isCritical, Vector3 worldPosition)
         {
+            PlayText(
+                damage.ToString(),
+                isCritical ? 6f : 4f,
+                isCritical ? new Color(1f, 0.85f, 0f, 1f) : Color.white,
+                worldPosition);
+        }
+
+        public void PlayText(string text, float fontSize, Color color, Vector3 worldPosition)
+        {
             if (_text == null) _text = GetComponent<TextMeshPro>();
             transform.position = worldPosition;
-            _text.text = damage.ToString();
-            _text.fontSize = isCritical ? 6f : 4f;
-            _text.color = isCritical ? new Color(1f, 0.85f, 0f, 1f) : Color.white; // gold for crit
+            _text.text = text;
+            _text.fontSize = fontSize;
+            _text.color = color;
             _text.alpha = 1f;
             gameObject.SetActive(true);
 
