@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
@@ -76,6 +78,15 @@ namespace ConquerChronicles.Editor
             camera.clearFlags = CameraClearFlags.SolidColor;
             var isoCam = cameraGO.GetComponent<IsometricCamera>();
             if (isoCam == null) isoCam = cameraGO.AddComponent<IsometricCamera>();
+
+            // --- EventSystem (required for UI input) ---
+            var existingES = GameObject.FindFirstObjectByType<EventSystem>();
+            if (existingES == null)
+            {
+                var esGO = new GameObject("EventSystem");
+                esGO.AddComponent<EventSystem>();
+                esGO.AddComponent<InputSystemUIInputModule>();
+            }
 
             // --- Player ---
             var playerGO = new GameObject("Player");

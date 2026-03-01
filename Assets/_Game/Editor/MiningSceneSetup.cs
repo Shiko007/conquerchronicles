@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
@@ -38,6 +40,15 @@ namespace ConquerChronicles.Editor
             camera.orthographicSize = 5f;
             camera.backgroundColor = new Color(0.06f, 0.06f, 0.1f, 1f);
             camera.clearFlags = CameraClearFlags.SolidColor;
+
+            // --- EventSystem (required for UI input) ---
+            var existingES = GameObject.FindFirstObjectByType<EventSystem>();
+            if (existingES == null)
+            {
+                var esGO = new GameObject("EventSystem");
+                esGO.AddComponent<EventSystem>();
+                esGO.AddComponent<InputSystemUIInputModule>();
+            }
 
             // --- Canvas ---
             var canvasGO = new GameObject("Mining_Canvas");
