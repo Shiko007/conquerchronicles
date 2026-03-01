@@ -7,6 +7,7 @@ namespace ConquerChronicles.Core.Mining
     {
         public int Gold;
         public GemData[] Gems;
+        public OreData[] Ores;
         public bool IsEmpty; // true if nothing mined yet
     }
 }

@@ -1,3 +1,5 @@
+using ConquerChronicles.Core.Equipment;
+
 namespace ConquerChronicles.Core.Mining
 {
     /// <summary>
@@ -16,7 +18,11 @@ namespace ConquerChronicles.Core.Mining
             MinGemTier = 1,
             MaxGemTier = 2,
             GemDropCount = 1,
-            Description = "A beginner mine with modest yields. Copper veins occasionally reveal low-tier gems."
+            Description = "A beginner mine with modest yields. Copper veins occasionally reveal low-tier gems.",
+            AvailableGems = new[] { GemType.Dragon, GemType.Tortoise },
+            AvailableOres = new[] { OreType.Iron, OreType.Copper },
+            MinOreCount = 1,
+            MaxOreCount = 2
         };
 
         public static MineData SilverMine => new()
@@ -30,7 +36,11 @@ namespace ConquerChronicles.Core.Mining
             MinGemTier = 2,
             MaxGemTier = 4,
             GemDropCount = 1,
-            Description = "Rich silver deposits with a chance of mid-tier gems hiding in the ore."
+            Description = "Rich silver deposits with a chance of mid-tier gems hiding in the ore.",
+            AvailableGems = new[] { GemType.Phoenix, GemType.Moon, GemType.Tortoise },
+            AvailableOres = new[] { OreType.Copper, OreType.Silver },
+            MinOreCount = 1,
+            MaxOreCount = 3
         };
 
         public static MineData GoldMine => new()
@@ -44,7 +54,11 @@ namespace ConquerChronicles.Core.Mining
             MinGemTier = 3,
             MaxGemTier = 6,
             GemDropCount = 2,
-            Description = "Deep gold veins guarded by ancient wards. Yields valuable gems alongside gold."
+            Description = "Deep gold veins guarded by ancient wards. Yields valuable gems alongside gold.",
+            AvailableGems = new[] { GemType.Phoenix, GemType.Fury, GemType.Thunder },
+            AvailableOres = new[] { OreType.Silver, OreType.Gold },
+            MinOreCount = 2,
+            MaxOreCount = 4
         };
 
         public static MineData CrystalMine => new()
@@ -58,7 +72,11 @@ namespace ConquerChronicles.Core.Mining
             MinGemTier = 5,
             MaxGemTier = 8,
             GemDropCount = 2,
-            Description = "A crystalline cavern pulsing with magical energy. High-tier gems are common here."
+            Description = "A crystalline cavern pulsing with magical energy. High-tier gems are common here.",
+            AvailableGems = new[] { GemType.Fury, GemType.Thunder, GemType.Rainbow },
+            AvailableOres = new[] { OreType.Gold, OreType.Meteor },
+            MinOreCount = 2,
+            MaxOreCount = 5
         };
 
         public static MineData DragonMine => new()
@@ -72,7 +90,11 @@ namespace ConquerChronicles.Core.Mining
             MinGemTier = 7,
             MaxGemTier = 9,
             GemDropCount = 3,
-            Description = "The legendary dragon's hoard. Only the strongest dare enter. Supreme gems await."
+            Description = "The legendary dragon's hoard. Only the strongest dare enter. Supreme gems await.",
+            AvailableGems = new[] { GemType.Dragon, GemType.Phoenix, GemType.Fury, GemType.Rainbow },
+            AvailableOres = new[] { OreType.Meteor },
+            MinOreCount = 3,
+            MaxOreCount = 6
         };
 
         public static MineData[] GetAll() => new[]

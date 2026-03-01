@@ -1,3 +1,5 @@
+using ConquerChronicles.Core.Equipment;
+
 namespace ConquerChronicles.Core.Mining
 {
     [System.Serializable]
@@ -13,5 +15,9 @@ namespace ConquerChronicles.Core.Mining
         public int MaxGemTier;
         public int GemDropCount; // how many gems per mining session (1-3)
         public string Description;
+        public GemType[] AvailableGems;   // which gem types this mine can drop
+        public OreType[] AvailableOres;   // which ore types this mine can drop
+        public int MinOreCount;           // minimum ores per mining session
+        public int MaxOreCount;           // maximum ores per mining session
     }
 }
