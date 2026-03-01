@@ -3,12 +3,14 @@ using UnityEngine;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Combat;
 using ConquerChronicles.Core.Enemy;
+using ConquerChronicles.Core.Save;
 using ConquerChronicles.Core.Stage;
 using ConquerChronicles.Gameplay.Camera;
 using ConquerChronicles.Gameplay.Character;
 using ConquerChronicles.Gameplay.Combat;
 using ConquerChronicles.Gameplay.Enemy;
 using ConquerChronicles.Gameplay.Map;
+using ConquerChronicles.Gameplay.Save;
 using ConquerChronicles.Gameplay.Stage;
 using ConquerChronicles.Gameplay.UI.HUD;
 
@@ -43,6 +45,9 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         [Header("Settings")]
         [SerializeField] private CharacterClass _testClass = CharacterClass.Trojan;
         [SerializeField] private int _testStageIndex = 0;
+        [SerializeField] private bool _autoSave = true;
+
+        private SaveManager _saveManager;
 
         private void Start()
         {
@@ -118,6 +123,42 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 int idx = Mathf.Clamp(_testStageIndex, 0, stages.Length - 1);
                 _stageManager.StartStage(stages[idx]);
             }
+
+            // Save system
+            _saveManager = SaveSystemBridge.GetOrCreate();
+            if (_autoSave && _stageManager != null)
+            {
+                _stageManager.OnStageComplete += OnAutoSave;
+            }
+        }
+
+        private void OnAutoSave(StageResult result)
+        {
+            if (_saveManager == null) return;
+
+            var saveData = new SaveData
+            {
+                Version = 1,
+                SelectedClass = _testClass,
+                CharacterLevel = _characterView.State != null ? _characterView.State.Level : 1,
+                CharacterXP = _characterView.State != null ? _characterView.State.XP : 0,
+                Gold = result.GoldEarned,
+                EquippedItems = new SerializedEquipment[7],
+                BagItems = System.Array.Empty<SerializedEquipment>(),
+                GemBag = System.Array.Empty<SerializedGem>(),
+                CompletedStageIDs = System.Array.Empty<string>(),
+                CompletedStageStars = System.Array.Empty<int>(),
+                MetaCurrency = 0,
+                MetaUpgradeLevels = new int[8],
+                MiningStartTimestamp = 0,
+                ActiveMineID = string.Empty,
+                PlayerBoothItemIDs = System.Array.Empty<string>(),
+                PlayerBoothPrices = System.Array.Empty<int>(),
+                BoothRevenue = 0
+            };
+
+            _saveManager.SaveGame(saveData);
+            Debug.Log($"[SaveSystem] Auto-saved after stage. Level={saveData.CharacterLevel}, Gold={saveData.Gold}");
         }
 
         private void OnStageContinue()
@@ -136,6 +177,8 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _stageManager.OnWaveAnnouncement -= _waveAnnouncer.ShowAnnouncement;
                 if (_runSummary != null)
                     _stageManager.OnStageComplete -= _runSummary.Show;
+                if (_autoSave)
+                    _stageManager.OnStageComplete -= OnAutoSave;
             }
             if (_runSummary != null)
                 _runSummary.OnContinue -= OnStageContinue;
