@@ -15,8 +15,8 @@ namespace ConquerChronicles.Gameplay.UI.MainMenu
 
             _menuUI.OnMapSelectPressed = () => SceneManager.LoadScene("Gameplay");
             _menuUI.OnMiningPressed = () => SceneManager.LoadScene("Mining");
-            _menuUI.OnEquipmentPressed = () => Debug.Log("[MainMenu] Equipment not yet implemented.");
-            _menuUI.OnMarketPressed = () => Debug.Log("[MainMenu] Market not yet implemented.");
+            _menuUI.OnEquipmentPressed = () => SceneManager.LoadScene("Equipment");
+            _menuUI.OnMarketPressed = () => SceneManager.LoadScene("Market");
 
             // Load save data and display player info
             var saveManager = SaveSystemBridge.GetOrCreate();
