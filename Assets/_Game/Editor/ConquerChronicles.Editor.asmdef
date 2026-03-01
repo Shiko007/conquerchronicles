@@ -3,7 +3,8 @@
     "rootNamespace": "ConquerChronicles.Editor",
     "references": [
         "ConquerChronicles.Core",
-        "ConquerChronicles.Gameplay"
+        "ConquerChronicles.Gameplay",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"

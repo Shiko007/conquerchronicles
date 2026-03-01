@@ -1,11 +1,14 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using TMPro;
 using ConquerChronicles.Gameplay.Bootstrap;
 using ConquerChronicles.Gameplay.Camera;
 using ConquerChronicles.Gameplay.Character;
+using ConquerChronicles.Gameplay.Combat;
 using ConquerChronicles.Gameplay.Enemy;
 using ConquerChronicles.Gameplay.Map;
+using ConquerChronicles.Gameplay.UI.HUD;
 
 namespace ConquerChronicles.Editor
 {
@@ -14,8 +17,26 @@ namespace ConquerChronicles.Editor
         [MenuItem("Conquer Chronicles/Setup Phase 2 Scene")]
         public static void Setup()
         {
-            // --- Create Enemy Prefab ---
+            SetupScene(false);
+        }
+
+        [MenuItem("Conquer Chronicles/Setup Phase 3 Combat Scene")]
+        public static void SetupCombat()
+        {
+            SetupScene(true);
+        }
+
+        private static void SetupScene(bool withCombat)
+        {
+            // --- Create Prefabs ---
             var enemyPrefab = CreateEnemyPrefab();
+            DamageNumberView dmgNumPrefabView = null;
+            HitEffectView hitFxPrefabView = null;
+            if (withCombat)
+            {
+                dmgNumPrefabView = CreateDamageNumberPrefab();
+                hitFxPrefabView = CreateHitEffectPrefab();
+            }
 
             // --- Clear current scene objects (except camera) ---
             var scene = EditorSceneManager.GetActiveScene();
@@ -54,8 +75,6 @@ namespace ConquerChronicles.Editor
             playerGO.transform.localScale = new Vector3(1.5f, 1.5f, 1f);
             var characterView = playerGO.AddComponent<CharacterView>();
             playerGO.AddComponent<IsometricYSort>();
-
-            // Wire CharacterView sprite renderer via serialized field
             var cvSO = new SerializedObject(characterView);
             cvSO.FindProperty("_spriteRenderer").objectReferenceValue = playerSR;
             cvSO.ApplyModifiedPropertiesWithoutUndo();
@@ -80,6 +99,47 @@ namespace ConquerChronicles.Editor
             var gridGO = new GameObject("IsometricGrid");
             gridGO.AddComponent<IsometricGrid>();
 
+            // --- Combat objects (Phase 3) ---
+            CombatManager combatManager = null;
+            DamageNumberPool damageNumberPool = null;
+            HitEffectPool hitEffectPool = null;
+
+            if (withCombat)
+            {
+                // DamageNumberPool
+                var dmgPoolGO = new GameObject("DamageNumberPool");
+                damageNumberPool = dmgPoolGO.AddComponent<DamageNumberPool>();
+                if (dmgNumPrefabView != null)
+                {
+                    var dmgSO = new SerializedObject(damageNumberPool);
+                    dmgSO.FindProperty("_prefab").objectReferenceValue = dmgNumPrefabView;
+                    dmgSO.FindProperty("_warmupCount").intValue = 32;
+                    dmgSO.ApplyModifiedPropertiesWithoutUndo();
+                }
+
+                // HitEffectPool
+                var hitPoolGO = new GameObject("HitEffectPool");
+                hitEffectPool = hitPoolGO.AddComponent<HitEffectPool>();
+                if (hitFxPrefabView != null)
+                {
+                    var hitSO = new SerializedObject(hitEffectPool);
+                    hitSO.FindProperty("_prefab").objectReferenceValue = hitFxPrefabView;
+                    hitSO.FindProperty("_warmupCount").intValue = 32;
+                    hitSO.ApplyModifiedPropertiesWithoutUndo();
+                }
+
+                // CombatManager
+                var combatGO = new GameObject("CombatManager");
+                combatManager = combatGO.AddComponent<CombatManager>();
+            }
+
+            // --- HUD Canvas (Phase 3) ---
+            PlayerHUD playerHUD = null;
+            if (withCombat)
+            {
+                playerHUD = CreateHUDCanvas();
+            }
+
             // --- GameManager (Test Setup) ---
             var managerGO = new GameObject("GameManager");
             var testSetup = managerGO.AddComponent<GameplayTestSetup>();
@@ -89,58 +149,268 @@ namespace ConquerChronicles.Editor
             tsSO.FindProperty("_enemyPool").objectReferenceValue = enemyPool;
             tsSO.FindProperty("_enemySpawner").objectReferenceValue = enemySpawner;
             tsSO.FindProperty("_mapBoundsProvider").objectReferenceValue = mapBounds;
-            tsSO.FindProperty("_spawnInterval").floatValue = 2f;
-            tsSO.FindProperty("_maxEnemies").intValue = 30;
+            if (withCombat)
+            {
+                tsSO.FindProperty("_combatManager").objectReferenceValue = combatManager;
+                tsSO.FindProperty("_damageNumberPool").objectReferenceValue = damageNumberPool;
+                tsSO.FindProperty("_hitEffectPool").objectReferenceValue = hitEffectPool;
+                tsSO.FindProperty("_playerHUD").objectReferenceValue = playerHUD;
+                tsSO.FindProperty("_spawnInterval").floatValue = 1.5f;
+                tsSO.FindProperty("_maxEnemies").intValue = 40;
+            }
+            else
+            {
+                tsSO.FindProperty("_spawnInterval").floatValue = 2f;
+                tsSO.FindProperty("_maxEnemies").intValue = 30;
+            }
             tsSO.ApplyModifiedPropertiesWithoutUndo();
 
-            // --- Mark scene dirty so it can be saved ---
             EditorSceneManager.MarkSceneDirty(scene);
 
-            Debug.Log("[Conquer Chronicles] Phase 2 scene setup complete! Hit Play to test.");
+            string phase = withCombat ? "Phase 3 (Combat)" : "Phase 2";
+            Debug.Log($"[Conquer Chronicles] {phase} scene setup complete! Hit Play to test.");
         }
+
+        // --- Prefab Creators ---
 
         private static GameObject CreateEnemyPrefab()
         {
-            // Ensure directory exists
-            if (!AssetDatabase.IsValidFolder("Assets/_Game/Data"))
-                AssetDatabase.CreateFolder("Assets/_Game", "Data");
-            if (!AssetDatabase.IsValidFolder("Assets/_Game/Data/Prefabs"))
-                AssetDatabase.CreateFolder("Assets/_Game/Data", "Prefabs");
+            EnsureFolder("Assets/_Game/Data/Prefabs");
 
-            // Check if prefab already exists
-            var existingPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
-            if (existingPrefab != null) return existingPrefab;
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
+            if (existing != null) return existing;
 
-            // Build the enemy GameObject
-            var enemyGO = new GameObject("Enemy_Slime");
-            var sr = enemyGO.AddComponent<SpriteRenderer>();
+            var go = new GameObject("Enemy_Slime");
+            var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = CreateCircleSprite("EnemySprite", new Color(0.3f, 0.9f, 0.3f, 1f), 24);
             sr.sortingLayerName = "Default";
 
-            var enemyView = enemyGO.AddComponent<EnemyView>();
-            var evSO = new SerializedObject(enemyView);
-            evSO.FindProperty("_spriteRenderer").objectReferenceValue = sr;
-            evSO.ApplyModifiedPropertiesWithoutUndo();
+            var view = go.AddComponent<EnemyView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_spriteRenderer").objectReferenceValue = sr;
+            so.ApplyModifiedPropertiesWithoutUndo();
 
-            enemyGO.AddComponent<EnemyMovement>();
-            enemyGO.AddComponent<IsometricYSort>();
+            go.AddComponent<EnemyMovement>();
+            go.AddComponent<IsometricYSort>();
 
-            // Save as prefab
-            var prefab = PrefabUtility.SaveAsPrefabAsset(enemyGO, "Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
-            Object.DestroyImmediate(enemyGO);
-
-            Debug.Log("[Conquer Chronicles] Created enemy prefab: Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
+            Object.DestroyImmediate(go);
             return prefab;
+        }
+
+        private static DamageNumberView CreateDamageNumberPrefab()
+        {
+            EnsureFolder("Assets/_Game/Data/Prefabs");
+
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Data/Prefabs/DamageNumber.prefab");
+            if (existing != null) return existing.GetComponent<DamageNumberView>();
+
+            var go = new GameObject("DamageNumber");
+            var tmp = go.AddComponent<TextMeshPro>();
+            tmp.fontSize = 4f;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.sortingOrder = 100;
+            tmp.color = Color.white;
+
+            var view = go.AddComponent<DamageNumberView>();
+            go.SetActive(false);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/_Game/Data/Prefabs/DamageNumber.prefab");
+            Object.DestroyImmediate(go);
+            return prefab.GetComponent<DamageNumberView>();
+        }
+
+        private static HitEffectView CreateHitEffectPrefab()
+        {
+            EnsureFolder("Assets/_Game/Data/Prefabs");
+
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Data/Prefabs/HitEffect.prefab");
+            if (existing != null) return existing.GetComponent<HitEffectView>();
+
+            var go = new GameObject("HitEffect");
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = CreateCircleSprite("HitEffectSprite", new Color(1f, 1f, 1f, 0.8f), 16);
+            sr.sortingLayerName = "Default";
+            sr.sortingOrder = 90;
+
+            var view = go.AddComponent<HitEffectView>();
+            var so = new SerializedObject(view);
+            so.FindProperty("_spriteRenderer").objectReferenceValue = sr;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            go.SetActive(false);
+
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/_Game/Data/Prefabs/HitEffect.prefab");
+            Object.DestroyImmediate(go);
+            return prefab.GetComponent<HitEffectView>();
+        }
+
+        // --- HUD Canvas ---
+
+        private static PlayerHUD CreateHUDCanvas()
+        {
+            // Canvas
+            var canvasGO = new GameObject("HUD_Canvas");
+            var canvas = canvasGO.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 10;
+            var scaler = canvasGO.AddComponent<UnityEngine.UI.CanvasScaler>();
+            scaler.uiScaleMode = UnityEngine.UI.CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080, 1920);
+            scaler.matchWidthOrHeight = 0.5f;
+            canvasGO.AddComponent<UnityEngine.UI.GraphicRaycaster>();
+
+            // Top-left panel
+            var panelGO = CreateUIPanel(canvasGO.transform, "HUD_Panel",
+                new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(20, -20), new Vector2(400, 200));
+
+            // HP Bar
+            var hpBarBG = CreateUIImage(panelGO.transform, "HP_Bar_BG",
+                new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(10, -10), new Vector2(300, 30),
+                new Color(0.2f, 0.0f, 0.0f, 0.8f));
+            var hpFill = CreateUIImage(hpBarBG.transform, "HP_Fill",
+                new Vector2(0, 0.5f), new Vector2(0, 0.5f),
+                new Vector2(2, 0), new Vector2(296, 26),
+                new Color(0.8f, 0.1f, 0.1f, 1f));
+            hpFill.GetComponent<UnityEngine.UI.Image>().type = UnityEngine.UI.Image.Type.Filled;
+            hpFill.GetComponent<UnityEngine.UI.Image>().fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+            var hpText = CreateUIText(hpBarBG.transform, "HP_Text", "100/100",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 18);
+
+            // MP Bar
+            var mpBarBG = CreateUIImage(panelGO.transform, "MP_Bar_BG",
+                new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(10, -50), new Vector2(300, 25),
+                new Color(0.0f, 0.0f, 0.2f, 0.8f));
+            var mpFill = CreateUIImage(mpBarBG.transform, "MP_Fill",
+                new Vector2(0, 0.5f), new Vector2(0, 0.5f),
+                new Vector2(2, 0), new Vector2(296, 21),
+                new Color(0.1f, 0.3f, 0.9f, 1f));
+            mpFill.GetComponent<UnityEngine.UI.Image>().type = UnityEngine.UI.Image.Type.Filled;
+            mpFill.GetComponent<UnityEngine.UI.Image>().fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+            var mpText = CreateUIText(mpBarBG.transform, "MP_Text", "50/50",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 14);
+
+            // XP Bar
+            var xpBarBG = CreateUIImage(panelGO.transform, "XP_Bar_BG",
+                new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(10, -85), new Vector2(300, 18),
+                new Color(0.1f, 0.1f, 0.1f, 0.8f));
+            var xpFill = CreateUIImage(xpBarBG.transform, "XP_Fill",
+                new Vector2(0, 0.5f), new Vector2(0, 0.5f),
+                new Vector2(2, 0), new Vector2(296, 14),
+                new Color(0.9f, 0.8f, 0.1f, 1f));
+            xpFill.GetComponent<UnityEngine.UI.Image>().type = UnityEngine.UI.Image.Type.Filled;
+            xpFill.GetComponent<UnityEngine.UI.Image>().fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+
+            // Level text
+            var levelText = CreateUIText(panelGO.transform, "Level_Text", "Lv.1",
+                new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(10, -108), new Vector2(120, 35), 24);
+
+            // Kill counter
+            var killText = CreateUIText(panelGO.transform, "Kill_Text", "Kills: 0",
+                new Vector2(0, 1), new Vector2(0, 1),
+                new Vector2(10, -145), new Vector2(200, 30), 20);
+
+            // Wire PlayerHUD
+            var hud = canvasGO.AddComponent<PlayerHUD>();
+            var hudSO = new SerializedObject(hud);
+            hudSO.FindProperty("_hpFill").objectReferenceValue = hpFill.GetComponent<UnityEngine.UI.Image>();
+            hudSO.FindProperty("_hpText").objectReferenceValue = hpText.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("_mpFill").objectReferenceValue = mpFill.GetComponent<UnityEngine.UI.Image>();
+            hudSO.FindProperty("_mpText").objectReferenceValue = mpText.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("_xpFill").objectReferenceValue = xpFill.GetComponent<UnityEngine.UI.Image>();
+            hudSO.FindProperty("_levelText").objectReferenceValue = levelText.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("_killCountText").objectReferenceValue = killText.GetComponent<TextMeshProUGUI>();
+            hudSO.ApplyModifiedPropertiesWithoutUndo();
+
+            return hud;
+        }
+
+        // --- UI Helpers ---
+
+        private static GameObject CreateUIPanel(Transform parent, string name,
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 sizeDelta)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.pivot = anchorMin;
+            rt.anchoredPosition = anchoredPos;
+            rt.sizeDelta = sizeDelta;
+            return go;
+        }
+
+        private static GameObject CreateUIImage(Transform parent, string name,
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 sizeDelta, Color color)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.pivot = anchorMin;
+            rt.anchoredPosition = anchoredPos;
+            rt.sizeDelta = sizeDelta;
+            var img = go.AddComponent<UnityEngine.UI.Image>();
+            img.color = color;
+            return go;
+        }
+
+        private static GameObject CreateUIText(Transform parent, string name, string text,
+            Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPos, Vector2 sizeDelta, float fontSize)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.pivot = anchorMin;
+            rt.anchoredPosition = anchoredPos;
+            rt.sizeDelta = sizeDelta;
+            var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.text = text;
+            tmp.fontSize = fontSize;
+            tmp.color = Color.white;
+            tmp.alignment = TextAlignmentOptions.Left;
+
+            // Stretch to fill parent if anchors span full range
+            if (anchorMin == Vector2.zero && anchorMax == Vector2.one)
+            {
+                rt.offsetMin = Vector2.zero;
+                rt.offsetMax = Vector2.zero;
+                tmp.alignment = TextAlignmentOptions.Center;
+            }
+
+            return go;
+        }
+
+        // --- Asset Helpers ---
+
+        private static void EnsureFolder(string path)
+        {
+            var parts = path.Split('/');
+            string current = parts[0];
+            for (int i = 1; i < parts.Length; i++)
+            {
+                string next = current + "/" + parts[i];
+                if (!AssetDatabase.IsValidFolder(next))
+                    AssetDatabase.CreateFolder(current, parts[i]);
+                current = next;
+            }
         }
 
         private static Sprite CreateCircleSprite(string name, Color color, int size)
         {
-            // Check if sprite already exists
             string path = $"Assets/Visual/Sprites/{name}.png";
             var existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (existing != null) return existing;
 
-            // Generate a simple filled circle texture
             var tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
             tex.filterMode = FilterMode.Point;
             float center = size / 2f;
@@ -153,7 +423,6 @@ namespace ConquerChronicles.Editor
                     float dist = Vector2.Distance(new Vector2(x, y), new Vector2(center, center));
                     if (dist <= radius)
                     {
-                        // Simple shading: lighter toward top-left
                         float shade = 1f - (dist / radius) * 0.3f;
                         float highlight = Mathf.Max(0, 1f - Vector2.Distance(
                             new Vector2(x, y),
@@ -170,12 +439,10 @@ namespace ConquerChronicles.Editor
             }
             tex.Apply();
 
-            // Save texture as PNG
             byte[] png = tex.EncodeToPNG();
             System.IO.File.WriteAllBytes(path, png);
             AssetDatabase.Refresh();
 
-            // Configure import settings for pixel art
             var importer = (TextureImporter)AssetImporter.GetAtPath(path);
             if (importer != null)
             {
