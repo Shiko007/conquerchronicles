@@ -27,9 +27,9 @@ namespace ConquerChronicles.Gameplay.Stage
             _canvasGroup.alpha = 0f;
 
             _sequence = DOTween.Sequence()
-                .Append(_canvasGroup.DOFade(1f, 0.3f).SetEase(Ease.OutQuad))
+                .Append(DOTween.To(() => _canvasGroup.alpha, a => _canvasGroup.alpha = a, 1f, 0.3f).SetEase(Ease.OutQuad))
                 .AppendInterval(_displayDuration)
-                .Append(_canvasGroup.DOFade(0f, 0.5f).SetEase(Ease.InQuad));
+                .Append(DOTween.To(() => _canvasGroup.alpha, a => _canvasGroup.alpha = a, 0f, 0.5f).SetEase(Ease.InQuad));
         }
 
         private void OnDestroy()
