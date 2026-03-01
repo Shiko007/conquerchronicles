@@ -2,11 +2,12 @@ namespace ConquerChronicles.Core.Character
 {
     public enum CharacterClass
     {
-        Trojan,
-        Warrior,
-        Archer,
-        WaterTaoist,
-        FireTaoist,
-        Ninja
+        None = 0,
+        Trojan = 1,
+        Warrior = 2,
+        Archer = 3,
+        WaterTaoist = 4,
+        FireTaoist = 5,
+        Ninja = 6
     }
 }

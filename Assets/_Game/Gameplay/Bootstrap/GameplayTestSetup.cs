@@ -63,9 +63,9 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             if (_damageNumberPool != null) _damageNumberPool.Warmup();
             if (_hitEffectPool != null) _hitEffectPool.Warmup();
 
-            // Set up Trojan skills
+            // Set up class skills
             var skills = new List<SkillState>();
-            foreach (var skillData in TrojanSkills.GetAll())
+            foreach (var skillData in ClassSkills.GetSkillsForClass(_testClass))
             {
                 skills.Add(new SkillState(skillData));
             }
