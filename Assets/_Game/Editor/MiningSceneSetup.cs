@@ -360,6 +360,13 @@ namespace ConquerChronicles.Editor
 
             uiSO.ApplyModifiedPropertiesWithoutUndo();
 
+            // Wire MiningController (handles start mining, collect, back navigation)
+            var controllerGO = new GameObject("MiningController");
+            var controller = controllerGO.AddComponent<MiningController>();
+            var cso = new SerializedObject(controller);
+            cso.FindProperty("_miningUI").objectReferenceValue = miningSceneUI;
+            cso.ApplyModifiedPropertiesWithoutUndo();
+
             // --- Finalize ---
             EditorSceneManager.MarkSceneDirty(scene);
             Debug.Log("[Conquer Chronicles] Mining scene setup complete! Hit Play to test.");

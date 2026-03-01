@@ -193,6 +193,15 @@ namespace ConquerChronicles.Editor
 
             so.ApplyModifiedPropertiesWithoutUndo();
 
+            // ======================
+            // Wire MainMenuController (handles scene navigation)
+            // ======================
+            var controllerGO = new GameObject("MainMenuController");
+            var controller = controllerGO.AddComponent<MainMenuController>();
+            var cso = new SerializedObject(controller);
+            cso.FindProperty("_menuUI").objectReferenceValue = mainMenuUI;
+            cso.ApplyModifiedPropertiesWithoutUndo();
+
             // --- Mark scene dirty ---
             EditorSceneManager.MarkSceneDirty(scene);
 
