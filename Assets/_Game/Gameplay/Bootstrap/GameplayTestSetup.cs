@@ -3,17 +3,19 @@ using UnityEngine;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Combat;
 using ConquerChronicles.Core.Enemy;
+using ConquerChronicles.Core.Stage;
 using ConquerChronicles.Gameplay.Camera;
 using ConquerChronicles.Gameplay.Character;
 using ConquerChronicles.Gameplay.Combat;
 using ConquerChronicles.Gameplay.Enemy;
 using ConquerChronicles.Gameplay.Map;
+using ConquerChronicles.Gameplay.Stage;
 using ConquerChronicles.Gameplay.UI.HUD;
 
 namespace ConquerChronicles.Gameplay.Bootstrap
 {
     /// <summary>
-    /// Test harness for Phase 3 combat testing.
+    /// Test harness for Phase 4 stage-based combat.
     /// Drop this on a GameObject in the scene — wires everything together.
     /// </summary>
     public class GameplayTestSetup : MonoBehaviour
@@ -30,36 +32,17 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         [SerializeField] private DamageNumberPool _damageNumberPool;
         [SerializeField] private HitEffectPool _hitEffectPool;
 
+        [Header("Stage")]
+        [SerializeField] private StageManager _stageManager;
+        [SerializeField] private WaveAnnouncerUI _waveAnnouncer;
+        [SerializeField] private RunSummaryUI _runSummary;
+
         [Header("UI")]
         [SerializeField] private PlayerHUD _playerHUD;
 
         [Header("Settings")]
         [SerializeField] private CharacterClass _testClass = CharacterClass.Trojan;
-        [SerializeField] private float _spawnInterval = 1.5f;
-        [SerializeField] private int _maxEnemies = 40;
-
-        private float _spawnTimer;
-
-        private readonly EnemyData _testEnemy = new()
-        {
-            ID = "slime_01",
-            Name = "Green Slime",
-            Stats = new CharacterStats
-            {
-                HP = 30,
-                ATK = 5,
-                DEF = 2,
-                MATK = 0,
-                MDEF = 1,
-                AGI = 3
-            },
-            MoveSpeed = 1.5f,
-            AttackRange = 0.5f,
-            AttackCooldown = 1.5f,
-            XPReward = 10,
-            GoldReward = 5,
-            IsBoss = false
-        };
+        [SerializeField] private int _testStageIndex = 0;
 
         private void Start()
         {
@@ -103,17 +86,59 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             {
                 _playerHUD.Initialize(_characterView, _combatManager);
             }
+
+            // Build enemy catalog from test data
+            var enemyCatalog = new Dictionary<string, EnemyData>();
+            foreach (var enemy in TestStages.AllEnemies)
+            {
+                enemyCatalog[enemy.ID] = enemy;
+            }
+
+            // Stage manager
+            if (_stageManager != null)
+            {
+                _stageManager.Initialize(_enemySpawner, _combatManager, _characterView, enemyCatalog);
+
+                // Wire wave announcer
+                if (_waveAnnouncer != null)
+                {
+                    _stageManager.OnWaveAnnouncement += _waveAnnouncer.ShowAnnouncement;
+                }
+
+                // Wire run summary
+                if (_runSummary != null)
+                {
+                    _runSummary.Initialize();
+                    _stageManager.OnStageComplete += _runSummary.Show;
+                    _runSummary.OnContinue += OnStageContinue;
+                }
+
+                // Start the selected test stage
+                var stages = TestStages.AllStages;
+                int idx = Mathf.Clamp(_testStageIndex, 0, stages.Length - 1);
+                _stageManager.StartStage(stages[idx]);
+            }
         }
 
-        private void Update()
+        private void OnStageContinue()
         {
-            _spawnTimer += Time.deltaTime;
+            // Restart the same stage for testing
+            var stages = TestStages.AllStages;
+            int idx = Mathf.Clamp(_testStageIndex, 0, stages.Length - 1);
+            _stageManager.StartStage(stages[idx]);
+        }
 
-            if (_spawnTimer >= _spawnInterval && _enemySpawner.ActiveCount < _maxEnemies)
+        private void OnDestroy()
+        {
+            if (_stageManager != null)
             {
-                _spawnTimer = 0f;
-                _enemySpawner.SpawnEnemy(_testEnemy, SpawnEdge.Random);
+                if (_waveAnnouncer != null)
+                    _stageManager.OnWaveAnnouncement -= _waveAnnouncer.ShowAnnouncement;
+                if (_runSummary != null)
+                    _stageManager.OnStageComplete -= _runSummary.Show;
             }
+            if (_runSummary != null)
+                _runSummary.OnContinue -= OnStageContinue;
         }
     }
 }

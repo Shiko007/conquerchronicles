@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
@@ -8,6 +9,7 @@ using ConquerChronicles.Gameplay.Character;
 using ConquerChronicles.Gameplay.Combat;
 using ConquerChronicles.Gameplay.Enemy;
 using ConquerChronicles.Gameplay.Map;
+using ConquerChronicles.Gameplay.Stage;
 using ConquerChronicles.Gameplay.UI.HUD;
 
 namespace ConquerChronicles.Editor
@@ -17,17 +19,26 @@ namespace ConquerChronicles.Editor
         [MenuItem("Conquer Chronicles/Setup Phase 2 Scene")]
         public static void Setup()
         {
-            SetupScene(false);
+            SetupScene(0);
         }
 
         [MenuItem("Conquer Chronicles/Setup Phase 3 Combat Scene")]
         public static void SetupCombat()
         {
-            SetupScene(true);
+            SetupScene(1);
         }
 
-        private static void SetupScene(bool withCombat)
+        [MenuItem("Conquer Chronicles/Setup Phase 4 Stage Scene")]
+        public static void SetupStage()
         {
+            SetupScene(2);
+        }
+
+        // phase: 0=Phase2, 1=Phase3, 2=Phase4
+        private static void SetupScene(int phase)
+        {
+            bool withCombat = phase >= 1;
+            bool withStage = phase >= 2;
             // --- Create Prefabs ---
             var enemyPrefab = CreateEnemyPrefab();
             DamageNumberView dmgNumPrefabView = null;
@@ -133,11 +144,29 @@ namespace ConquerChronicles.Editor
                 combatManager = combatGO.AddComponent<CombatManager>();
             }
 
-            // --- HUD Canvas (Phase 3) ---
+            // --- HUD Canvas ---
             PlayerHUD playerHUD = null;
             if (withCombat)
             {
                 playerHUD = CreateHUDCanvas();
+            }
+
+            // --- Stage system (Phase 4) ---
+            StageManager stageManager = null;
+            WaveAnnouncerUI waveAnnouncer = null;
+            RunSummaryUI runSummary = null;
+
+            if (withStage)
+            {
+                // StageManager
+                var stageGO = new GameObject("StageManager");
+                stageManager = stageGO.AddComponent<StageManager>();
+
+                // WaveAnnouncerUI — center screen text overlay
+                waveAnnouncer = CreateWaveAnnouncerUI();
+
+                // RunSummaryUI — post-stage result panel
+                runSummary = CreateRunSummaryUI();
             }
 
             // --- GameManager (Test Setup) ---
@@ -155,20 +184,20 @@ namespace ConquerChronicles.Editor
                 tsSO.FindProperty("_damageNumberPool").objectReferenceValue = damageNumberPool;
                 tsSO.FindProperty("_hitEffectPool").objectReferenceValue = hitEffectPool;
                 tsSO.FindProperty("_playerHUD").objectReferenceValue = playerHUD;
-                tsSO.FindProperty("_spawnInterval").floatValue = 1.5f;
-                tsSO.FindProperty("_maxEnemies").intValue = 40;
             }
-            else
+            if (withStage)
             {
-                tsSO.FindProperty("_spawnInterval").floatValue = 2f;
-                tsSO.FindProperty("_maxEnemies").intValue = 30;
+                tsSO.FindProperty("_stageManager").objectReferenceValue = stageManager;
+                tsSO.FindProperty("_waveAnnouncer").objectReferenceValue = waveAnnouncer;
+                tsSO.FindProperty("_runSummary").objectReferenceValue = runSummary;
+                tsSO.FindProperty("_testStageIndex").intValue = 0;
             }
             tsSO.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.MarkSceneDirty(scene);
 
-            string phase = withCombat ? "Phase 3 (Combat)" : "Phase 2";
-            Debug.Log($"[Conquer Chronicles] {phase} scene setup complete! Hit Play to test.");
+            string phaseName = withStage ? "Phase 4 (Stages)" : withCombat ? "Phase 3 (Combat)" : "Phase 2";
+            Debug.Log($"[Conquer Chronicles] {phaseName} scene setup complete! Hit Play to test.");
         }
 
         // --- Prefab Creators ---
@@ -328,6 +357,173 @@ namespace ConquerChronicles.Editor
             hudSO.ApplyModifiedPropertiesWithoutUndo();
 
             return hud;
+        }
+
+        // --- Stage UI Creators ---
+
+        private static WaveAnnouncerUI CreateWaveAnnouncerUI()
+        {
+            var canvasGO = new GameObject("WaveAnnouncer_Canvas");
+            var canvas = canvasGO.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 20;
+            var scaler = canvasGO.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080, 1920);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            // Center text container with CanvasGroup for fading
+            var containerGO = new GameObject("AnnouncerContainer", typeof(RectTransform));
+            containerGO.transform.SetParent(canvasGO.transform, false);
+            var containerRT = containerGO.GetComponent<RectTransform>();
+            containerRT.anchorMin = new Vector2(0.1f, 0.4f);
+            containerRT.anchorMax = new Vector2(0.9f, 0.6f);
+            containerRT.offsetMin = Vector2.zero;
+            containerRT.offsetMax = Vector2.zero;
+            var canvasGroup = containerGO.AddComponent<CanvasGroup>();
+            canvasGroup.alpha = 0f;
+
+            // Background
+            var bgImg = containerGO.AddComponent<Image>();
+            bgImg.color = new Color(0f, 0f, 0f, 0.6f);
+
+            // Text
+            var textGO = new GameObject("AnnouncerText", typeof(RectTransform));
+            textGO.transform.SetParent(containerGO.transform, false);
+            var textRT = textGO.GetComponent<RectTransform>();
+            textRT.anchorMin = Vector2.zero;
+            textRT.anchorMax = Vector2.one;
+            textRT.offsetMin = Vector2.zero;
+            textRT.offsetMax = Vector2.zero;
+            var tmp = textGO.AddComponent<TextMeshProUGUI>();
+            tmp.text = "";
+            tmp.fontSize = 48;
+            tmp.color = Color.white;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.fontStyle = FontStyles.Bold;
+
+            var announcer = canvasGO.AddComponent<WaveAnnouncerUI>();
+            var so = new SerializedObject(announcer);
+            so.FindProperty("_text").objectReferenceValue = tmp;
+            so.FindProperty("_canvasGroup").objectReferenceValue = canvasGroup;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return announcer;
+        }
+
+        private static RunSummaryUI CreateRunSummaryUI()
+        {
+            var canvasGO = new GameObject("RunSummary_Canvas");
+            var canvas = canvasGO.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 30;
+            var scaler = canvasGO.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080, 1920);
+            scaler.matchWidthOrHeight = 0.5f;
+            canvasGO.AddComponent<GraphicRaycaster>();
+
+            // Dark overlay panel
+            var panelGO = new GameObject("SummaryPanel", typeof(RectTransform));
+            panelGO.transform.SetParent(canvasGO.transform, false);
+            var panelRT = panelGO.GetComponent<RectTransform>();
+            panelRT.anchorMin = new Vector2(0.1f, 0.15f);
+            panelRT.anchorMax = new Vector2(0.9f, 0.85f);
+            panelRT.offsetMin = Vector2.zero;
+            panelRT.offsetMax = Vector2.zero;
+            var panelImg = panelGO.AddComponent<Image>();
+            panelImg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
+
+            // Title (VICTORY / DEFEATED)
+            var titleGO = CreateUIText(panelGO.transform, "TitleText", "VICTORY!",
+                new Vector2(0, 1), new Vector2(1, 1),
+                new Vector2(0, -20), new Vector2(0, 80), 56);
+            var titleTMP = titleGO.GetComponent<TextMeshProUGUI>();
+            titleTMP.alignment = TextAlignmentOptions.Center;
+            titleTMP.fontStyle = FontStyles.Bold;
+            titleTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
+            var titleRT = titleGO.GetComponent<RectTransform>();
+            titleRT.anchorMin = new Vector2(0, 1);
+            titleRT.anchorMax = new Vector2(1, 1);
+            titleRT.pivot = new Vector2(0.5f, 1);
+            titleRT.anchoredPosition = new Vector2(0, -20);
+            titleRT.sizeDelta = new Vector2(0, 80);
+
+            // Stats texts (kills, time, gold, xp, stars)
+            float yOffset = -120f;
+            float lineHeight = 50f;
+
+            var killsGO = CreateStatText(panelGO.transform, "KillsText", "Enemies Killed: 0", yOffset);
+            yOffset -= lineHeight;
+            var timeGO = CreateStatText(panelGO.transform, "TimeText", "Time: 00:00", yOffset);
+            yOffset -= lineHeight;
+            var goldGO = CreateStatText(panelGO.transform, "GoldText", "Gold: +0", yOffset);
+            yOffset -= lineHeight;
+            var xpGO = CreateStatText(panelGO.transform, "XPText", "XP: +0", yOffset);
+            yOffset -= lineHeight;
+            var starsGO = CreateStatText(panelGO.transform, "StarsText", "Rating: [---]", yOffset);
+
+            // Continue button
+            var btnGO = new GameObject("ContinueButton", typeof(RectTransform));
+            btnGO.transform.SetParent(panelGO.transform, false);
+            var btnRT = btnGO.GetComponent<RectTransform>();
+            btnRT.anchorMin = new Vector2(0.2f, 0);
+            btnRT.anchorMax = new Vector2(0.8f, 0);
+            btnRT.pivot = new Vector2(0.5f, 0);
+            btnRT.anchoredPosition = new Vector2(0, 30);
+            btnRT.sizeDelta = new Vector2(0, 70);
+            var btnImg = btnGO.AddComponent<Image>();
+            btnImg.color = new Color(0.2f, 0.6f, 0.2f, 1f);
+            var btn = btnGO.AddComponent<Button>();
+            btn.targetGraphic = btnImg;
+
+            var btnTextGO = new GameObject("ButtonText", typeof(RectTransform));
+            btnTextGO.transform.SetParent(btnGO.transform, false);
+            var btnTextRT = btnTextGO.GetComponent<RectTransform>();
+            btnTextRT.anchorMin = Vector2.zero;
+            btnTextRT.anchorMax = Vector2.one;
+            btnTextRT.offsetMin = Vector2.zero;
+            btnTextRT.offsetMax = Vector2.zero;
+            var btnTMP = btnTextGO.AddComponent<TextMeshProUGUI>();
+            btnTMP.text = "Continue";
+            btnTMP.fontSize = 32;
+            btnTMP.color = Color.white;
+            btnTMP.alignment = TextAlignmentOptions.Center;
+
+            panelGO.SetActive(false);
+
+            // Wire RunSummaryUI
+            var summary = canvasGO.AddComponent<RunSummaryUI>();
+            var sso = new SerializedObject(summary);
+            sso.FindProperty("_panel").objectReferenceValue = panelGO;
+            sso.FindProperty("_titleText").objectReferenceValue = titleTMP;
+            sso.FindProperty("_killsText").objectReferenceValue = killsGO.GetComponent<TextMeshProUGUI>();
+            sso.FindProperty("_timeText").objectReferenceValue = timeGO.GetComponent<TextMeshProUGUI>();
+            sso.FindProperty("_goldText").objectReferenceValue = goldGO.GetComponent<TextMeshProUGUI>();
+            sso.FindProperty("_xpText").objectReferenceValue = xpGO.GetComponent<TextMeshProUGUI>();
+            sso.FindProperty("_starsText").objectReferenceValue = starsGO.GetComponent<TextMeshProUGUI>();
+            sso.FindProperty("_continueButton").objectReferenceValue = btn;
+            sso.ApplyModifiedPropertiesWithoutUndo();
+
+            return summary;
+        }
+
+        private static GameObject CreateStatText(Transform parent, string name, string text, float yOffset)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0, 1);
+            rt.anchorMax = new Vector2(1, 1);
+            rt.pivot = new Vector2(0.5f, 1);
+            rt.anchoredPosition = new Vector2(0, yOffset);
+            rt.sizeDelta = new Vector2(-60, 45);
+            var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.text = text;
+            tmp.fontSize = 28;
+            tmp.color = Color.white;
+            tmp.alignment = TextAlignmentOptions.Left;
+            return go;
         }
 
         // --- UI Helpers ---
