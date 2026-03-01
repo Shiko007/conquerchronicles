@@ -3,8 +3,8 @@ using UnityEngine;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Combat;
 using ConquerChronicles.Core.Enemy;
+using ConquerChronicles.Core.Map;
 using ConquerChronicles.Core.Save;
-using ConquerChronicles.Core.Stage;
 using ConquerChronicles.Gameplay.Camera;
 using ConquerChronicles.Gameplay.Character;
 using ConquerChronicles.Gameplay.Combat;
@@ -17,7 +17,7 @@ using ConquerChronicles.Gameplay.UI.HUD;
 namespace ConquerChronicles.Gameplay.Bootstrap
 {
     /// <summary>
-    /// Test harness for Phase 4 stage-based combat.
+    /// Test harness for MMO-style map combat.
     /// Drop this on a GameObject in the scene — wires everything together.
     /// </summary>
     public class GameplayTestSetup : MonoBehaviour
@@ -34,8 +34,8 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         [SerializeField] private DamageNumberPool _damageNumberPool;
         [SerializeField] private HitEffectPool _hitEffectPool;
 
-        [Header("Stage")]
-        [SerializeField] private StageManager _stageManager;
+        [Header("Map")]
+        [SerializeField] private MapManager _mapManager;
         [SerializeField] private WaveAnnouncerUI _waveAnnouncer;
         [SerializeField] private RunSummaryUI _runSummary;
 
@@ -44,7 +44,8 @@ namespace ConquerChronicles.Gameplay.Bootstrap
 
         [Header("Settings")]
         [SerializeField] private CharacterClass _testClass = CharacterClass.Trojan;
-        [SerializeField] private int _testStageIndex = 0;
+        [SerializeField] private int _testMapIndex = 0;
+        [SerializeField] private int _testAreaIndex = 0;
         [SerializeField] private bool _autoSave = true;
 
         private SaveManager _saveManager;
@@ -57,7 +58,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             // Camera
             _isometricCamera.SetFollowTarget(_characterView.transform);
 
-            // Map
+            // Map bounds
             _mapBoundsProvider.Initialize(_isometricCamera);
 
             // Enemy spawning
@@ -92,53 +93,61 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 _playerHUD.Initialize(_characterView, _combatManager);
             }
 
-            // Build enemy catalog from test data
+            // Build enemy catalog from TestMaps
             var enemyCatalog = new Dictionary<string, EnemyData>();
-            foreach (var enemy in TestStages.AllEnemies)
+            foreach (var enemy in TestMaps.AllEnemies)
             {
                 enemyCatalog[enemy.ID] = enemy;
             }
 
-            // Stage manager
-            if (_stageManager != null)
+            // Map manager
+            if (_mapManager != null)
             {
-                _stageManager.Initialize(_enemySpawner, _combatManager, _characterView, enemyCatalog);
+                _mapManager.Initialize(_enemySpawner, _combatManager, _characterView, enemyCatalog);
 
-                // Wire wave announcer
+                // Wire announcer
                 if (_waveAnnouncer != null)
                 {
-                    _stageManager.OnWaveAnnouncement += _waveAnnouncer.ShowAnnouncement;
+                    _mapManager.OnAreaAnnouncement += _waveAnnouncer.ShowAnnouncement;
                 }
 
                 // Wire run summary
                 if (_runSummary != null)
                 {
                     _runSummary.Initialize();
-                    _stageManager.OnStageComplete += _runSummary.Show;
-                    _runSummary.OnContinue += OnStageContinue;
+                    _mapManager.OnAreaSessionEnd += _runSummary.Show;
+                    _runSummary.OnContinue += OnAreaContinue;
                 }
 
-                // Start the selected test stage
-                var stages = TestStages.AllStages;
-                int idx = Mathf.Clamp(_testStageIndex, 0, stages.Length - 1);
-                _stageManager.StartStage(stages[idx]);
+                // Wire enemy death from CombatManager to MapManager
+                if (_combatManager != null)
+                {
+                    _combatManager.OnEnemyKilled += _mapManager.OnEnemyDied;
+                }
+
+                // Enter the test area
+                var maps = TestMaps.AllMaps;
+                int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
+                var map = maps[mapIdx];
+                int areaIdx = Mathf.Clamp(_testAreaIndex, 0, map.Areas.Length - 1);
+                _mapManager.EnterArea(map, map.Areas[areaIdx]);
             }
 
             // Save system
             _saveManager = SaveSystemBridge.GetOrCreate();
-            if (_autoSave && _stageManager != null)
+            if (_autoSave && _mapManager != null)
             {
-                _stageManager.OnStageComplete += OnAutoSave;
+                _mapManager.OnAreaSessionEnd += OnAutoSave;
             }
         }
 
-        private void OnAutoSave(StageResult result)
+        private void OnAutoSave(AreaResult result)
         {
             if (_saveManager == null) return;
 
             var saveData = new SaveData
             {
-                Version = 1,
+                Version = 2,
                 SelectedClass = _testClass,
                 CharacterLevel = _characterView.State != null ? _characterView.State.Level : 1,
                 CharacterXP = _characterView.State != null ? _characterView.State.XP : 0,
@@ -146,8 +155,8 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 EquippedItems = new SerializedEquipment[7],
                 BagItems = System.Array.Empty<SerializedEquipment>(),
                 GemBag = System.Array.Empty<SerializedGem>(),
-                CompletedStageIDs = System.Array.Empty<string>(),
-                CompletedStageStars = System.Array.Empty<int>(),
+                UnlockedMapIDs = new[] { "map_slime_fields" },
+                LastAreaID = result.AreaID,
                 MetaCurrency = 0,
                 MetaUpgradeLevels = new int[8],
                 MiningStartTimestamp = 0,
@@ -158,30 +167,34 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             };
 
             _saveManager.SaveGame(saveData);
-            Debug.Log($"[SaveSystem] Auto-saved after stage. Level={saveData.CharacterLevel}, Gold={saveData.Gold}");
+            Debug.Log($"[SaveSystem] Auto-saved after area session. Level={saveData.CharacterLevel}, Gold={saveData.Gold}");
         }
 
-        private void OnStageContinue()
+        private void OnAreaContinue()
         {
-            // Restart the same stage for testing
-            var stages = TestStages.AllStages;
-            int idx = Mathf.Clamp(_testStageIndex, 0, stages.Length - 1);
-            _stageManager.StartStage(stages[idx]);
+            // Re-enter the same area for testing
+            var maps = TestMaps.AllMaps;
+            int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
+            var map = maps[mapIdx];
+            int areaIdx = Mathf.Clamp(_testAreaIndex, 0, map.Areas.Length - 1);
+            _mapManager.EnterArea(map, map.Areas[areaIdx]);
         }
 
         private void OnDestroy()
         {
-            if (_stageManager != null)
+            if (_mapManager != null)
             {
                 if (_waveAnnouncer != null)
-                    _stageManager.OnWaveAnnouncement -= _waveAnnouncer.ShowAnnouncement;
+                    _mapManager.OnAreaAnnouncement -= _waveAnnouncer.ShowAnnouncement;
                 if (_runSummary != null)
-                    _stageManager.OnStageComplete -= _runSummary.Show;
+                    _mapManager.OnAreaSessionEnd -= _runSummary.Show;
                 if (_autoSave)
-                    _stageManager.OnStageComplete -= OnAutoSave;
+                    _mapManager.OnAreaSessionEnd -= OnAutoSave;
+                if (_combatManager != null)
+                    _combatManager.OnEnemyKilled -= _mapManager.OnEnemyDied;
             }
             if (_runSummary != null)
-                _runSummary.OnContinue -= OnStageContinue;
+                _runSummary.OnContinue -= OnAreaContinue;
         }
     }
 }

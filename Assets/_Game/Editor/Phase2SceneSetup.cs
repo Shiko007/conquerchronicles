@@ -28,8 +28,8 @@ namespace ConquerChronicles.Editor
             SetupScene(1);
         }
 
-        [MenuItem("Conquer Chronicles/Setup Phase 4 Stage Scene")]
-        public static void SetupStage()
+        [MenuItem("Conquer Chronicles/Setup Map Scene")]
+        public static void SetupMap()
         {
             SetupScene(2);
         }
@@ -151,21 +151,21 @@ namespace ConquerChronicles.Editor
                 playerHUD = CreateHUDCanvas();
             }
 
-            // --- Stage system (Phase 4) ---
-            StageManager stageManager = null;
+            // --- Map system ---
+            MapManager mapManager = null;
             WaveAnnouncerUI waveAnnouncer = null;
             RunSummaryUI runSummary = null;
 
             if (withStage)
             {
-                // StageManager
-                var stageGO = new GameObject("StageManager");
-                stageManager = stageGO.AddComponent<StageManager>();
+                // MapManager
+                var mapGO = new GameObject("MapManager");
+                mapManager = mapGO.AddComponent<MapManager>();
 
-                // WaveAnnouncerUI — center screen text overlay
+                // Area announcer (reusing WaveAnnouncerUI)
                 waveAnnouncer = CreateWaveAnnouncerUI();
 
-                // RunSummaryUI — post-stage result panel
+                // Session summary
                 runSummary = CreateRunSummaryUI();
             }
 
@@ -187,16 +187,17 @@ namespace ConquerChronicles.Editor
             }
             if (withStage)
             {
-                tsSO.FindProperty("_stageManager").objectReferenceValue = stageManager;
+                tsSO.FindProperty("_mapManager").objectReferenceValue = mapManager;
                 tsSO.FindProperty("_waveAnnouncer").objectReferenceValue = waveAnnouncer;
                 tsSO.FindProperty("_runSummary").objectReferenceValue = runSummary;
-                tsSO.FindProperty("_testStageIndex").intValue = 0;
+                tsSO.FindProperty("_testMapIndex").intValue = 0;
+                tsSO.FindProperty("_testAreaIndex").intValue = 0;
             }
             tsSO.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.MarkSceneDirty(scene);
 
-            string phaseName = withStage ? "Phase 4 (Stages)" : withCombat ? "Phase 3 (Combat)" : "Phase 2";
+            string phaseName = withStage ? "Map (Combat + Areas)" : withCombat ? "Phase 3 (Combat)" : "Phase 2";
             Debug.Log($"[Conquer Chronicles] {phaseName} scene setup complete! Hit Play to test.");
         }
 

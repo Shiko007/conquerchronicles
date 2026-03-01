@@ -32,9 +32,9 @@ namespace ConquerChronicles.Core.Save
         public SerializedEquipment[] BagItems;
         public SerializedGem[] GemBag;
 
-        // --- Stage Progress ---
-        public string[] CompletedStageIDs;
-        public int[] CompletedStageStars; // parallel array, 0-3 stars per stage
+        // --- Map Progress ---
+        public string[] UnlockedMapIDs;
+        public string LastAreaID;
 
         // --- Meta Progression ---
         public int MetaCurrency; // Chronicle Coins
@@ -56,7 +56,7 @@ namespace ConquerChronicles.Core.Save
         {
             return new SaveData
             {
-                Version = 1,
+                Version = 2,
                 SelectedClass = CharacterClass.None,
                 CharacterLevel = 1,
                 CharacterXP = 0,
@@ -70,8 +70,8 @@ namespace ConquerChronicles.Core.Save
                 EquippedItems = new SerializedEquipment[7],
                 BagItems = System.Array.Empty<SerializedEquipment>(),
                 GemBag = System.Array.Empty<SerializedGem>(),
-                CompletedStageIDs = System.Array.Empty<string>(),
-                CompletedStageStars = System.Array.Empty<int>(),
+                UnlockedMapIDs = new[] { "map_slime_fields" },
+                LastAreaID = string.Empty,
                 MetaCurrency = 0,
                 MetaUpgradeLevels = new int[8],
                 MiningStartTimestamp = 0,

@@ -25,6 +25,7 @@ namespace ConquerChronicles.Gameplay.Combat
         // Event for HUD updates
         public System.Action<int> OnKillCountChanged;
         public System.Action<int, bool> OnPlayerXPGained;
+        public System.Action<EnemyView> OnEnemyKilled;
 
         public void Initialize(
             CharacterView player,
@@ -121,6 +122,7 @@ namespace ConquerChronicles.Gameplay.Combat
             int xp = enemy.State.Data.XPReward;
             _player.GainXP(xp);
             OnPlayerXPGained?.Invoke(xp, false);
+            OnEnemyKilled?.Invoke(enemy);
         }
     }
 }

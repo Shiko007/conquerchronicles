@@ -14,5 +14,6 @@ namespace ConquerChronicles.Core.Enemy
         public int XPReward;
         public int GoldReward;
         public bool IsBoss;
+        public DropTable DropTable;
     }
 }

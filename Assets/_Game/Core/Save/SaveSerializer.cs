@@ -20,12 +20,12 @@ namespace ConquerChronicles.Core.Save
             CharacterState character,
             InventoryState inventory,
             MetaProgressionState meta,
-            string[] completedStages,
-            int[] stageStars)
+            string[] unlockedMapIDs,
+            string lastAreaID)
         {
             var data = new SaveData
             {
-                Version = 1,
+                Version = 2,
 
                 // Character
                 SelectedClass = character.Class,
@@ -44,9 +44,9 @@ namespace ConquerChronicles.Core.Save
                 BagItems = SerializeBagItems(inventory.Bag),
                 GemBag = SerializeGemBag(inventory.GemBag),
 
-                // Stages
-                CompletedStageIDs = completedStages ?? System.Array.Empty<string>(),
-                CompletedStageStars = stageStars ?? System.Array.Empty<int>(),
+                // Map Progress
+                UnlockedMapIDs = unlockedMapIDs ?? new[] { "map_slime_fields" },
+                LastAreaID = lastAreaID ?? string.Empty,
 
                 // Meta
                 MetaCurrency = meta.MetaCurrency,

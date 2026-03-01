@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using ConquerChronicles.Core.Stage;
+using ConquerChronicles.Core.Map;
 
 namespace ConquerChronicles.Gameplay.Stage
 {
@@ -29,12 +29,12 @@ namespace ConquerChronicles.Gameplay.Stage
                 });
         }
 
-        public void Show(StageResult result)
+        public void Show(AreaResult result)
         {
             if (_panel != null) _panel.SetActive(true);
 
             if (_titleText != null)
-                _titleText.text = result.Victory ? "VICTORY!" : "DEFEATED";
+                _titleText.text = result.EnemiesKilled > 0 ? "SESSION COMPLETE" : "DEFEATED";
 
             if (_killsText != null)
                 _killsText.text = $"Enemies Killed: {result.EnemiesKilled}";
@@ -53,10 +53,7 @@ namespace ConquerChronicles.Gameplay.Stage
                 _xpText.text = $"XP: +{result.XPEarned}";
 
             if (_starsText != null)
-            {
-                string stars = new string('*', result.StarRating) + new string('-', 3 - result.StarRating);
-                _starsText.text = $"Rating: [{stars}]";
-            }
+                _starsText.text = $"Items Found: {result.ItemsDropped.Length}";
 
             Time.timeScale = 0f;
         }
