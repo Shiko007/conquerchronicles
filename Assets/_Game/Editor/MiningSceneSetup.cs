@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
@@ -47,7 +46,11 @@ namespace ConquerChronicles.Editor
             {
                 var esGO = new GameObject("EventSystem");
                 esGO.AddComponent<EventSystem>();
-                esGO.AddComponent<InputSystemUIInputModule>();
+                var inputModuleType = System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
+                if (inputModuleType != null)
+                    esGO.AddComponent(inputModuleType);
+                else
+                    esGO.AddComponent<StandaloneInputModule>();
             }
 
             // --- Canvas ---
