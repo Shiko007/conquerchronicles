@@ -15,12 +15,13 @@ namespace ConquerChronicles.Gameplay.Combat
             _text = GetComponent<TextMeshPro>();
         }
 
-        public void Play(int damage, bool isCritical, Vector3 worldPosition)
+        public void Play(int damage, bool isCritical, Vector3 worldPosition, Color? colorOverride = null)
         {
+            Color color = colorOverride ?? (isCritical ? new Color(1f, 0.85f, 0f, 1f) : Color.white);
             PlayText(
                 damage.ToString(),
                 isCritical ? 6f : 4f,
-                isCritical ? new Color(1f, 0.85f, 0f, 1f) : Color.white,
+                color,
                 worldPosition);
         }
 

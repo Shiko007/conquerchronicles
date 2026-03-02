@@ -29,6 +29,11 @@ namespace ConquerChronicles.Gameplay.Map
         private float _metaXPMultiplier = 1.0f;
         private float _metaDropRateBonus = 0f;
 
+        // Delay before showing defeat UI so the death animation can finish.
+        // Death anim plays at 8 fps; 1.5 s covers up to 12 frames comfortably.
+        private const float DeathAnimDuration = 1.5f;
+        private float _deathAnimDelay = -1f;
+
         public AreaState AreaState => _areaState;
 
         public event Action<string> OnAreaAnnouncement;
@@ -70,6 +75,15 @@ namespace ConquerChronicles.Gameplay.Map
             _droppedItems.Clear();
             _enemySpawner.DespawnAll();
 
+            // Reset player HP to full for new session
+            if (_player != null && _player.State != null)
+            {
+                var stats = _player.GetComputedStats();
+                _player.State.CurrentHP = stats.HP;
+                _player.State.CurrentMP = stats.MP;
+                _player.PlayIdle();
+            }
+
             OnAreaAnnouncement?.Invoke($"Entering: {area.Name}");
         }
 
@@ -82,15 +96,30 @@ namespace ConquerChronicles.Gameplay.Map
 
         private void Update()
         {
-            if (_areaState == null || !_areaState.IsActive) return;
+            if (_areaState == null) return;
+
+            // Death animation delay must tick even when area is no longer "active"
+            // (PlayerDied sets IsActive to false).
+            if (_deathAnimDelay >= 0f)
+            {
+                _deathAnimDelay -= Time.deltaTime;
+                if (_deathAnimDelay < 0f)
+                {
+                    EndSession();
+                }
+                return;
+            }
+
+            if (!_areaState.IsActive) return;
 
             _areaState.ElapsedTime += Time.deltaTime;
 
-            // Check player death
+            // Check player death — start the animation delay.
             if (_player != null && _player.State != null && _player.State.IsDead)
             {
                 _areaState.PlayerDied = true;
-                EndSession();
+                _deathAnimDelay = DeathAnimDuration;
+                _combatManager.enabled = false;
                 return;
             }
 
@@ -174,6 +203,10 @@ namespace ConquerChronicles.Gameplay.Map
 
         private void EndSession()
         {
+            // Reset death delay and re-enable combat for the next session.
+            _deathAnimDelay = -1f;
+            if (_combatManager != null) _combatManager.enabled = true;
+
             OnAreaSessionEnding?.Invoke();
             var result = AreaResult.Calculate(_areaState, _currentMap.ID, _droppedItems.ToArray());
             OnAreaSessionEnd?.Invoke(result);

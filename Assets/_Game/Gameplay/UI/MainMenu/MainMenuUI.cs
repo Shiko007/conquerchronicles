@@ -45,6 +45,19 @@ namespace ConquerChronicles.Gameplay.UI.MainMenu
             if (_goldText != null) _goldText.text = $"{gold:N0} Gold";
         }
 
+        public void SetBattleButtonInteractable(bool interactable)
+        {
+            if (_mapSelectButton != null)
+                _mapSelectButton.interactable = interactable;
+        }
+
+        public void SetBattleButtonText(string text)
+        {
+            if (_mapSelectButton == null) return;
+            var label = _mapSelectButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null) label.text = text;
+        }
+
         private void OnDestroy()
         {
             if (_mapSelectButton != null) _mapSelectButton.onClick.RemoveAllListeners();

@@ -13,6 +13,7 @@ namespace ConquerChronicles.Gameplay.Enemy
         private float _attackCooldown;
         private float _attackTimer;
         private bool _readyToAttack;
+        private bool _inRange;
 
         public bool ReadyToAttack => _readyToAttack;
 
@@ -43,6 +44,9 @@ namespace ConquerChronicles.Gameplay.Enemy
         {
             _readyToAttack = false;
             _attackTimer = _attackCooldown;
+
+            // Play attack animation
+            _enemyView.PlayAttack();
         }
 
         private void Update()
@@ -57,6 +61,13 @@ namespace ConquerChronicles.Gameplay.Enemy
 
             if (dist <= _attackRange)
             {
+                // Just entered range — stop walk, play idle
+                if (!_inRange)
+                {
+                    _inRange = true;
+                    _enemyView.PlayIdle();
+                }
+
                 // In range — stop and attack (slowed enemies attack slower)
                 _attackTimer -= Time.deltaTime * speedMult;
                 if (_attackTimer <= 0f)
@@ -66,17 +77,30 @@ namespace ConquerChronicles.Gameplay.Enemy
 
                 // Still face the target
                 Vector3 dir = _target.position - transform.position;
-                if (_enemyView.SpriteRenderer != null)
-                    _enemyView.SpriteRenderer.flipX = dir.x < 0;
+                bool faceLeft = dir.x < 0;
+                if (_enemyView.Animator != null)
+                    _enemyView.Animator.SetFlipX(faceLeft);
+                else if (_enemyView.SpriteRenderer != null)
+                    _enemyView.SpriteRenderer.flipX = faceLeft;
             }
             else
             {
+                // Left range — resume walking
+                if (_inRange)
+                {
+                    _inRange = false;
+                    _enemyView.PlayWalk();
+                }
+
                 // Move toward target (slowed enemies move slower)
                 Vector3 direction = (_target.position - transform.position).normalized;
                 transform.position += direction * _moveSpeed * speedMult * Time.deltaTime;
 
-                if (_enemyView.SpriteRenderer != null)
-                    _enemyView.SpriteRenderer.flipX = direction.x < 0;
+                bool faceLeft = direction.x < 0;
+                if (_enemyView.Animator != null)
+                    _enemyView.Animator.SetFlipX(faceLeft);
+                else if (_enemyView.SpriteRenderer != null)
+                    _enemyView.SpriteRenderer.flipX = faceLeft;
             }
         }
 

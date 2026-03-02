@@ -17,6 +17,7 @@ using ConquerChronicles.Gameplay.Stage;
 using ConquerChronicles.Gameplay.Audio;
 using ConquerChronicles.Gameplay.UI.HUD;
 using ConquerChronicles.Gameplay.UI.Tutorial;
+using ConquerChronicles.Gameplay.Animation;
 using UnityEngine.SceneManagement;
 
 namespace ConquerChronicles.Gameplay.Bootstrap
@@ -67,12 +68,16 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         private SaveManager _saveManager;
         private MetaProgressionState _metaState;
         private bool _leavingToMenu;
+        private bool _playerDied;
 
         public AudioManager AudioManager => _audioManager;
 
         private void Start()
         {
             Application.targetFrameRate = 60;
+
+            // Load sprite atlas for animations
+            SpriteAtlasLoader.EnsureLoaded();
 
             // Initialize player
             _characterView.Initialize(_testClass);
@@ -325,13 +330,15 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 Debug.Log($"[DeathPenalty] Lost {goldLost} gold, recovery until {System.DateTimeOffset.UtcNow.AddMinutes(2):HH:mm:ss}");
             }
 
+            _playerDied = result.PlayerDied;
+
             _saveManager.SaveGame(saveData);
             Debug.Log($"[SaveSystem] Auto-saved after area session. Level={saveData.CharacterLevel}, Gold={saveData.Gold}, Bag={saveData.BagItems.Length} items");
         }
 
         private void OnAreaContinue()
         {
-            if (_leavingToMenu)
+            if (_leavingToMenu || _playerDied)
             {
                 SceneManager.LoadScene("MainMenu");
                 return;

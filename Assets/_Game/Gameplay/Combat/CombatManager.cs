@@ -57,6 +57,9 @@ namespace ConquerChronicles.Gameplay.Combat
             var playerStats = _player.GetComputedStats();
             var playerPos = new CombatPosition(_player.transform.position.x, _player.transform.position.y);
 
+            // Face nearest enemy
+            FaceNearestEnemy();
+
             // Build target snapshot from active enemies
             BuildTargetSnapshot();
 
@@ -79,6 +82,30 @@ namespace ConquerChronicles.Gameplay.Combat
 
             // Clean up dead enemies
             _enemySpawner.RemoveDeadEnemies(OnEnemyDied);
+        }
+
+        private void FaceNearestEnemy()
+        {
+            var enemies = _enemySpawner.ActiveEnemies;
+            if (enemies.Count == 0) return;
+
+            float closestDist = float.MaxValue;
+            Vector3 closestPos = Vector3.zero;
+            var playerPos = _player.transform.position;
+
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                if (enemies[i].State.IsDead) continue;
+                float dist = Vector3.SqrMagnitude(enemies[i].transform.position - playerPos);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestPos = enemies[i].transform.position;
+                }
+            }
+
+            if (closestDist < float.MaxValue)
+                _player.FaceToward(closestPos);
         }
 
         private void BuildTargetSnapshot()
@@ -109,18 +136,19 @@ namespace ConquerChronicles.Gameplay.Combat
                 var enemy = enemies[evt.TargetIndex];
                 enemy.TakeDamage(evt.Value);
 
+                // Player attack animation — only when enemy is visually close
+                float distToEnemy = Vector3.Distance(enemy.transform.position, _player.transform.position);
+                if (distToEnemy <= 1.2f)
+                {
+                    bool faceLeft = enemy.transform.position.x < _player.transform.position.x;
+                    _player.PlayAttack(faceLeft);
+                }
+
                 // Spawn damage number
                 if (_damageNumberPool != null)
                 {
                     var dmgNum = _damageNumberPool.Get();
                     dmgNum.Play(evt.Value, evt.IsCritical, enemy.transform.position + Vector3.up * 0.5f);
-                }
-
-                // Spawn hit effect
-                if (_hitEffectPool != null)
-                {
-                    var hitFx = _hitEffectPool.Get();
-                    hitFx.Play(enemy.transform.position);
                 }
 
                 // Play hit SFX
@@ -176,7 +204,7 @@ namespace ConquerChronicles.Gameplay.Combat
                 if (_damageNumberPool != null)
                 {
                     var dmgNum = _damageNumberPool.Get();
-                    dmgNum.Play(damage, false, _player.transform.position + Vector3.up * 0.5f);
+                    dmgNum.Play(damage, false, _player.transform.position + Vector3.up * 0.5f, Color.red);
                 }
             }
         }

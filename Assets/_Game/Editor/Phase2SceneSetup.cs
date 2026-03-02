@@ -15,6 +15,7 @@ using ConquerChronicles.Gameplay.Stage;
 using ConquerChronicles.Gameplay.Audio;
 using ConquerChronicles.Gameplay.UI.HUD;
 using ConquerChronicles.Gameplay.UI.Tutorial;
+using ConquerChronicles.Gameplay.Animation;
 
 namespace ConquerChronicles.Editor
 {
@@ -105,10 +106,23 @@ namespace ConquerChronicles.Editor
             var playerGO = new GameObject("Player");
             playerGO.transform.position = Vector3.zero;
             var playerSR = playerGO.AddComponent<SpriteRenderer>();
-            playerSR.sprite = CreateCircleSprite("PlayerSprite", new Color(0.2f, 0.5f, 1f, 1f), 32);
+
+            // Try to load first male idle frame from atlas, fallback to generated circle
+            Sprite playerDefaultSprite = null;
+            var playerAtlasAssets = AssetDatabase.LoadAllAssetsAtPath("Assets/Resources/Atlases/GameAtlas.png");
+            foreach (var asset in playerAtlasAssets)
+            {
+                if (asset is Sprite s && s.name.StartsWith("Male_Base_SIdle_"))
+                {
+                    playerDefaultSprite = s;
+                    break;
+                }
+            }
+            playerSR.sprite = playerDefaultSprite != null ? playerDefaultSprite : CreateCircleSprite("PlayerSprite", new Color(0.2f, 0.5f, 1f, 1f), 32);
             playerSR.sortingLayerName = "Default";
             playerGO.transform.localScale = new Vector3(1.5f, 1.5f, 1f);
             var characterView = playerGO.AddComponent<CharacterView>();
+            playerGO.AddComponent<SpriteAnimator>();
             playerGO.AddComponent<IsometricYSort>();
             var cvSO = new SerializedObject(characterView);
             cvSO.FindProperty("_spriteRenderer").objectReferenceValue = playerSR;
@@ -364,23 +378,26 @@ namespace ConquerChronicles.Editor
         {
             EnsureFolder("Assets/_Game/Data/Prefabs");
 
+            // Always regenerate to pick up new components
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
             if (existing != null)
-            {
-                // Regenerate if health bar is missing
-                var existingView = existing.GetComponent<EnemyView>();
-                if (existingView != null)
-                {
-                    var eso = new SerializedObject(existingView);
-                    if (eso.FindProperty("_healthBarRoot").objectReferenceValue != null)
-                        return existing;
-                }
                 AssetDatabase.DeleteAsset("Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
-            }
 
             var go = new GameObject("Enemy_Slime");
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = CreateCircleSprite("EnemySprite", new Color(0.3f, 0.9f, 0.3f, 1f), 24);
+
+            // Try to load first rat walk frame from atlas, fallback to generated circle
+            var atlasSprites = AssetDatabase.LoadAllAssetsAtPath("Assets/Resources/Atlases/GameAtlas.png");
+            Sprite defaultSprite = null;
+            foreach (var asset in atlasSprites)
+            {
+                if (asset is Sprite s && s.name.StartsWith("Rat_LWalk_"))
+                {
+                    defaultSprite = s;
+                    break;
+                }
+            }
+            sr.sprite = defaultSprite != null ? defaultSprite : CreateCircleSprite("EnemySprite", new Color(0.3f, 0.9f, 0.3f, 1f), 24);
             sr.sortingLayerName = "Default";
 
             var view = go.AddComponent<EnemyView>();
@@ -389,6 +406,7 @@ namespace ConquerChronicles.Editor
             so.ApplyModifiedPropertiesWithoutUndo();
 
             go.AddComponent<EnemyMovement>();
+            go.AddComponent<SpriteAnimator>();
             go.AddComponent<IsometricYSort>();
 
             // --- Health Bar ---
@@ -401,7 +419,7 @@ namespace ConquerChronicles.Editor
             var bgGo = new GameObject("BG");
             bgGo.transform.SetParent(healthBarRoot.transform, false);
             var bgSr = bgGo.AddComponent<SpriteRenderer>();
-            bgSr.sprite = CreateRectSprite("HealthBarBG", new Color(0.15f, 0.15f, 0.15f, 0.8f), 32, 4);
+            bgSr.sprite = CreateRectSprite("HealthBarBG_Thin", new Color(0.15f, 0.15f, 0.15f, 0.8f), 24, 2);
             bgSr.sortingLayerName = "Default";
             bgSr.sortingOrder = 10;
 
@@ -409,7 +427,7 @@ namespace ConquerChronicles.Editor
             var fillGo = new GameObject("Fill");
             fillGo.transform.SetParent(healthBarRoot.transform, false);
             var fillSr = fillGo.AddComponent<SpriteRenderer>();
-            fillSr.sprite = CreateRectSprite("HealthBarFill", new Color(0.2f, 0.9f, 0.2f, 1f), 32, 4);
+            fillSr.sprite = CreateRectSprite("HealthBarFill_Thin", new Color(0.2f, 0.9f, 0.2f, 1f), 24, 2);
             fillSr.sortingLayerName = "Default";
             fillSr.sortingOrder = 11;
 

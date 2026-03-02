@@ -1,0 +1,1443 @@
+fileFormatVersion: 2
+guid: ca7b56ef6e5314091a20545fe2f66173
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6728609152100650694
+    second: GameAtlas_0
+  - first:
+      213: -6056437166719537580
+    second: GameAtlas_1
+  - first:
+      213: -5747570991025655642
+    second: GameAtlas_2
+  - first:
+      213: 2034860252242513025
+    second: GameAtlas_3
+  - first:
+      213: -848248874078811387
+    second: GameAtlas_4
+  - first:
+      213: 563375438203448607
+    second: GameAtlas_5
+  - first:
+      213: -6798554787445907073
+    second: GameAtlas_6
+  - first:
+      213: -1278325777330200815
+    second: GameAtlas_7
+  - first:
+      213: -4005893186535784076
+    second: GameAtlas_8
+  - first:
+      213: -4916748428653455903
+    second: GameAtlas_9
+  - first:
+      213: 4275426922162182425
+    second: GameAtlas_10
+  - first:
+      213: 6791227794783350535
+    second: GameAtlas_11
+  - first:
+      213: -6661531867507778525
+    second: GameAtlas_12
+  - first:
+      213: 4495626413379769828
+    second: GameAtlas_13
+  - first:
+      213: 5045877412689019968
+    second: GameAtlas_14
+  - first:
+      213: 2246314199523832706
+    second: GameAtlas_15
+  - first:
+      213: -2774334209175140498
+    second: GameAtlas_16
+  - first:
+      213: 975967180753134342
+    second: GameAtlas_17
+  - first:
+      213: -7195031258521639967
+    second: GameAtlas_18
+  - first:
+      213: -6272873769104320460
+    second: GameAtlas_19
+  - first:
+      213: 7410191746013879012
+    second: GameAtlas_20
+  - first:
+      213: -7999079701176453839
+    second: GameAtlas_21
+  - first:
+      213: -7087989630625003590
+    second: GameAtlas_22
+  - first:
+      213: -2734578805385978503
+    second: GameAtlas_23
+  - first:
+      213: -5935787671862734276
+    second: GameAtlas_24
+  - first:
+      213: -2525292975435482034
+    second: GameAtlas_25
+  - first:
+      213: -3918772213222010816
+    second: GameAtlas_26
+  - first:
+      213: 2097248804841931187
+    second: GameAtlas_27
+  - first:
+      213: 8680297985841590602
+    second: GameAtlas_28
+  - first:
+      213: -6361362313765280604
+    second: GameAtlas_29
+  - first:
+      213: 5172350647321749812
+    second: GameAtlas_30
+  - first:
+      213: -5885835589714808250
+    second: GameAtlas_31
+  - first:
+      213: -3395884643677673450
+    second: GameAtlas_32
+  - first:
+      213: -7040133567489549465
+    second: GameAtlas_33
+  - first:
+      213: -5064352573294539002
+    second: GameAtlas_34
+  - first:
+      213: -387740016210667429
+    second: GameAtlas_35
+  - first:
+      213: 5754281164831639470
+    second: GameAtlas_36
+  - first:
+      213: -6637043027503455819
+    second: GameAtlas_37
+  - first:
+      213: 3568100469956255346
+    second: GameAtlas_38
+  - first:
+      213: -7381647365319915785
+    second: GameAtlas_39
+  - first:
+      213: 5649315399869163509
+    second: GameAtlas_40
+  - first:
+      213: -8796940186947441587
+    second: GameAtlas_41
+  - first:
+      213: 7357141396012536111
+    second: GameAtlas_42
+  - first:
+      213: -5441729981699956600
+    second: GameAtlas_43
+  - first:
+      213: 4528744536123301026
+    second: GameAtlas_44
+  - first:
+      213: 6281849277341036814
+    second: GameAtlas_45
+  - first:
+      213: -7972254101150945039
+    second: GameAtlas_46
+  - first:
+      213: 1921981272178713170
+    second: GameAtlas_47
+  - first:
+      213: -8162317269746921441
+    second: GameAtlas_48
+  - first:
+      213: -5953775813788465151
+    second: GameAtlas_49
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 0
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: iOS
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Female_Base_EAttack_01
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 777
+        width: 50
+        height: 95
+      alignment: 9
+      pivot: {x: 0.52, y: 0.51578945}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6a14238f4856e45848046336d5a00cdd
+      internalID: 1939745139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_EAttack_02
+      rect:
+        serializedVersion: 2
+        x: 51
+        y: 676
+        width: 48
+        height: 97
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5051546}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 036d7e244ca064b11b1bdc17890b8b5c
+      internalID: -1834977399
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_EAttack_03
+      rect:
+        serializedVersion: 2
+        x: 148
+        y: 674
+        width: 78
+        height: 99
+      alignment: 9
+      pivot: {x: 0.3974359, y: 0.5252525}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: be1a613002f5d41af9abb36c7bdde55f
+      internalID: 1464395995
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_EAttack_04
+      rect:
+        serializedVersion: 2
+        x: 230
+        y: 674
+        width: 56
+        height: 99
+      alignment: 9
+      pivot: {x: 0.35714287, y: 0.5252525}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6edb40e2096094a8f826b95d00744b70
+      internalID: -1094739947
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_EHit_01
+      rect:
+        serializedVersion: 2
+        x: 290
+        y: 674
+        width: 31
+        height: 99
+      alignment: 9
+      pivot: {x: 0.516129, y: 0.5252525}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8b266d66733234114bdd7987e89da41a
+      internalID: 312429221
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_EHit_02
+      rect:
+        serializedVersion: 2
+        x: 103
+        y: 676
+        width: 41
+        height: 97
+      alignment: 9
+      pivot: {x: 0.58536583, y: 0.53608245}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a10a7468cab7c40dbbcfd87ce94970c6
+      internalID: -1964857177
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_EHit_03
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 678
+        width: 45
+        height: 95
+      alignment: 9
+      pivot: {x: 0.5555556, y: 0.50526315}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e13988ff7097f4a059e9ce9df262c5e6
+      internalID: -1667109993
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_EHit_04
+      rect:
+        serializedVersion: 2
+        x: 325
+        y: 674
+        width: 41
+        height: 99
+      alignment: 9
+      pivot: {x: 0.4390244, y: 0.5252525}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8fe4ede3cb8074b41b8e3a4320cf91de
+      internalID: -1646857821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_SDeath_01
+      rect:
+        serializedVersion: 2
+        x: 389
+        y: 779
+        width: 42
+        height: 93
+      alignment: 9
+      pivot: {x: 0.52380955, y: 0.50537634}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 38aab30487fc342e9923d519d66a8b60
+      internalID: -164754897
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_SDeath_02
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 798
+        width: 64
+        height: 74
+      alignment: 9
+      pivot: {x: 0.515625, y: 0.6216216}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: bd3cb525ecbe740229ba1c72fb050175
+      internalID: 1426900220
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_SDeath_03
+      rect:
+        serializedVersion: 2
+        x: 346
+        y: 876
+        width: 93
+        height: 59
+      alignment: 9
+      pivot: {x: 0.50537634, y: 0.86440676}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8df21b06aceb44449a5b7b407fdcb583
+      internalID: -212739408
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_SDeath_04
+      rect:
+        serializedVersion: 2
+        x: 235
+        y: 882
+        width: 107
+        height: 53
+      alignment: 9
+      pivot: {x: 0.47663552, y: 1.018868}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3564fc34b8fe5418b9d2de939e49b9c0
+      internalID: 1002189250
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_SIdle_01
+      rect:
+        serializedVersion: 2
+        x: 370
+        y: 674
+        width: 37
+        height: 99
+      alignment: 9
+      pivot: {x: 0.4864865, y: 0.5252525}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ed2dca756dd98403192eedd4ba2e6df3
+      internalID: 441358822
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_SIdle_02
+      rect:
+        serializedVersion: 2
+        x: 411
+        y: 674
+        width: 41
+        height: 99
+      alignment: 9
+      pivot: {x: 0.5365854, y: 0.5252525}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 31bc82018fcc142e49f8728392014311
+      internalID: 761905346
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_SIdle_03
+      rect:
+        serializedVersion: 2
+        x: 456
+        y: 674
+        width: 42
+        height: 99
+      alignment: 9
+      pivot: {x: 0.54761904, y: 0.5252525}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ba98ce254580f40c18f8bd73e5d543ac
+      internalID: -95868296
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Female_Base_SIdle_04
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 571
+        width: 37
+        height: 99
+      alignment: 9
+      pivot: {x: 0.4864865, y: 0.5252525}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d4221dce0949e4aa9b17e0618bd8addf
+      internalID: 746149460
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_EAttack_01
+      rect:
+        serializedVersion: 2
+        x: 286
+        y: 560
+        width: 62
+        height: 110
+      alignment: 9
+      pivot: {x: 0.516129, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d47239619a6384932a84690058481b9a
+      internalID: 1828973695
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_EAttack_02
+      rect:
+        serializedVersion: 2
+        x: 197
+        y: 561
+        width: 85
+        height: 109
+      alignment: 9
+      pivot: {x: 0.4117647, y: 0.49541286}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 40d11352a5c4c42b0adf3911389218b6
+      internalID: -1904806339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_EAttack_03
+      rect:
+        serializedVersion: 2
+        x: 43
+        y: 562
+        width: 87
+        height: 108
+      alignment: 9
+      pivot: {x: 0.43678162, y: 0.49074075}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1aa3d58243e0343518d03df31bef4ed2
+      internalID: 677652549
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_EAttack_04
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 439
+        width: 41
+        height: 115
+      alignment: 9
+      pivot: {x: 0.36585367, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 84e52d60dc13f46648e60a0890d090af
+      internalID: 796316264
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_EHit_01
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 439
+        width: 33
+        height: 115
+      alignment: 9
+      pivot: {x: 0.4848485, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a2103cb6db26143b89795d093bd1e276
+      internalID: -461082692
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_EHit_02
+      rect:
+        serializedVersion: 2
+        x: 134
+        y: 562
+        width: 59
+        height: 108
+      alignment: 9
+      pivot: {x: 0.62711865, y: 0.5462963}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a2cd89eff6c6e4922a1bb11c646de7bf
+      internalID: -1961017975
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_EHit_03
+      rect:
+        serializedVersion: 2
+        x: 193
+        y: 441
+        width: 42
+        height: 113
+      alignment: 9
+      pivot: {x: 0.52380955, y: 0.5132743}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 06f5952a523034aa0b15ea90e9a12911
+      internalID: -1680157341
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_EHit_04
+      rect:
+        serializedVersion: 2
+        x: 321
+        y: 439
+        width: 33
+        height: 115
+      alignment: 9
+      pivot: {x: 0.4848485, y: 0.5217391}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ee09061d097ca4253be8269f41401735
+      internalID: -49562419
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SDeath_01
+      rect:
+        serializedVersion: 2
+        x: 352
+        y: 559
+        width: 67
+        height: 111
+      alignment: 9
+      pivot: {x: 0.49253732, y: 0.5045045}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9c75ad1bf755460ba449ffc6f7c92af
+      internalID: -1323156528
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SDeath_02
+      rect:
+        serializedVersion: 2
+        x: 180
+        y: 792
+        width: 76
+        height: 80
+      alignment: 9
+      pivot: {x: 0.46052632, y: 0.7}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 19df44d3b04a840e9ae294d615974cb2
+      internalID: -207363110
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SDeath_03
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 807
+        width: 106
+        height: 65
+      alignment: 9
+      pivot: {x: 0.5, y: 0.6615385}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: dbb50d5bacfa7437ebf692f6fad23703
+      internalID: 855864538
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SDeath_04
+      rect:
+        serializedVersion: 2
+        x: 260
+        y: 791
+        width: 125
+        height: 81
+      alignment: 9
+      pivot: {x: 0.496, y: 0.56790125}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9380b1c36bfd64d488be3794c6a02d42
+      internalID: 1020964703
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SIdle_01
+      rect:
+        serializedVersion: 2
+        x: 423
+        y: 558
+        width: 59
+        height: 112
+      alignment: 9
+      pivot: {x: 0.4915254, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 23e2d863bca1540d6817c4f9c52d19d0
+      internalID: -1244488173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SIdle_02
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 442
+        width: 59
+        height: 112
+      alignment: 9
+      pivot: {x: 0.4915254, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c6ebfd0afa254486f930fd6be8d4bbab
+      internalID: -1069005818
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SIdle_03
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 442
+        width: 61
+        height: 112
+      alignment: 9
+      pivot: {x: 0.4918033, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 9cbf4419720ed4b54af40fb789ddcbc7
+      internalID: 1024106478
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SIdle_04
+      rect:
+        serializedVersion: 2
+        x: 130
+        y: 442
+        width: 59
+        height: 112
+      alignment: 9
+      pivot: {x: 0.4915254, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a8f48d1f056e047b9b77ed1b981852a8
+      internalID: -835000962
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SIdle_05
+      rect:
+        serializedVersion: 2
+        x: 65
+        y: 442
+        width: 61
+        height: 112
+      alignment: 9
+      pivot: {x: 0.4918033, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3c07916dc6a8a459dbd0539ca14f9f41
+      internalID: -1479903216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Male_Base_SIdle_06
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 442
+        width: 59
+        height: 112
+      alignment: 9
+      pivot: {x: 0.4915254, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ecfa5417ddbb0499b950aadd2a9030a1
+      internalID: 30601094
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LAttack_01
+      rect:
+        serializedVersion: 2
+        x: 435
+        y: 939
+        width: 65
+        height: 44
+      alignment: 9
+      pivot: {x: 0.5846154, y: 0.54545456}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1997a3ea6ca0f4b759ef5d1a1325576c
+      internalID: -1621487885
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LAttack_02
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 888
+        width: 73
+        height: 47
+      alignment: 9
+      pivot: {x: 0.60273975, y: 0.5744681}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 49f6f1a714a69489b964ff501b3805df
+      internalID: -315182365
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LAttack_03
+      rect:
+        serializedVersion: 2
+        x: 78
+        y: 889
+        width: 76
+        height: 46
+      alignment: 9
+      pivot: {x: 0.56578946, y: 0.5652174}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: da86bcfd3c6064796b4d2d4fadfe80fc
+      internalID: 1896232190
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LAttack_04
+      rect:
+        serializedVersion: 2
+        x: 219
+        y: 945
+        width: 74
+        height: 38
+      alignment: 9
+      pivot: {x: 0.5945946, y: 0.57894737}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c30e767e3dd0c4e85bacf4f5aa2f523c
+      internalID: 18823044
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LDeath_01
+      rect:
+        serializedVersion: 2
+        x: 84
+        y: 988
+        width: 68
+        height: 34
+      alignment: 9
+      pivot: {x: 0.64705884, y: 0.5294118}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 845c827f615624e858fb73fcce3b933d
+      internalID: -15028821
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LDeath_02
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 890
+        width: 72
+        height: 45
+      alignment: 9
+      pivot: {x: 0.625, y: 0.4888889}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2a6b69bdb90924ff8a19576f848639aa
+      internalID: 564064905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LDeath_03
+      rect:
+        serializedVersion: 2
+        x: 371
+        y: 987
+        width: 78
+        height: 35
+      alignment: 9
+      pivot: {x: 0.5641026, y: 0.54285717}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b73c447114afa4365a0ea2b83be38ed0
+      internalID: -81932972
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LDeath_04
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 989
+        width: 78
+        height: 33
+      alignment: 9
+      pivot: {x: 0.51282054, y: 0.57575756}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 41d96b2df5f8e44359b6250e7d1d3921
+      internalID: 1997626581
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LHit_01
+      rect:
+        serializedVersion: 2
+        x: 297
+        y: 944
+        width: 71
+        height: 39
+      alignment: 9
+      pivot: {x: 0.6197183, y: 0.41025642}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 88dc3871a38ac4b018458635ccc2c913
+      internalID: 2090542691
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LHit_02
+      rect:
+        serializedVersion: 2
+        x: 2
+        y: 948
+        width: 67
+        height: 35
+      alignment: 9
+      pivot: {x: 0.64179105, y: 0.45714286}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 73c50bfc5e392401e83aad9733624799
+      internalID: 2109958731
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LHit_03
+      rect:
+        serializedVersion: 2
+        x: 73
+        y: 948
+        width: 73
+        height: 35
+      alignment: 9
+      pivot: {x: 0.63013697, y: 0.51428574}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 8ffc02c9d743645d2aef6c082effbbb7
+      internalID: 1756734661
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LHit_04
+      rect:
+        serializedVersion: 2
+        x: 156
+        y: 988
+        width: 72
+        height: 34
+      alignment: 9
+      pivot: {x: 0.6111111, y: 0.5294118}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 236381e278b5a47e9853d50fe6613c5e
+      internalID: 356860750
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LWalk_01
+      rect:
+        serializedVersion: 2
+        x: 232
+        y: 988
+        width: 68
+        height: 34
+      alignment: 9
+      pivot: {x: 0.64705884, y: 0.5294118}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 6ee1cca813caa469d9e9f2063b4825cc
+      internalID: -764681467
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LWalk_02
+      rect:
+        serializedVersion: 2
+        x: 304
+        y: 988
+        width: 63
+        height: 34
+      alignment: 9
+      pivot: {x: 0.5873016, y: 0.5294118}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: c6b41c896d4d540cd8640feec69688e8
+      internalID: 236898959
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LWalk_03
+      rect:
+        serializedVersion: 2
+        x: 150
+        y: 946
+        width: 65
+        height: 37
+      alignment: 9
+      pivot: {x: 0.63076925, y: 0.4864865}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 28848ee4c40314ca68211b5654e6e4cd
+      internalID: 2076992573
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Rat_LWalk_04
+      rect:
+        serializedVersion: 2
+        x: 372
+        y: 942
+        width: 59
+        height: 41
+      alignment: 9
+      pivot: {x: 0.59322035, y: 0.4390244}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 531e2beaf42a1476cb271269617df506
+      internalID: 465477380
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 2b67991c09f4e429f9ee558f00063576
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Female_Base_EAttack_01: 1939745139
+      Female_Base_EAttack_02: -1834977399
+      Female_Base_EAttack_03: 1464395995
+      Female_Base_EAttack_04: -1094739947
+      Female_Base_EHit_01: 312429221
+      Female_Base_EHit_02: -1964857177
+      Female_Base_EHit_03: -1667109993
+      Female_Base_EHit_04: -1646857821
+      Female_Base_SDeath_01: -164754897
+      Female_Base_SDeath_02: 1426900220
+      Female_Base_SDeath_03: -212739408
+      Female_Base_SDeath_04: 1002189250
+      Female_Base_SIdle_01: 441358822
+      Female_Base_SIdle_02: 761905346
+      Female_Base_SIdle_03: -95868296
+      Female_Base_SIdle_04: 746149460
+      Male_Base_EAttack_01: 1828973695
+      Male_Base_EAttack_02: -1904806339
+      Male_Base_EAttack_03: 677652549
+      Male_Base_EAttack_04: 796316264
+      Male_Base_EHit_01: -461082692
+      Male_Base_EHit_02: -1961017975
+      Male_Base_EHit_03: -1680157341
+      Male_Base_EHit_04: -49562419
+      Male_Base_SDeath_01: -1323156528
+      Male_Base_SDeath_02: -207363110
+      Male_Base_SDeath_03: 855864538
+      Male_Base_SDeath_04: 1020964703
+      Male_Base_SIdle_01: -1244488173
+      Male_Base_SIdle_02: -1069005818
+      Male_Base_SIdle_03: 1024106478
+      Male_Base_SIdle_04: -835000962
+      Male_Base_SIdle_05: -1479903216
+      Male_Base_SIdle_06: 30601094
+      Rat_LAttack_01: -1621487885
+      Rat_LAttack_02: -315182365
+      Rat_LAttack_03: 1896232190
+      Rat_LAttack_04: 18823044
+      Rat_LDeath_01: -15028821
+      Rat_LDeath_02: 564064905
+      Rat_LDeath_03: -81932972
+      Rat_LDeath_04: 1997626581
+      Rat_LHit_01: 2090542691
+      Rat_LHit_02: 2109958731
+      Rat_LHit_03: 1756734661
+      Rat_LHit_04: 356860750
+      Rat_LWalk_01: -764681467
+      Rat_LWalk_02: 236898959
+      Rat_LWalk_03: 2076992573
+      Rat_LWalk_04: 465477380
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
