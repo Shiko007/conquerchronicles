@@ -73,14 +73,14 @@ namespace ConquerChronicles.Editor
                 cameraGO = new GameObject("Main Camera");
                 var cam = cameraGO.AddComponent<UnityEngine.Camera>();
                 cam.orthographic = true;
-                cam.orthographicSize = 5f;
+                cam.orthographicSize = 8f;
                 cameraGO.AddComponent<AudioListener>();
                 cameraGO.tag = "MainCamera";
             }
             cameraGO.transform.position = new Vector3(0, 0, -10);
             var camera = cameraGO.GetComponent<UnityEngine.Camera>();
             camera.orthographic = true;
-            camera.orthographicSize = 5f;
+            camera.orthographicSize = 8f;
             camera.backgroundColor = new Color(0.15f, 0.15f, 0.2f, 1f);
             camera.clearFlags = CameraClearFlags.SolidColor;
             var isoCam = cameraGO.GetComponent<IsometricCamera>();

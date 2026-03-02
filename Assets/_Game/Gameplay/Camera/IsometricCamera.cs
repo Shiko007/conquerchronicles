@@ -5,7 +5,7 @@ namespace ConquerChronicles.Gameplay.Camera
     [RequireComponent(typeof(UnityEngine.Camera))]
     public class IsometricCamera : MonoBehaviour
     {
-        [SerializeField] private float _orthographicSize = 5f;
+        [SerializeField] private float _orthographicSize = 8f;
         [SerializeField] private Transform _followTarget;
 
         private UnityEngine.Camera _camera;
