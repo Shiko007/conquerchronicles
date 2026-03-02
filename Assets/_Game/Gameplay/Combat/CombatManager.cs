@@ -138,7 +138,7 @@ namespace ConquerChronicles.Gameplay.Combat
 
                 // Player attack animation — only when enemy is visually close
                 float distToEnemy = Vector3.Distance(enemy.transform.position, _player.transform.position);
-                if (distToEnemy <= 1.2f)
+                if (distToEnemy <= 2.0f)
                 {
                     bool faceLeft = enemy.transform.position.x < _player.transform.position.x;
                     _player.PlayAttack(faceLeft);
