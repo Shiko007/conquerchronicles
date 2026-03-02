@@ -20,7 +20,10 @@ namespace ConquerChronicles.Gameplay.Equipment
         [SerializeField] private TextMeshProUGUI[] _slotTexts; // 7 texts showing item name
 
         [Header("Stats Panel")]
+        [SerializeField] private Button _statsButton;
+        [SerializeField] private GameObject _statsPanel;
         [SerializeField] private TextMeshProUGUI _statsText;
+        [SerializeField] private Button _closeStatsButton;
 
         [Header("Bag Panel")]
         [SerializeField] private Transform _bagContainer;
@@ -45,7 +48,7 @@ namespace ConquerChronicles.Gameplay.Equipment
         public System.Action OnUpgradePressed;
         public System.Action OnCloseDetailPressed;
 
-        private static readonly string[] SlotLabels = { "Head", "Neck", "Armor", "Weapon", "Shield", "Ring", "Boots" };
+        private static readonly string[] SlotLabels = { "Head", "Neck", "Armor", "Wpn", "Shield", "Ring", "Boots" };
 
         // Bag slot GameObjects created at runtime
         private readonly List<GameObject> _bagSlotObjects = new List<GameObject>();
@@ -86,27 +89,40 @@ namespace ConquerChronicles.Gameplay.Equipment
                 _slotButtons[i].onClick.AddListener(() => OnSlotPressed?.Invoke(index));
             }
 
+            // Wire stats button
+            _statsButton.onClick.AddListener(() => _statsPanel.SetActive(true));
+            _closeStatsButton.onClick.AddListener(() => _statsPanel.SetActive(false));
+
             // Wire detail panel buttons
             _equipButton.onClick.AddListener(() => OnEquipPressed?.Invoke());
             _upgradeButton.onClick.AddListener(() => OnUpgradePressed?.Invoke());
             _closeDetailButton.onClick.AddListener(() => OnCloseDetailPressed?.Invoke());
 
             HideItemDetail();
+            _statsPanel.SetActive(false);
         }
 
         public void RefreshEquippedSlots(EquipmentInstance[] equipped)
         {
             for (int i = 0; i < _slotTexts.Length; i++)
             {
+                var btnImg = _slotButtons[i].targetGraphic as Image;
+
                 if (i < equipped.Length && equipped[i] != null)
                 {
                     var item = equipped[i];
-                    string upgradeStr = item.UpgradeLevel > 0 ? $" +{item.UpgradeLevel}" : "";
-                    _slotTexts[i].text = $"{SlotLabels[i]}: {item.Data.Name}{upgradeStr}";
+                    string upgradeStr = item.UpgradeLevel > 0 ? $"\n+{item.UpgradeLevel}" : "";
+                    _slotTexts[i].text = $"{SlotLabels[i]}{upgradeStr}";
+
+                    if (btnImg != null)
+                        btnImg.color = GetEquipmentQualityColor(item.Data.Quality);
                 }
                 else
                 {
-                    _slotTexts[i].text = $"{SlotLabels[i]}: Empty";
+                    _slotTexts[i].text = SlotLabels[i];
+
+                    if (btnImg != null)
+                        btnImg.color = EmptySlotColor;
                 }
             }
         }
@@ -172,7 +188,7 @@ namespace ConquerChronicles.Gameplay.Equipment
                     tmp.fontSize = 18;
                     tmp.color = Color.white;
                     tmp.alignment = TextAlignmentOptions.Center;
-                    tmp.enableWordWrapping = false;
+                    tmp.textWrappingMode = TextWrappingModes.NoWrap;
                     tmp.overflowMode = TextOverflowModes.Truncate;
                 }
                 else
@@ -360,6 +376,8 @@ namespace ConquerChronicles.Gameplay.Equipment
                 }
             }
 
+            if (_statsButton != null) _statsButton.onClick.RemoveAllListeners();
+            if (_closeStatsButton != null) _closeStatsButton.onClick.RemoveAllListeners();
             if (_equipButton != null) _equipButton.onClick.RemoveAllListeners();
             if (_upgradeButton != null) _upgradeButton.onClick.RemoveAllListeners();
             if (_closeDetailButton != null) _closeDetailButton.onClick.RemoveAllListeners();

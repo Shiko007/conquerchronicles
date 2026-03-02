@@ -56,9 +56,12 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         [SerializeField] private bool _autoSave = true;
 
         private SaveManager _saveManager;
+        private bool _leavingToMenu;
 
         private void Start()
         {
+            Application.targetFrameRate = 60;
+
             // Initialize player
             _characterView.Initialize(_testClass);
 
@@ -106,9 +109,9 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 _playerHUD.Initialize(_characterView, _combatManager);
                 _playerHUD.OnBackPressed = () =>
                 {
+                    _leavingToMenu = true;
                     if (_mapManager != null)
                         _mapManager.LeaveArea();
-                    SceneManager.LoadScene("MainMenu");
                 };
             }
 
@@ -223,6 +226,12 @@ namespace ConquerChronicles.Gameplay.Bootstrap
 
         private void OnAreaContinue()
         {
+            if (_leavingToMenu)
+            {
+                SceneManager.LoadScene("MainMenu");
+                return;
+            }
+
             // Re-enter the same area for testing
             var maps = TestMaps.AllMaps;
             int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
