@@ -4,7 +4,6 @@
     "references": [
         "ConquerChronicles.Core",
         "VContainer",
-        "DOTween.Modules",
         "Unity.RenderPipelines.Universal.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.InputSystem",

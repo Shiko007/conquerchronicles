@@ -33,6 +33,7 @@ namespace ConquerChronicles.Gameplay.Map
         // Death anim plays at 8 fps; 1.5 s covers up to 12 frames comfortably.
         private const float DeathAnimDuration = 1.5f;
         private float _deathAnimDelay = -1f;
+        private bool _loggedFirstUpdate;
 
         public AreaState AreaState => _areaState;
 
@@ -68,6 +69,7 @@ namespace ConquerChronicles.Gameplay.Map
 
         public void EnterArea(MapData map, AreaData area)
         {
+            Debug.Log($"[MapManager] EnterArea: {area.Name}, MaxEnemies={area.MaxConcurrentEnemies}, SpawnInterval={area.SpawnInterval}");
             _currentMap = map;
             _areaState = new AreaState(area);
             _spawnRng = new System.Random(Environment.TickCount);
@@ -84,6 +86,7 @@ namespace ConquerChronicles.Gameplay.Map
                 _player.PlayIdle();
             }
 
+            Debug.Log($"[MapManager] AreaState.IsActive={_areaState.IsActive}, EnemyPool={area.EnemyPool?.Length ?? 0} entries");
             OnAreaAnnouncement?.Invoke($"Entering: {area.Name}");
         }
 
@@ -110,7 +113,17 @@ namespace ConquerChronicles.Gameplay.Map
                 return;
             }
 
-            if (!_areaState.IsActive) return;
+            if (!_areaState.IsActive)
+            {
+                if (!_loggedFirstUpdate) { Debug.Log("[MapManager] Update: IsActive=false, skipping"); _loggedFirstUpdate = true; }
+                return;
+            }
+
+            if (!_loggedFirstUpdate)
+            {
+                Debug.Log($"[MapManager] First Update: IsActive=true, SpawnTimer={_areaState.SpawnTimer:F2}, EnemiesAlive={_areaState.EnemiesAlive}, ShouldSpawn={_areaState.ShouldSpawn}");
+                _loggedFirstUpdate = true;
+            }
 
             _areaState.ElapsedTime += Time.deltaTime;
 
@@ -138,9 +151,14 @@ namespace ConquerChronicles.Gameplay.Map
         private void SpawnRandomEnemy()
         {
             string enemyID = TestMaps.PickRandomEnemy(_areaState.Data.EnemyPool, _spawnRng);
-            if (!_enemyCatalog.TryGetValue(enemyID, out var enemyData)) return;
+            if (!_enemyCatalog.TryGetValue(enemyID, out var enemyData))
+            {
+                Debug.LogWarning($"[MapManager] Enemy ID '{enemyID}' not found in catalog!");
+                return;
+            }
 
             var edge = (SpawnEdge)_spawnRng.Next(0, 4);
+            Debug.Log($"[MapManager] Spawning {enemyID} from {edge}");
             _enemySpawner.SpawnEnemy(enemyData, edge);
         }
 

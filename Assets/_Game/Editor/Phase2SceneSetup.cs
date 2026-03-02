@@ -567,27 +567,130 @@ namespace ConquerChronicles.Editor
             safeAreaRT.offsetMax = Vector2.zero;
             safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
 
-            // Top-left panel (anchor-based proportional: left 35%, top 12%)
-            var panelGO = new GameObject("HUD_Panel", typeof(RectTransform));
-            panelGO.transform.SetParent(safeAreaGO.transform, false);
-            var panelRT = panelGO.GetComponent<RectTransform>();
-            panelRT.anchorMin = new Vector2(0, 0.88f);
-            panelRT.anchorMax = new Vector2(0.35f, 1f);
-            panelRT.offsetMin = new Vector2(20, 0);
-            panelRT.offsetMax = new Vector2(0, -20);
+            // =============================================
+            // XP Bar — full width across top
+            // =============================================
+            var xpBarBG = new GameObject("XP_Bar_BG", typeof(RectTransform));
+            xpBarBG.transform.SetParent(safeAreaGO.transform, false);
+            var xpBgRT = xpBarBG.GetComponent<RectTransform>();
+            xpBgRT.anchorMin = new Vector2(0, 1);
+            xpBgRT.anchorMax = new Vector2(1, 1);
+            xpBgRT.pivot = new Vector2(0.5f, 1);
+            xpBgRT.anchoredPosition = new Vector2(0, 0);
+            xpBgRT.sizeDelta = new Vector2(0, 22);
+            var xpBgImg = xpBarBG.AddComponent<Image>();
+            xpBgImg.color = new Color(0.08f, 0.08f, 0.12f, 0.9f);
 
-            // HP Bar (stretch full panel width with margins)
+            var xpFill = new GameObject("XP_Fill", typeof(RectTransform));
+            xpFill.transform.SetParent(xpBarBG.transform, false);
+            var xpFillRT = xpFill.GetComponent<RectTransform>();
+            xpFillRT.anchorMin = Vector2.zero;
+            xpFillRT.anchorMax = Vector2.one;
+            xpFillRT.offsetMin = new Vector2(1, 1);
+            xpFillRT.offsetMax = new Vector2(-1, -1);
+            var xpFillImg = xpFill.AddComponent<Image>();
+            xpFillImg.color = new Color(1f, 0.84f, 0f, 1f); // gold
+            xpFillImg.type = UnityEngine.UI.Image.Type.Filled;
+            xpFillImg.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
+
+            // XP text overlay (centered on bar)
+            var xpTextGO = CreateUIText(xpBarBG.transform, "XP_Text", "0/100",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 14);
+            var xpTMP = xpTextGO.GetComponent<TextMeshProUGUI>();
+            xpTMP.alignment = TextAlignmentOptions.Center;
+            xpTMP.color = Color.white;
+            xpTMP.fontStyle = FontStyles.Bold;
+
+            // =============================================
+            // Level badge — left side, below XP bar
+            // =============================================
+            var levelBadge = new GameObject("Level_Badge", typeof(RectTransform));
+            levelBadge.transform.SetParent(safeAreaGO.transform, false);
+            var lvBadgeRT = levelBadge.GetComponent<RectTransform>();
+            lvBadgeRT.anchorMin = new Vector2(0, 1);
+            lvBadgeRT.anchorMax = new Vector2(0, 1);
+            lvBadgeRT.pivot = new Vector2(0, 1);
+            lvBadgeRT.anchoredPosition = new Vector2(12, -26);
+            lvBadgeRT.sizeDelta = new Vector2(80, 32);
+            var lvBadgeImg = levelBadge.AddComponent<Image>();
+            lvBadgeImg.color = new Color(0.15f, 0.12f, 0.25f, 0.9f);
+
+            var levelTextGO = new GameObject("Level_Text", typeof(RectTransform));
+            levelTextGO.transform.SetParent(levelBadge.transform, false);
+            var levelTextRT = levelTextGO.GetComponent<RectTransform>();
+            levelTextRT.anchorMin = Vector2.zero;
+            levelTextRT.anchorMax = Vector2.one;
+            levelTextRT.offsetMin = Vector2.zero;
+            levelTextRT.offsetMax = Vector2.zero;
+            var levelTMP = levelTextGO.AddComponent<TextMeshProUGUI>();
+            levelTMP.text = "Lv.1";
+            levelTMP.fontSize = 22;
+            levelTMP.color = new Color(1f, 0.84f, 0f, 1f); // gold text
+            levelTMP.fontStyle = FontStyles.Bold;
+            levelTMP.alignment = TextAlignmentOptions.Center;
+
+            // Class name — right of level badge
+            var classTextGO = new GameObject("Class_Text", typeof(RectTransform));
+            classTextGO.transform.SetParent(safeAreaGO.transform, false);
+            var classTextRT = classTextGO.GetComponent<RectTransform>();
+            classTextRT.anchorMin = new Vector2(0, 1);
+            classTextRT.anchorMax = new Vector2(0, 1);
+            classTextRT.pivot = new Vector2(0, 1);
+            classTextRT.anchoredPosition = new Vector2(98, -28);
+            classTextRT.sizeDelta = new Vector2(200, 28);
+            var classTMP = classTextGO.AddComponent<TextMeshProUGUI>();
+            classTMP.text = "Trojan";
+            classTMP.fontSize = 18;
+            classTMP.color = new Color(0.8f, 0.8f, 0.8f, 1f);
+            classTMP.alignment = TextAlignmentOptions.Left;
+
+            // =============================================
+            // Stats panel — HP and MP bars below level
+            // =============================================
+            var statsPanel = new GameObject("Stats_Panel", typeof(RectTransform));
+            statsPanel.transform.SetParent(safeAreaGO.transform, false);
+            var statsPanelRT = statsPanel.GetComponent<RectTransform>();
+            statsPanelRT.anchorMin = new Vector2(0, 1);
+            statsPanelRT.anchorMax = new Vector2(0, 1);
+            statsPanelRT.pivot = new Vector2(0, 1);
+            statsPanelRT.anchoredPosition = new Vector2(12, -62);
+            statsPanelRT.sizeDelta = new Vector2(340, 80);
+
+            // --- HP Bar ---
+            // HP label
+            var hpLabelGO = new GameObject("HP_Label", typeof(RectTransform));
+            hpLabelGO.transform.SetParent(statsPanel.transform, false);
+            var hpLabelRT = hpLabelGO.GetComponent<RectTransform>();
+            hpLabelRT.anchorMin = new Vector2(0, 1);
+            hpLabelRT.anchorMax = new Vector2(0, 1);
+            hpLabelRT.pivot = new Vector2(0, 1);
+            hpLabelRT.anchoredPosition = new Vector2(0, 0);
+            hpLabelRT.sizeDelta = new Vector2(36, 34);
+            var hpLabelTMP = hpLabelGO.AddComponent<TextMeshProUGUI>();
+            hpLabelTMP.text = "HP";
+            hpLabelTMP.fontSize = 18;
+            hpLabelTMP.color = new Color(1f, 0.35f, 0.35f, 1f);
+            hpLabelTMP.fontStyle = FontStyles.Bold;
+            hpLabelTMP.alignment = TextAlignmentOptions.MidlineLeft;
+
+            // HP bar background
             var hpBarBG = new GameObject("HP_Bar_BG", typeof(RectTransform));
-            hpBarBG.transform.SetParent(panelGO.transform, false);
+            hpBarBG.transform.SetParent(statsPanel.transform, false);
             var hpBgRT = hpBarBG.GetComponent<RectTransform>();
             hpBgRT.anchorMin = new Vector2(0, 1);
-            hpBgRT.anchorMax = new Vector2(1, 1);
-            hpBgRT.pivot = new Vector2(0.5f, 1);
-            hpBgRT.anchoredPosition = new Vector2(0, -10);
-            hpBgRT.sizeDelta = new Vector2(-20, 30);
+            hpBgRT.anchorMax = new Vector2(0, 1);
+            hpBgRT.pivot = new Vector2(0, 1);
+            hpBgRT.anchoredPosition = new Vector2(38, -2);
+            hpBgRT.sizeDelta = new Vector2(290, 30);
             var hpBgImg = hpBarBG.AddComponent<Image>();
-            hpBgImg.color = new Color(0.2f, 0.0f, 0.0f, 0.8f);
+            hpBgImg.color = new Color(0.12f, 0.04f, 0.04f, 0.9f);
 
+            // HP bar outline
+            var hpOutline = hpBarBG.AddComponent<Outline>();
+            hpOutline.effectColor = new Color(0.5f, 0.15f, 0.15f, 0.8f);
+            hpOutline.effectDistance = new Vector2(1, -1);
+
+            // HP fill
             var hpFill = new GameObject("HP_Fill", typeof(RectTransform));
             hpFill.transform.SetParent(hpBarBG.transform, false);
             var hpFillRT = hpFill.GetComponent<RectTransform>();
@@ -596,25 +699,52 @@ namespace ConquerChronicles.Editor
             hpFillRT.offsetMin = new Vector2(2, 2);
             hpFillRT.offsetMax = new Vector2(-2, -2);
             var hpFillImg = hpFill.AddComponent<Image>();
-            hpFillImg.color = new Color(0.8f, 0.1f, 0.1f, 1f);
+            hpFillImg.color = new Color(0.85f, 0.15f, 0.15f, 1f);
             hpFillImg.type = UnityEngine.UI.Image.Type.Filled;
             hpFillImg.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
 
-            var hpText = CreateUIText(hpBarBG.transform, "HP_Text", "100/100",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 18);
+            // HP text (on top of bar)
+            var hpTextGO = CreateUIText(hpBarBG.transform, "HP_Text", "100/100",
+                Vector2.zero, Vector2.one, new Vector2(4, 0), new Vector2(-4, 0), 16);
+            var hpTMP = hpTextGO.GetComponent<TextMeshProUGUI>();
+            hpTMP.alignment = TextAlignmentOptions.Center;
+            hpTMP.fontStyle = FontStyles.Bold;
 
-            // MP Bar (stretch full panel width with margins)
+            // --- MP Bar ---
+            // MP label
+            var mpLabelGO = new GameObject("MP_Label", typeof(RectTransform));
+            mpLabelGO.transform.SetParent(statsPanel.transform, false);
+            var mpLabelRT = mpLabelGO.GetComponent<RectTransform>();
+            mpLabelRT.anchorMin = new Vector2(0, 1);
+            mpLabelRT.anchorMax = new Vector2(0, 1);
+            mpLabelRT.pivot = new Vector2(0, 1);
+            mpLabelRT.anchoredPosition = new Vector2(0, -38);
+            mpLabelRT.sizeDelta = new Vector2(36, 34);
+            var mpLabelTMP = mpLabelGO.AddComponent<TextMeshProUGUI>();
+            mpLabelTMP.text = "MP";
+            mpLabelTMP.fontSize = 18;
+            mpLabelTMP.color = new Color(0.3f, 0.5f, 1f, 1f);
+            mpLabelTMP.fontStyle = FontStyles.Bold;
+            mpLabelTMP.alignment = TextAlignmentOptions.MidlineLeft;
+
+            // MP bar background
             var mpBarBG = new GameObject("MP_Bar_BG", typeof(RectTransform));
-            mpBarBG.transform.SetParent(panelGO.transform, false);
+            mpBarBG.transform.SetParent(statsPanel.transform, false);
             var mpBgRT = mpBarBG.GetComponent<RectTransform>();
             mpBgRT.anchorMin = new Vector2(0, 1);
-            mpBgRT.anchorMax = new Vector2(1, 1);
-            mpBgRT.pivot = new Vector2(0.5f, 1);
-            mpBgRT.anchoredPosition = new Vector2(0, -50);
-            mpBgRT.sizeDelta = new Vector2(-20, 25);
+            mpBgRT.anchorMax = new Vector2(0, 1);
+            mpBgRT.pivot = new Vector2(0, 1);
+            mpBgRT.anchoredPosition = new Vector2(38, -40);
+            mpBgRT.sizeDelta = new Vector2(290, 26);
             var mpBgImg = mpBarBG.AddComponent<Image>();
-            mpBgImg.color = new Color(0.0f, 0.0f, 0.2f, 0.8f);
+            mpBgImg.color = new Color(0.04f, 0.04f, 0.14f, 0.9f);
 
+            // MP bar outline
+            var mpOutline = mpBarBG.AddComponent<Outline>();
+            mpOutline.effectColor = new Color(0.15f, 0.2f, 0.5f, 0.8f);
+            mpOutline.effectDistance = new Vector2(1, -1);
+
+            // MP fill
             var mpFill = new GameObject("MP_Fill", typeof(RectTransform));
             mpFill.transform.SetParent(mpBarBG.transform, false);
             var mpFillRT = mpFill.GetComponent<RectTransform>();
@@ -623,80 +753,54 @@ namespace ConquerChronicles.Editor
             mpFillRT.offsetMin = new Vector2(2, 2);
             mpFillRT.offsetMax = new Vector2(-2, -2);
             var mpFillImg = mpFill.AddComponent<Image>();
-            mpFillImg.color = new Color(0.1f, 0.3f, 0.9f, 1f);
+            mpFillImg.color = new Color(0.15f, 0.35f, 0.95f, 1f);
             mpFillImg.type = UnityEngine.UI.Image.Type.Filled;
             mpFillImg.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
 
-            var mpText = CreateUIText(mpBarBG.transform, "MP_Text", "50/50",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 14);
+            // MP text (on top of bar)
+            var mpTextGO = CreateUIText(mpBarBG.transform, "MP_Text", "50/50",
+                Vector2.zero, Vector2.one, new Vector2(4, 0), new Vector2(-4, 0), 14);
+            var mpTMP = mpTextGO.GetComponent<TextMeshProUGUI>();
+            mpTMP.alignment = TextAlignmentOptions.Center;
+            mpTMP.fontStyle = FontStyles.Bold;
 
-            // XP Bar (stretch full panel width with margins)
-            var xpBarBG = new GameObject("XP_Bar_BG", typeof(RectTransform));
-            xpBarBG.transform.SetParent(panelGO.transform, false);
-            var xpBgRT = xpBarBG.GetComponent<RectTransform>();
-            xpBgRT.anchorMin = new Vector2(0, 1);
-            xpBgRT.anchorMax = new Vector2(1, 1);
-            xpBgRT.pivot = new Vector2(0.5f, 1);
-            xpBgRT.anchoredPosition = new Vector2(0, -85);
-            xpBgRT.sizeDelta = new Vector2(-20, 18);
-            var xpBgImg = xpBarBG.AddComponent<Image>();
-            xpBgImg.color = new Color(0.1f, 0.1f, 0.1f, 0.8f);
-
-            var xpFill = new GameObject("XP_Fill", typeof(RectTransform));
-            xpFill.transform.SetParent(xpBarBG.transform, false);
-            var xpFillRT = xpFill.GetComponent<RectTransform>();
-            xpFillRT.anchorMin = Vector2.zero;
-            xpFillRT.anchorMax = Vector2.one;
-            xpFillRT.offsetMin = new Vector2(2, 2);
-            xpFillRT.offsetMax = new Vector2(-2, -2);
-            var xpFillImg = xpFill.AddComponent<Image>();
-            xpFillImg.color = new Color(0.9f, 0.8f, 0.1f, 1f);
-            xpFillImg.type = UnityEngine.UI.Image.Type.Filled;
-            xpFillImg.fillMethod = UnityEngine.UI.Image.FillMethod.Horizontal;
-
-            // Level text (stretch to panel width)
-            var levelText = new GameObject("Level_Text", typeof(RectTransform));
-            levelText.transform.SetParent(panelGO.transform, false);
-            var levelTextRT = levelText.GetComponent<RectTransform>();
-            levelTextRT.anchorMin = new Vector2(0, 1);
-            levelTextRT.anchorMax = new Vector2(0.5f, 1);
-            levelTextRT.pivot = new Vector2(0, 1);
-            levelTextRT.anchoredPosition = new Vector2(10, -108);
-            levelTextRT.sizeDelta = new Vector2(0, 35);
-            var levelTMP = levelText.AddComponent<TextMeshProUGUI>();
-            levelTMP.text = "Lv.1";
-            levelTMP.fontSize = 24;
-            levelTMP.color = Color.white;
-            levelTMP.alignment = TextAlignmentOptions.Left;
-
-            // Kill counter (stretch to panel width)
+            // =============================================
+            // Kill counter — below stats panel
+            // =============================================
             var killText = new GameObject("Kill_Text", typeof(RectTransform));
-            killText.transform.SetParent(panelGO.transform, false);
+            killText.transform.SetParent(safeAreaGO.transform, false);
             var killTextRT = killText.GetComponent<RectTransform>();
             killTextRT.anchorMin = new Vector2(0, 1);
-            killTextRT.anchorMax = new Vector2(1, 1);
+            killTextRT.anchorMax = new Vector2(0, 1);
             killTextRT.pivot = new Vector2(0, 1);
-            killTextRT.anchoredPosition = new Vector2(10, -145);
-            killTextRT.sizeDelta = new Vector2(-20, 30);
+            killTextRT.anchoredPosition = new Vector2(16, -148);
+            killTextRT.sizeDelta = new Vector2(200, 28);
             var killTMP = killText.AddComponent<TextMeshProUGUI>();
             killTMP.text = "Kills: 0";
             killTMP.fontSize = 20;
-            killTMP.color = Color.white;
+            killTMP.color = new Color(0.9f, 0.9f, 0.9f, 0.8f);
             killTMP.alignment = TextAlignmentOptions.Left;
 
-            // Back button (top-right)
+            // =============================================
+            // Back button — top-right
+            // =============================================
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
             backBtnGO.transform.SetParent(safeAreaGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
             backBtnRT.anchorMin = new Vector2(1, 1);
             backBtnRT.anchorMax = new Vector2(1, 1);
             backBtnRT.pivot = new Vector2(1, 1);
-            backBtnRT.anchoredPosition = new Vector2(-20, -20);
-            backBtnRT.sizeDelta = new Vector2(160, 60);
+            backBtnRT.anchoredPosition = new Vector2(-16, -28);
+            backBtnRT.sizeDelta = new Vector2(120, 44);
             var backBtnImg = backBtnGO.AddComponent<Image>();
-            backBtnImg.color = new Color(0.6f, 0.15f, 0.15f, 0.9f);
+            backBtnImg.color = new Color(0.5f, 0.12f, 0.12f, 0.85f);
             var backBtn = backBtnGO.AddComponent<Button>();
             backBtn.targetGraphic = backBtnImg;
+
+            // Back button outline
+            var backOutline = backBtnGO.AddComponent<Outline>();
+            backOutline.effectColor = new Color(0.7f, 0.2f, 0.2f, 0.6f);
+            backOutline.effectDistance = new Vector2(1, -1);
 
             var backBtnTextGO = new GameObject("Text", typeof(RectTransform));
             backBtnTextGO.transform.SetParent(backBtnGO.transform, false);
@@ -707,19 +811,24 @@ namespace ConquerChronicles.Editor
             backBtnTextRT.offsetMax = Vector2.zero;
             var backBtnTMP = backBtnTextGO.AddComponent<TextMeshProUGUI>();
             backBtnTMP.text = "Leave";
-            backBtnTMP.fontSize = 28;
+            backBtnTMP.fontSize = 22;
             backBtnTMP.color = Color.white;
+            backBtnTMP.fontStyle = FontStyles.Bold;
             backBtnTMP.alignment = TextAlignmentOptions.Center;
 
+            // =============================================
             // Wire PlayerHUD
+            // =============================================
             var hud = canvasGO.AddComponent<PlayerHUD>();
             var hudSO = new SerializedObject(hud);
             hudSO.FindProperty("_hpFill").objectReferenceValue = hpFillImg;
-            hudSO.FindProperty("_hpText").objectReferenceValue = hpText.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("_hpText").objectReferenceValue = hpTMP;
             hudSO.FindProperty("_mpFill").objectReferenceValue = mpFillImg;
-            hudSO.FindProperty("_mpText").objectReferenceValue = mpText.GetComponent<TextMeshProUGUI>();
+            hudSO.FindProperty("_mpText").objectReferenceValue = mpTMP;
             hudSO.FindProperty("_xpFill").objectReferenceValue = xpFillImg;
+            hudSO.FindProperty("_xpText").objectReferenceValue = xpTMP;
             hudSO.FindProperty("_levelText").objectReferenceValue = levelTMP;
+            hudSO.FindProperty("_classText").objectReferenceValue = classTMP;
             hudSO.FindProperty("_killCountText").objectReferenceValue = killTMP;
             hudSO.FindProperty("_backButton").objectReferenceValue = backBtn;
             hudSO.ApplyModifiedPropertiesWithoutUndo();

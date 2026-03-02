@@ -1,6 +1,6 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
-using DG.Tweening;
 
 namespace ConquerChronicles.Gameplay.Combat
 {
@@ -8,7 +8,7 @@ namespace ConquerChronicles.Gameplay.Combat
     public class DamageNumberView : MonoBehaviour
     {
         private TextMeshPro _text;
-        private Sequence _sequence;
+        private Coroutine _routine;
 
         private void Awake()
         {
@@ -35,16 +35,44 @@ namespace ConquerChronicles.Gameplay.Combat
             _text.alpha = 1f;
             gameObject.SetActive(true);
 
-            _sequence?.Kill();
-            _sequence = DOTween.Sequence()
-                .Append(transform.DOMove(worldPosition + new Vector3(Random.Range(-0.3f, 0.3f), 1.2f, 0f), 0.8f).SetEase(Ease.OutCubic))
-                .Join(DOTween.To(() => _text.alpha, a => _text.alpha = a, 0f, 0.8f).SetEase(Ease.InQuad))
-                .OnComplete(() => gameObject.SetActive(false));
+            if (_routine != null) StopCoroutine(_routine);
+            _routine = StartCoroutine(AnimateRoutine(worldPosition));
+        }
+
+        private IEnumerator AnimateRoutine(Vector3 startPos)
+        {
+            float offsetX = Random.Range(-0.3f, 0.3f);
+            Vector3 endPos = startPos + new Vector3(offsetX, 1.2f, 0f);
+            float duration = 0.8f;
+            float t = 0f;
+
+            while (t < duration)
+            {
+                t += Time.deltaTime;
+                float p = Mathf.Clamp01(t / duration);
+
+                // OutCubic ease for movement
+                float moveEase = 1f - Mathf.Pow(1f - p, 3f);
+                transform.position = Vector3.Lerp(startPos, endPos, moveEase);
+
+                // InQuad ease for alpha fade
+                float alphaEase = p * p;
+                _text.alpha = 1f - alphaEase;
+
+                yield return null;
+            }
+
+            gameObject.SetActive(false);
+            _routine = null;
         }
 
         private void OnDisable()
         {
-            _sequence?.Kill();
+            if (_routine != null)
+            {
+                StopCoroutine(_routine);
+                _routine = null;
+            }
         }
     }
 }

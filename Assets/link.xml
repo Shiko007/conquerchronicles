@@ -1,0 +1,5 @@
+<linker>
+  <assembly fullname="ConquerChronicles.Core" preserve="all"/>
+  <assembly fullname="ConquerChronicles.Gameplay" preserve="all"/>
+  <assembly fullname="Unity.TextMeshPro" preserve="all"/>
+</linker>

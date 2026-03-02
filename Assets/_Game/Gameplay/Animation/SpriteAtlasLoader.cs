@@ -19,6 +19,8 @@ namespace ConquerChronicles.Gameplay.Animation
         /// Loads all sprites from the atlas and caches them.
         /// Call once at startup or first use.
         /// </summary>
+        public static int SpriteCount => _allSprites != null ? _allSprites.Length : 0;
+
         public static void EnsureLoaded()
         {
             if (_loaded) return;
@@ -29,6 +31,14 @@ namespace ConquerChronicles.Gameplay.Animation
                 Debug.LogWarning($"[SpriteAtlasLoader] No sprites found at Resources/{AtlasPath}. " +
                     "Make sure the atlas is in a Resources folder or use LoadFromAtlas() directly.");
                 _allSprites = System.Array.Empty<Sprite>();
+            }
+            else
+            {
+                // Log first few sprite names for diagnostics
+                string names = "";
+                for (int i = 0; i < Mathf.Min(5, _allSprites.Length); i++)
+                    names += _allSprites[i].name + ", ";
+                Debug.Log($"[SpriteAtlasLoader] Loaded {_allSprites.Length} sprites. First: {names}");
             }
 
             _loaded = true;

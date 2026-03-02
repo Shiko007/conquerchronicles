@@ -75,12 +75,15 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         private void Start()
         {
             Application.targetFrameRate = 60;
+            Debug.Log("[GameplaySetup] Start() begin");
 
             // Load sprite atlas for animations
             SpriteAtlasLoader.EnsureLoaded();
+            Debug.Log($"[GameplaySetup] Atlas loaded, sprite count: {SpriteAtlasLoader.SpriteCount}");
 
             // Initialize player
             _characterView.Initialize(_testClass);
+            Debug.Log("[GameplaySetup] Player initialized");
 
             // Check hero recovery cooldown
             _saveManager = SaveSystemBridge.GetOrCreate();
@@ -124,8 +127,10 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             _mapBoundsProvider.Initialize(_isometricCamera);
 
             // Enemy spawning
+            Debug.Log("[GameplaySetup] Initializing enemy spawner...");
             _enemySpawner.Initialize(_enemyPool, _mapBoundsProvider, _characterView.transform);
             _enemyPool.Warmup();
+            Debug.Log("[GameplaySetup] Enemy pool warmed up");
 
             // Combat pools
             if (_damageNumberPool != null) _damageNumberPool.Warmup();
@@ -226,7 +231,9 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
                 var map = maps[mapIdx];
                 int areaIdx = Mathf.Clamp(_testAreaIndex, 0, map.Areas.Length - 1);
+                Debug.Log($"[GameplaySetup] Entering area: {map.Name} / {map.Areas[areaIdx].Name}");
                 _mapManager.EnterArea(map, map.Areas[areaIdx]);
+                Debug.Log("[GameplaySetup] Area entered successfully");
             }
 
             // Wire session ending to auto-collect remaining loot before result is calculated

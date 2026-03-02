@@ -1,6 +1,6 @@
 using System;
+using System.Collections;
 using UnityEngine;
-using DG.Tweening;
 
 namespace ConquerChronicles.Gameplay.Loot
 {
@@ -11,8 +11,8 @@ namespace ConquerChronicles.Gameplay.Loot
 
         private string _itemID;
         private int _quantity;
-        private Tweener _bobTween;
-        private Sequence _collectSequence;
+        private Coroutine _bobRoutine;
+        private Coroutine _collectRoutine;
         private CircleCollider2D _collider;
 
         public string ItemID => _itemID;
@@ -47,10 +47,20 @@ namespace ConquerChronicles.Gameplay.Loot
 
             gameObject.SetActive(true);
 
-            _bobTween?.Kill();
-            _bobTween = transform.DOLocalMoveY(worldPos.y + 0.15f, 0.6f)
-                .SetEase(Ease.InOutSine)
-                .SetLoops(-1, LoopType.Yoyo);
+            if (_bobRoutine != null) StopCoroutine(_bobRoutine);
+            _bobRoutine = StartCoroutine(BobRoutine(worldPos));
+        }
+
+        private IEnumerator BobRoutine(Vector3 basePos)
+        {
+            float t = 0f;
+            while (true)
+            {
+                t += Time.deltaTime;
+                float offset = Mathf.Sin(t * Mathf.PI / 0.6f) * 0.15f;
+                transform.position = new Vector3(basePos.x, basePos.y + offset, basePos.z);
+                yield return null;
+            }
         }
 
         public void Collect(Vector3 playerPos)
@@ -58,27 +68,39 @@ namespace ConquerChronicles.Gameplay.Loot
             if (IsCollecting) return;
             IsCollecting = true;
 
-            // Stop bobbing and disable collider immediately
-            _bobTween?.Kill();
+            if (_bobRoutine != null) { StopCoroutine(_bobRoutine); _bobRoutine = null; }
             if (_collider != null)
                 _collider.enabled = false;
 
-            // Zip to player
-            _collectSequence?.Kill();
-            _collectSequence = DOTween.Sequence()
-                .Append(transform.DOMove(playerPos, 0.25f).SetEase(Ease.InQuad))
-                .Join(transform.DOScale(Vector3.one * 0.2f, 0.25f).SetEase(Ease.InQuad))
-                .OnComplete(() =>
-                {
-                    OnCollectComplete?.Invoke();
-                    OnCollectComplete = null;
-                });
+            if (_collectRoutine != null) StopCoroutine(_collectRoutine);
+            _collectRoutine = StartCoroutine(CollectRoutine(playerPos));
+        }
+
+        private IEnumerator CollectRoutine(Vector3 playerPos)
+        {
+            Vector3 startPos = transform.position;
+            Vector3 startScale = transform.localScale;
+            float t = 0f;
+
+            while (t < 0.25f)
+            {
+                t += Time.deltaTime;
+                float p = Mathf.Clamp01(t / 0.25f);
+                float ease = p * p; // InQuad
+                transform.position = Vector3.Lerp(startPos, playerPos, ease);
+                transform.localScale = Vector3.Lerp(startScale, Vector3.one * 0.2f, ease);
+                yield return null;
+            }
+
+            OnCollectComplete?.Invoke();
+            OnCollectComplete = null;
+            _collectRoutine = null;
         }
 
         public void Deactivate()
         {
-            _bobTween?.Kill();
-            _collectSequence?.Kill();
+            if (_bobRoutine != null) { StopCoroutine(_bobRoutine); _bobRoutine = null; }
+            if (_collectRoutine != null) { StopCoroutine(_collectRoutine); _collectRoutine = null; }
             IsCollecting = false;
             if (_collider != null)
                 _collider.enabled = false;
@@ -88,8 +110,8 @@ namespace ConquerChronicles.Gameplay.Loot
 
         private void OnDisable()
         {
-            _bobTween?.Kill();
-            _collectSequence?.Kill();
+            if (_bobRoutine != null) { StopCoroutine(_bobRoutine); _bobRoutine = null; }
+            if (_collectRoutine != null) { StopCoroutine(_collectRoutine); _collectRoutine = null; }
         }
     }
 }

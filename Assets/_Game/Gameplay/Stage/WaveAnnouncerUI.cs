@@ -1,6 +1,6 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
-using DG.Tweening;
 
 namespace ConquerChronicles.Gameplay.Stage
 {
@@ -10,7 +10,7 @@ namespace ConquerChronicles.Gameplay.Stage
         [SerializeField] private CanvasGroup _canvasGroup;
         [SerializeField] private float _displayDuration = 2f;
 
-        private Sequence _sequence;
+        private Coroutine _routine;
 
         public void Initialize(TextMeshProUGUI text, CanvasGroup canvasGroup)
         {
@@ -22,19 +22,42 @@ namespace ConquerChronicles.Gameplay.Stage
         {
             if (_text == null || _canvasGroup == null) return;
 
-            _sequence?.Kill();
+            if (_routine != null) StopCoroutine(_routine);
             _text.text = message;
             _canvasGroup.alpha = 0f;
+            _routine = StartCoroutine(AnnouncementRoutine());
+        }
 
-            _sequence = DOTween.Sequence()
-                .Append(DOTween.To(() => _canvasGroup.alpha, a => _canvasGroup.alpha = a, 1f, 0.3f).SetEase(Ease.OutQuad))
-                .AppendInterval(_displayDuration)
-                .Append(DOTween.To(() => _canvasGroup.alpha, a => _canvasGroup.alpha = a, 0f, 0.5f).SetEase(Ease.InQuad));
+        private IEnumerator AnnouncementRoutine()
+        {
+            // Fade in
+            float t = 0f;
+            while (t < 0.3f)
+            {
+                t += Time.deltaTime;
+                _canvasGroup.alpha = Mathf.Clamp01(t / 0.3f);
+                yield return null;
+            }
+            _canvasGroup.alpha = 1f;
+
+            // Hold
+            yield return new WaitForSeconds(_displayDuration);
+
+            // Fade out
+            t = 0f;
+            while (t < 0.5f)
+            {
+                t += Time.deltaTime;
+                _canvasGroup.alpha = 1f - Mathf.Clamp01(t / 0.5f);
+                yield return null;
+            }
+            _canvasGroup.alpha = 0f;
+            _routine = null;
         }
 
         private void OnDestroy()
         {
-            _sequence?.Kill();
+            if (_routine != null) StopCoroutine(_routine);
         }
     }
 }
