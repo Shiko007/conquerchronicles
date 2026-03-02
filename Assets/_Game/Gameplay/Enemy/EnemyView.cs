@@ -12,11 +12,13 @@ namespace ConquerChronicles.Gameplay.Enemy
 
         public EnemyState State { get; private set; }
         public bool IsActive { get; private set; }
+        public EnemyMovement Movement { get; private set; }
 
         private void Awake()
         {
             if (_spriteRenderer == null)
                 _spriteRenderer = GetComponent<SpriteRenderer>();
+            Movement = GetComponent<EnemyMovement>();
         }
 
         public void Initialize(EnemyData data, Vector3 spawnPosition)
@@ -50,7 +52,7 @@ namespace ConquerChronicles.Gameplay.Enemy
 
             float ratio = (float)State.CurrentHP / State.Data.Stats.HP;
             _healthBarFill.localScale = new Vector3(ratio, 1f, 1f);
-            _healthBarRoot.SetActive(ratio < 1f);
+            _healthBarRoot.SetActive(true);
         }
 
         public SpriteRenderer SpriteRenderer => _spriteRenderer;

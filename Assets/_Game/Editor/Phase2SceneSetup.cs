@@ -12,7 +12,9 @@ using ConquerChronicles.Gameplay.Enemy;
 using ConquerChronicles.Gameplay.Loot;
 using ConquerChronicles.Gameplay.Map;
 using ConquerChronicles.Gameplay.Stage;
+using ConquerChronicles.Gameplay.Audio;
 using ConquerChronicles.Gameplay.UI.HUD;
+using ConquerChronicles.Gameplay.UI.Tutorial;
 
 namespace ConquerChronicles.Editor
 {
@@ -226,6 +228,89 @@ namespace ConquerChronicles.Editor
                 lvmSO.ApplyModifiedPropertiesWithoutUndo();
             }
 
+            // --- Audio Manager ---
+            var audioManagerGO = new GameObject("AudioManager");
+            var audioManager = audioManagerGO.AddComponent<AudioManager>();
+
+            // --- Tutorial Overlay ---
+            TutorialOverlay tutorialOverlay = null;
+            {
+                var tutCanvasGO = new GameObject("TutorialCanvas");
+                var tutCanvas = tutCanvasGO.AddComponent<Canvas>();
+                tutCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                tutCanvas.sortingOrder = 999;
+                var tutScaler = tutCanvasGO.AddComponent<CanvasScaler>();
+                tutScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                tutScaler.referenceResolution = new Vector2(1080, 1920);
+                tutScaler.matchWidthOrHeight = 1.0f;
+                tutCanvasGO.AddComponent<GraphicRaycaster>();
+
+                var overlay = new GameObject("TutorialOverlay");
+                overlay.transform.SetParent(tutCanvasGO.transform, false);
+                tutorialOverlay = overlay.AddComponent<TutorialOverlay>();
+
+                // Overlay root (full screen dark backdrop)
+                var overlayRoot = new GameObject("OverlayRoot");
+                overlayRoot.transform.SetParent(overlay.transform, false);
+                var overlayRT = overlayRoot.AddComponent<RectTransform>();
+                overlayRT.anchorMin = Vector2.zero;
+                overlayRT.anchorMax = Vector2.one;
+                overlayRT.offsetMin = Vector2.zero;
+                overlayRT.offsetMax = Vector2.zero;
+
+                var backdrop = overlayRoot.AddComponent<Image>();
+                backdrop.color = new Color(0, 0, 0, 0.7f);
+                backdrop.raycastTarget = true;
+
+                // Tooltip text (centered)
+                var tooltipGO = new GameObject("TooltipText");
+                tooltipGO.transform.SetParent(overlayRoot.transform, false);
+                var tooltipRT = tooltipGO.AddComponent<RectTransform>();
+                tooltipRT.anchorMin = new Vector2(0.1f, 0.4f);
+                tooltipRT.anchorMax = new Vector2(0.9f, 0.6f);
+                tooltipRT.offsetMin = Vector2.zero;
+                tooltipRT.offsetMax = Vector2.zero;
+                var tooltipTMP = tooltipGO.AddComponent<TextMeshProUGUI>();
+                tooltipTMP.alignment = TextAlignmentOptions.Center;
+                tooltipTMP.fontSize = 36;
+                tooltipTMP.color = Color.white;
+
+                // Dismiss button
+                var dismissGO = new GameObject("DismissButton");
+                dismissGO.transform.SetParent(overlayRoot.transform, false);
+                var dismissRT = dismissGO.AddComponent<RectTransform>();
+                dismissRT.anchorMin = new Vector2(0.3f, 0.2f);
+                dismissRT.anchorMax = new Vector2(0.7f, 0.3f);
+                dismissRT.offsetMin = Vector2.zero;
+                dismissRT.offsetMax = Vector2.zero;
+                var dismissImg = dismissGO.AddComponent<Image>();
+                dismissImg.color = new Color(0.2f, 0.6f, 1f, 1f);
+                var dismissBtn = dismissGO.AddComponent<Button>();
+                dismissBtn.targetGraphic = dismissImg;
+
+                var dismissTextGO = new GameObject("Text");
+                dismissTextGO.transform.SetParent(dismissGO.transform, false);
+                var dismissTextRT = dismissTextGO.AddComponent<RectTransform>();
+                dismissTextRT.anchorMin = Vector2.zero;
+                dismissTextRT.anchorMax = Vector2.one;
+                dismissTextRT.offsetMin = Vector2.zero;
+                dismissTextRT.offsetMax = Vector2.zero;
+                var dismissTMP = dismissTextGO.AddComponent<TextMeshProUGUI>();
+                dismissTMP.text = "Next";
+                dismissTMP.alignment = TextAlignmentOptions.Center;
+                dismissTMP.fontSize = 28;
+                dismissTMP.color = Color.white;
+
+                // Wire SerializedObject
+                var tutSO = new SerializedObject(tutorialOverlay);
+                tutSO.FindProperty("_overlayRoot").objectReferenceValue = overlayRoot;
+                tutSO.FindProperty("_backdrop").objectReferenceValue = backdrop;
+                tutSO.FindProperty("_tooltipText").objectReferenceValue = tooltipTMP;
+                tutSO.FindProperty("_dismissButton").objectReferenceValue = dismissBtn;
+                tutSO.FindProperty("_dismissButtonText").objectReferenceValue = dismissTMP;
+                tutSO.ApplyModifiedPropertiesWithoutUndo();
+            }
+
             // --- GameManager (Test Setup) ---
             var managerGO = new GameObject("GameManager");
             var testSetup = managerGO.AddComponent<GameplayTestSetup>();
@@ -253,6 +338,8 @@ namespace ConquerChronicles.Editor
                 tsSO.FindProperty("_goldCoinPool").objectReferenceValue = goldCoinPool;
                 tsSO.FindProperty("_equipmentDropPool").objectReferenceValue = equipmentDropPool;
             }
+            tsSO.FindProperty("_audioManager").objectReferenceValue = audioManager;
+            tsSO.FindProperty("_tutorialOverlay").objectReferenceValue = tutorialOverlay;
             tsSO.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.MarkSceneDirty(scene);
@@ -268,7 +355,18 @@ namespace ConquerChronicles.Editor
             EnsureFolder("Assets/_Game/Data/Prefabs");
 
             var existing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
-            if (existing != null) return existing;
+            if (existing != null)
+            {
+                // Regenerate if health bar is missing
+                var existingView = existing.GetComponent<EnemyView>();
+                if (existingView != null)
+                {
+                    var eso = new SerializedObject(existingView);
+                    if (eso.FindProperty("_healthBarRoot").objectReferenceValue != null)
+                        return existing;
+                }
+                AssetDatabase.DeleteAsset("Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
+            }
 
             var go = new GameObject("Enemy_Slime");
             var sr = go.AddComponent<SpriteRenderer>();
@@ -282,6 +380,34 @@ namespace ConquerChronicles.Editor
 
             go.AddComponent<EnemyMovement>();
             go.AddComponent<IsometricYSort>();
+
+            // --- Health Bar ---
+            var healthBarRoot = new GameObject("HealthBar");
+            healthBarRoot.transform.SetParent(go.transform, false);
+            healthBarRoot.transform.localPosition = new Vector3(0f, 0.8f, 0f); // above the enemy sprite
+            healthBarRoot.SetActive(true); // always visible
+
+            // Background (dark bar)
+            var bgGo = new GameObject("BG");
+            bgGo.transform.SetParent(healthBarRoot.transform, false);
+            var bgSr = bgGo.AddComponent<SpriteRenderer>();
+            bgSr.sprite = CreateRectSprite("HealthBarBG", new Color(0.15f, 0.15f, 0.15f, 0.8f), 32, 4);
+            bgSr.sortingLayerName = "Default";
+            bgSr.sortingOrder = 10;
+
+            // Fill (green bar)
+            var fillGo = new GameObject("Fill");
+            fillGo.transform.SetParent(healthBarRoot.transform, false);
+            var fillSr = fillGo.AddComponent<SpriteRenderer>();
+            fillSr.sprite = CreateRectSprite("HealthBarFill", new Color(0.2f, 0.9f, 0.2f, 1f), 32, 4);
+            fillSr.sortingLayerName = "Default";
+            fillSr.sortingOrder = 11;
+
+            // Assign health bar references to EnemyView
+            so = new SerializedObject(view);
+            so.FindProperty("_healthBarRoot").objectReferenceValue = healthBarRoot;
+            so.FindProperty("_healthBarFill").objectReferenceValue = fillGo.transform;
+            so.ApplyModifiedPropertiesWithoutUndo();
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");
             Object.DestroyImmediate(go);
@@ -845,6 +971,41 @@ namespace ConquerChronicles.Editor
                     {
                         tex.SetPixel(x, y, Color.clear);
                     }
+                }
+            }
+            tex.Apply();
+
+            byte[] png = tex.EncodeToPNG();
+            System.IO.File.WriteAllBytes(path, png);
+            AssetDatabase.Refresh();
+
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            if (importer != null)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spritePixelsPerUnit = 32;
+                importer.filterMode = FilterMode.Point;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.SaveAndReimport();
+            }
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
+        private static Sprite CreateRectSprite(string name, Color color, int width, int height)
+        {
+            string path = $"Assets/Visual/Sprites/{name}.png";
+            var existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (existing != null) return existing;
+
+            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Point;
+
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    tex.SetPixel(x, y, color);
                 }
             }
             tex.Apply();

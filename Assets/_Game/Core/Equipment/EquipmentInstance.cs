@@ -10,6 +10,24 @@ namespace ConquerChronicles.Core.Equipment
 
         private static readonly GemData EmptyGem = default;
 
+        // GDD upgrade bonus percentages: index 0 = +0 (no bonus), index 12 = +12 (155%)
+        private static readonly float[] UpgradeBonusPercent = new float[]
+        {
+            0f,     // +0: no bonus
+            0.05f,  // +1: +5%
+            0.10f,  // +2: +10%
+            0.16f,  // +3: +16%
+            0.22f,  // +4: +22%
+            0.30f,  // +5: +30%
+            0.40f,  // +6: +40%
+            0.52f,  // +7: +52%
+            0.66f,  // +8: +66%
+            0.82f,  // +9: +82%
+            1.00f,  // +10: +100%
+            1.25f,  // +11: +125%
+            1.55f   // +12: +155%
+        };
+
         public EquipmentInstance(EquipmentData data)
         {
             Data = data;
@@ -21,13 +39,22 @@ namespace ConquerChronicles.Core.Equipment
         {
             var stats = Data.BaseStats;
 
-            // Apply upgrade bonus: for each +level, ATK scales by +10%, DEF scales by +8%
-            if (UpgradeLevel > 0)
+            // Apply GDD upgrade bonus: scales ALL base stats by the percentage table
+            if (UpgradeLevel > 0 && UpgradeLevel <= 12)
             {
+                float bonus = UpgradeBonusPercent[UpgradeLevel];
                 var upgradeBonus = new CharacterStats
                 {
-                    ATK = (int)(Data.BaseStats.ATK * 0.1f * UpgradeLevel),
-                    DEF = (int)(Data.BaseStats.DEF * 0.08f * UpgradeLevel)
+                    HP = (int)(Data.BaseStats.HP * bonus),
+                    MP = (int)(Data.BaseStats.MP * bonus),
+                    ATK = (int)(Data.BaseStats.ATK * bonus),
+                    DEF = (int)(Data.BaseStats.DEF * bonus),
+                    MATK = (int)(Data.BaseStats.MATK * bonus),
+                    MDEF = (int)(Data.BaseStats.MDEF * bonus),
+                    AGI = (int)(Data.BaseStats.AGI * bonus),
+                    CritRate = Data.BaseStats.CritRate * bonus,
+                    CritDmg = Data.BaseStats.CritDmg * bonus,
+                    AttackSpeed = Data.BaseStats.AttackSpeed * bonus
                 };
 
                 stats = stats + upgradeBonus;

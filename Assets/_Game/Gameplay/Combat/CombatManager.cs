@@ -3,6 +3,7 @@ using UnityEngine;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Combat;
 using ConquerChronicles.Gameplay.Character;
+using ConquerChronicles.Gameplay.Audio;
 using ConquerChronicles.Gameplay.Enemy;
 
 namespace ConquerChronicles.Gameplay.Combat
@@ -14,6 +15,7 @@ namespace ConquerChronicles.Gameplay.Combat
         [SerializeField] private DamageNumberPool _damageNumberPool;
         [SerializeField] private HitEffectPool _hitEffectPool;
 
+        private AudioManager _audioManager;
         private SkillResolver _skillResolver;
         private List<SkillState> _activeSkills;
         private readonly List<CombatEvent> _eventBuffer = new(64);
@@ -26,19 +28,22 @@ namespace ConquerChronicles.Gameplay.Combat
         public System.Action<int> OnKillCountChanged;
         public System.Action<int, bool> OnPlayerXPGained;
         public System.Action<EnemyView> OnEnemyKilled;
+        public System.Action<int> OnPlayerDamaged; // damage amount
 
         public void Initialize(
             CharacterView player,
             EnemySpawner spawner,
             DamageNumberPool dmgPool,
             HitEffectPool hitPool,
-            List<SkillState> skills)
+            List<SkillState> skills,
+            AudioManager audioManager = null)
         {
             _player = player;
             _enemySpawner = spawner;
             _damageNumberPool = dmgPool;
             _hitEffectPool = hitPool;
             _activeSkills = skills;
+            _audioManager = audioManager;
             _skillResolver = new SkillResolver(System.Environment.TickCount);
             _killCount = 0;
         }
@@ -65,6 +70,12 @@ namespace ConquerChronicles.Gameplay.Combat
             {
                 ApplyCombatEvent(evt);
             }
+
+            // Tick status effects on all enemies
+            TickStatusEffects(dt);
+
+            // Process enemy attacks on player
+            ProcessEnemyAttacks(playerStats);
 
             // Clean up dead enemies
             _enemySpawner.RemoveDeadEnemies(OnEnemyDied);
@@ -111,6 +122,62 @@ namespace ConquerChronicles.Gameplay.Combat
                     var hitFx = _hitEffectPool.Get();
                     hitFx.Play(enemy.transform.position);
                 }
+
+                // Play hit SFX
+                if (_audioManager != null && _audioManager.Library != null)
+                {
+                    _audioManager.PlaySFX(evt.IsCritical
+                        ? _audioManager.Library.CriticalHit
+                        : _audioManager.Library.Hit);
+                }
+
+                // Apply status effect
+                if (evt.AppliedEffect.Type != StatusEffectType.None)
+                {
+                    StatusEffectSystem.ApplyEffect(enemy.State, evt.AppliedEffect);
+                }
+            }
+        }
+
+        private void TickStatusEffects(float dt)
+        {
+            var enemies = _enemySpawner.ActiveEnemies;
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                var enemy = enemies[i];
+                if (enemy.State.IsDead) continue;
+                StatusEffectSystem.TickEffects(enemy.State, dt);
+            }
+        }
+
+        private void ProcessEnemyAttacks(CharacterStats playerStats)
+        {
+            var enemies = _enemySpawner.ActiveEnemies;
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                var enemy = enemies[i];
+                if (enemy.State.IsDead) continue;
+
+                var movement = enemy.Movement;
+                if (movement == null || !movement.ReadyToAttack) continue;
+
+                movement.ConsumeAttack();
+
+                int rawDamage = enemy.State.Data.Stats.ATK;
+                int damage = Mathf.Max(1, rawDamage - playerStats.DEF);
+                _player.TakeDamage(damage);
+                OnPlayerDamaged?.Invoke(damage);
+
+                // Play player hit SFX
+                if (_audioManager != null && _audioManager.Library != null)
+                    _audioManager.PlaySFX(_audioManager.Library.PlayerHit);
+
+                // Spawn damage number on player
+                if (_damageNumberPool != null)
+                {
+                    var dmgNum = _damageNumberPool.Get();
+                    dmgNum.Play(damage, false, _player.transform.position + Vector3.up * 0.5f);
+                }
             }
         }
 
@@ -123,6 +190,10 @@ namespace ConquerChronicles.Gameplay.Combat
             _player.GainXP(xp);
             OnPlayerXPGained?.Invoke(xp, false);
             OnEnemyKilled?.Invoke(enemy);
+
+            // Play enemy death SFX
+            if (_audioManager != null && _audioManager.Library != null)
+                _audioManager.PlaySFX(_audioManager.Library.EnemyDeath);
         }
     }
 }

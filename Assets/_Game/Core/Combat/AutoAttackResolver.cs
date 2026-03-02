@@ -4,6 +4,8 @@ namespace ConquerChronicles.Core.Combat
 {
     public class AutoAttackResolver
     {
+        private readonly HashSet<int> _usedIndices = new(16);
+
         // Find nearest alive enemy within range
         public int FindNearestTarget(IReadOnlyList<EnemyTarget> enemies, CombatPosition playerPos, float range)
         {
@@ -40,14 +42,14 @@ namespace ConquerChronicles.Core.Combat
         {
             results.Clear();
             // Simple O(n*k) selection — fine for < 300 enemies
-            var used = new HashSet<int>();
+            _usedIndices.Clear();
             for (int k = 0; k < count; k++)
             {
                 int bestIdx = -1;
                 float bestDist = float.MaxValue;
                 for (int i = 0; i < enemies.Count; i++)
                 {
-                    if (enemies[i].IsDead || used.Contains(i)) continue;
+                    if (enemies[i].IsDead || _usedIndices.Contains(i)) continue;
                     float dist = center.DistanceTo(enemies[i].Position);
                     if (dist <= range && dist < bestDist)
                     {
@@ -57,7 +59,7 @@ namespace ConquerChronicles.Core.Combat
                 }
                 if (bestIdx < 0) break;
                 results.Add(bestIdx);
-                used.Add(bestIdx);
+                _usedIndices.Add(bestIdx);
             }
         }
     }

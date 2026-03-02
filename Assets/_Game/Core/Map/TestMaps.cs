@@ -19,13 +19,21 @@ namespace ConquerChronicles.Core.Map
         {
             ID = "slime_green",
             Name = "Green Slime",
-            Stats = new CharacterStats { HP = 30, ATK = 5, DEF = 2 },
+            Stats = new CharacterStats { HP = 50, ATK = 5, DEF = 2 },
             MoveSpeed = 1.2f,
             AttackRange = 0.5f,
             AttackCooldown = 1.5f,
             XPReward = 8,
             GoldReward = 3,
-            IsBoss = false
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_iron", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_iron", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
         };
 
         public static EnemyData RedSlime => new()
@@ -38,20 +46,39 @@ namespace ConquerChronicles.Core.Map
             AttackCooldown = 1.3f,
             XPReward = 15,
             GoldReward = 5,
-            IsBoss = false
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "armor_iron", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_iron_blade", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_copper", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
         };
 
         public static EnemyData BlueSlime => new()
         {
             ID = "slime_blue",
             Name = "Blue Slime",
-            Stats = new CharacterStats { HP = 100, ATK = 18, DEF = 8 },
+            Stats = new CharacterStats { HP = 100, ATK = 15, DEF = 8 },
             MoveSpeed = 1.6f,
             AttackRange = 0.5f,
             AttackCooldown = 1.2f,
             XPReward = 25,
             GoldReward = 8,
-            IsBoss = false
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "weapon_iron_blade", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "offhand_wooden_shield", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_copper", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "helm_steel", DropRate = 0.005f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
         };
 
         // --- Skeleton Family ---
@@ -66,20 +93,39 @@ namespace ConquerChronicles.Core.Map
             AttackCooldown = 1.0f,
             XPReward = 35,
             GoldReward = 12,
-            IsBoss = false
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_steel", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_steel", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_steel", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_silver", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
         };
 
         public static EnemyData SkeletonArcher => new()
         {
             ID = "skeleton_archer",
             Name = "Skeleton Archer",
-            Stats = new CharacterStats { HP = 120, ATK = 35, DEF = 8 },
+            Stats = new CharacterStats { HP = 120, ATK = 30, DEF = 8 },
             MoveSpeed = 1.1f,
             AttackRange = 3f,
             AttackCooldown = 1.2f,
             XPReward = 45,
             GoldReward = 15,
-            IsBoss = false
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "weapon_steel_blade", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "offhand_steel_shield", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_silver", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
         };
 
         public static EnemyData SkeletonKnight => new()
@@ -92,7 +138,18 @@ namespace ConquerChronicles.Core.Map
             AttackCooldown = 1.5f,
             XPReward = 60,
             GoldReward = 20,
-            IsBoss = false
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_steel", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_steel", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_steel_blade", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "helm_dragon", DropRate = 0.008f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_dragon", DropRate = 0.008f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
         };
 
         // --- Dark Family ---
@@ -101,26 +158,50 @@ namespace ConquerChronicles.Core.Map
         {
             ID = "dark_acolyte",
             Name = "Dark Acolyte",
-            Stats = new CharacterStats { HP = 200, MATK = 45, DEF = 15 },
+            Stats = new CharacterStats { HP = 200, MATK = 45, DEF = 15, MDEF = 20 },
             MoveSpeed = 1.2f,
             AttackRange = 2.0f,
             AttackCooldown = 1.3f,
             XPReward = 75,
             GoldReward = 25,
-            IsBoss = false
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_dragon", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_dragon", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_dragon_blade", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_jade", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_jade", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
         };
 
         public static EnemyData DarkKnight => new()
         {
             ID = "dark_knight",
             Name = "Dark Knight",
-            Stats = new CharacterStats { HP = 400, ATK = 60, DEF = 40 },
+            Stats = new CharacterStats { HP = 400, ATK = 60, DEF = 40, MDEF = 10 },
             MoveSpeed = 0.9f,
             AttackRange = 1.0f,
             AttackCooldown = 1.5f,
             XPReward = 100,
             GoldReward = 35,
-            IsBoss = false
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_dragon", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_dragon", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_dragon", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_dragon_blade", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "helm_phoenix", DropRate = 0.008f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_phoenix", DropRate = 0.008f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.005f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
         };
 
         // =================================================================
@@ -158,7 +239,7 @@ namespace ConquerChronicles.Core.Map
                     XPMultiplier = 1.0f,
                     GoldMultiplier = 1.0f,
                     MaxConcurrentEnemies = 8,
-                    SpawnInterval = 1.5f,
+                    SpawnInterval = 2.5f,
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "slime_green", Weight = 1.0f }
@@ -184,8 +265,8 @@ namespace ConquerChronicles.Core.Map
                     MaxLevel = 10,
                     XPMultiplier = 1.2f,
                     GoldMultiplier = 1.1f,
-                    MaxConcurrentEnemies = 12,
-                    SpawnInterval = 1.2f,
+                    MaxConcurrentEnemies = 10,
+                    SpawnInterval = 2.0f,
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "slime_green", Weight = 0.6f },
@@ -215,8 +296,8 @@ namespace ConquerChronicles.Core.Map
                     MaxLevel = 15,
                     XPMultiplier = 1.5f,
                     GoldMultiplier = 1.3f,
-                    MaxConcurrentEnemies = 15,
-                    SpawnInterval = 1.0f,
+                    MaxConcurrentEnemies = 12,
+                    SpawnInterval = 1.8f,
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "slime_red", Weight = 0.5f },
@@ -263,8 +344,8 @@ namespace ConquerChronicles.Core.Map
                     MaxLevel = 20,
                     XPMultiplier = 1.0f,
                     GoldMultiplier = 1.0f,
-                    MaxConcurrentEnemies = 10,
-                    SpawnInterval = 1.5f,
+                    MaxConcurrentEnemies = 14,
+                    SpawnInterval = 1.8f,
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "skeleton", Weight = 0.7f },
@@ -294,8 +375,8 @@ namespace ConquerChronicles.Core.Map
                     MaxLevel = 25,
                     XPMultiplier = 1.3f,
                     GoldMultiplier = 1.2f,
-                    MaxConcurrentEnemies = 12,
-                    SpawnInterval = 1.2f,
+                    MaxConcurrentEnemies = 16,
+                    SpawnInterval = 1.5f,
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "skeleton", Weight = 0.4f },
@@ -326,7 +407,7 @@ namespace ConquerChronicles.Core.Map
                     MaxLevel = 30,
                     XPMultiplier = 1.6f,
                     GoldMultiplier = 1.4f,
-                    MaxConcurrentEnemies = 10,
+                    MaxConcurrentEnemies = 18,
                     SpawnInterval = 1.3f,
                     EnemyPool = new[]
                     {
@@ -372,8 +453,8 @@ namespace ConquerChronicles.Core.Map
                     MaxLevel = 35,
                     XPMultiplier = 1.0f,
                     GoldMultiplier = 1.0f,
-                    MaxConcurrentEnemies = 10,
-                    SpawnInterval = 1.5f,
+                    MaxConcurrentEnemies = 18,
+                    SpawnInterval = 1.2f,
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "dark_acolyte", Weight = 1.0f }
@@ -399,8 +480,8 @@ namespace ConquerChronicles.Core.Map
                     MaxLevel = 45,
                     XPMultiplier = 1.4f,
                     GoldMultiplier = 1.3f,
-                    MaxConcurrentEnemies = 10,
-                    SpawnInterval = 1.3f,
+                    MaxConcurrentEnemies = 20,
+                    SpawnInterval = 1.0f,
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "dark_acolyte", Weight = 0.4f },
@@ -430,8 +511,8 @@ namespace ConquerChronicles.Core.Map
                     MaxLevel = 50,
                     XPMultiplier = 1.8f,
                     GoldMultiplier = 1.5f,
-                    MaxConcurrentEnemies = 8,
-                    SpawnInterval = 1.5f,
+                    MaxConcurrentEnemies = 24,
+                    SpawnInterval = 1.0f,
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "dark_knight", Weight = 1.0f }

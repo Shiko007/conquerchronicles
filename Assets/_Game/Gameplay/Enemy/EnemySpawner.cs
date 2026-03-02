@@ -29,11 +29,12 @@ namespace ConquerChronicles.Gameplay.Enemy
             var enemy = _pool.Get();
             enemy.Initialize(data, spawnPos);
 
-            var movement = enemy.GetComponent<EnemyMovement>();
+            var movement = enemy.Movement ?? enemy.GetComponent<EnemyMovement>();
             if (movement != null)
             {
                 movement.SetTarget(_playerTarget);
                 movement.SetMoveSpeed(data.MoveSpeed);
+                movement.SetAttackData(data.AttackRange, data.AttackCooldown);
             }
 
             _activeEnemies.Add(enemy);
@@ -42,7 +43,13 @@ namespace ConquerChronicles.Gameplay.Enemy
 
         public void DespawnEnemy(EnemyView enemy)
         {
-            _activeEnemies.Remove(enemy);
+            int idx = _activeEnemies.IndexOf(enemy);
+            if (idx >= 0)
+            {
+                int last = _activeEnemies.Count - 1;
+                _activeEnemies[idx] = _activeEnemies[last];
+                _activeEnemies.RemoveAt(last);
+            }
             _pool.Return(enemy);
         }
 
@@ -57,14 +64,22 @@ namespace ConquerChronicles.Gameplay.Enemy
 
         public void RemoveDeadEnemies(System.Action<EnemyView> onEnemyDead = null)
         {
-            for (int i = _activeEnemies.Count - 1; i >= 0; i--)
+            int i = 0;
+            while (i < _activeEnemies.Count)
             {
                 var enemy = _activeEnemies[i];
                 if (enemy.State.IsDead)
                 {
                     onEnemyDead?.Invoke(enemy);
-                    _activeEnemies.RemoveAt(i);
+                    int last = _activeEnemies.Count - 1;
+                    _activeEnemies[i] = _activeEnemies[last];
+                    _activeEnemies.RemoveAt(last);
                     _pool.Return(enemy);
+                    // Don't increment i — check the swapped element
+                }
+                else
+                {
+                    i++;
                 }
             }
         }

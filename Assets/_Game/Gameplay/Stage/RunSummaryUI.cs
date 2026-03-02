@@ -34,7 +34,7 @@ namespace ConquerChronicles.Gameplay.Stage
             if (_panel != null) _panel.SetActive(true);
 
             if (_titleText != null)
-                _titleText.text = result.EnemiesKilled > 0 ? "SESSION COMPLETE" : "DEFEATED";
+                _titleText.text = result.PlayerDied ? "DEFEATED" : "SESSION COMPLETE";
 
             if (_killsText != null)
                 _killsText.text = $"Enemies Killed: {result.EnemiesKilled}";
@@ -53,7 +53,9 @@ namespace ConquerChronicles.Gameplay.Stage
                 _xpText.text = $"XP: +{result.XPEarned}";
 
             if (_starsText != null)
-                _starsText.text = $"Items Found: {result.ItemsDropped.Length}";
+                _starsText.text = result.PlayerDied
+                    ? "Lost some gold and items!"
+                    : $"Items: {result.ItemsDropped.Length} | Coins: +{result.ChronicleCoinsEarned}";
 
             Time.timeScale = 0f;
         }

@@ -9,6 +9,8 @@ namespace ConquerChronicles.Core.Map
         public int GoldEarned;
         public int XPEarned;
         public string[] ItemsDropped;
+        public bool PlayerDied;
+        public int ChronicleCoinsEarned;
 
         public static AreaResult Calculate(AreaState state, string mapID, string[] droppedItems)
         {
@@ -20,7 +22,9 @@ namespace ConquerChronicles.Core.Map
                 TimeElapsed = state.ElapsedTime,
                 GoldEarned = state.TotalGoldEarned,
                 XPEarned = state.TotalXPEarned,
-                ItemsDropped = droppedItems ?? System.Array.Empty<string>()
+                ItemsDropped = droppedItems ?? System.Array.Empty<string>(),
+                PlayerDied = state.PlayerDied,
+                ChronicleCoinsEarned = state.EnemiesKilled / 5
             };
         }
     }

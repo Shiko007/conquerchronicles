@@ -43,10 +43,16 @@ namespace ConquerChronicles.Core.Save
         public long MiningStartTimestamp; // 0 = not mining
         public string ActiveMineID; // empty = not mining
 
+        // --- Death Penalty ---
+        public long HeroRecoveryTimestamp; // UTC ticks when hero finishes recovery (0 = ready)
+
         // --- Market / Booth ---
         public string[] PlayerBoothItemIDs; // items listed for sale
         public int[] PlayerBoothPrices; // parallel array
         public int BoothRevenue;
+
+        // --- Tutorial ---
+        public bool TutorialComplete;
 
         /// <summary>
         /// Creates a default SaveData with properly initialized arrays.
@@ -76,7 +82,8 @@ namespace ConquerChronicles.Core.Save
                 ActiveMineID = string.Empty,
                 PlayerBoothItemIDs = System.Array.Empty<string>(),
                 PlayerBoothPrices = System.Array.Empty<int>(),
-                BoothRevenue = 0
+                BoothRevenue = 0,
+                TutorialComplete = false
             };
         }
     }

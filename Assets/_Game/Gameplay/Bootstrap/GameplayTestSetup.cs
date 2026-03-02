@@ -4,6 +4,7 @@ using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Combat;
 using ConquerChronicles.Core.Enemy;
 using ConquerChronicles.Core.Map;
+using ConquerChronicles.Core.MetaProgression;
 using ConquerChronicles.Core.Save;
 using ConquerChronicles.Gameplay.Camera;
 using ConquerChronicles.Gameplay.Character;
@@ -13,7 +14,9 @@ using ConquerChronicles.Gameplay.Loot;
 using ConquerChronicles.Gameplay.Map;
 using ConquerChronicles.Gameplay.Save;
 using ConquerChronicles.Gameplay.Stage;
+using ConquerChronicles.Gameplay.Audio;
 using ConquerChronicles.Gameplay.UI.HUD;
+using ConquerChronicles.Gameplay.UI.Tutorial;
 using UnityEngine.SceneManagement;
 
 namespace ConquerChronicles.Gameplay.Bootstrap
@@ -49,6 +52,12 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         [Header("UI")]
         [SerializeField] private PlayerHUD _playerHUD;
 
+        [Header("Audio")]
+        [SerializeField] private AudioManager _audioManager;
+
+        [Header("Tutorial")]
+        [SerializeField] private TutorialOverlay _tutorialOverlay;
+
         [Header("Settings")]
         [SerializeField] private CharacterClass _testClass = CharacterClass.Trojan;
         [SerializeField] private int _testMapIndex = 0;
@@ -56,7 +65,10 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         [SerializeField] private bool _autoSave = true;
 
         private SaveManager _saveManager;
+        private MetaProgressionState _metaState;
         private bool _leavingToMenu;
+
+        public AudioManager AudioManager => _audioManager;
 
         private void Start()
         {
@@ -64,6 +76,41 @@ namespace ConquerChronicles.Gameplay.Bootstrap
 
             // Initialize player
             _characterView.Initialize(_testClass);
+
+            // Check hero recovery cooldown
+            _saveManager = SaveSystemBridge.GetOrCreate();
+            var checkSave = _saveManager.LoadGame();
+            if (checkSave != null && checkSave.HeroRecoveryTimestamp > 0)
+            {
+                long nowTicks = System.DateTimeOffset.UtcNow.Ticks;
+                if (nowTicks < checkSave.HeroRecoveryTimestamp)
+                {
+                    var remaining = System.TimeSpan.FromTicks(checkSave.HeroRecoveryTimestamp - nowTicks);
+                    Debug.Log($"[Recovery] Hero is recovering! {remaining.Minutes}m {remaining.Seconds}s remaining.");
+                    SceneManager.LoadScene("MainMenu");
+                    return;
+                }
+                else
+                {
+                    // Recovery complete — clear the timestamp
+                    checkSave.HeroRecoveryTimestamp = 0;
+                    _saveManager.SaveGame(checkSave);
+                }
+            }
+
+            // Load meta progression
+            _metaState = new MetaProgressionState();
+            var existingSave = _saveManager.LoadGame();
+            if (existingSave != null && existingSave.MetaUpgradeLevels != null)
+            {
+                _metaState.MetaCurrency = existingSave.MetaCurrency;
+                int count = System.Math.Min(existingSave.MetaUpgradeLevels.Length, MetaProgressionState.UpgradeTypeCount);
+                for (int i = 0; i < count; i++)
+                    _metaState.UpgradeLevels[i] = existingSave.MetaUpgradeLevels[i];
+            }
+
+            // Apply meta stat bonuses to character
+            _characterView.SetMetaBonus(_metaState.GetBonusStats());
 
             // Camera
             _isometricCamera.SetFollowTarget(_characterView.transform);
@@ -100,7 +147,8 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _enemySpawner,
                     _damageNumberPool,
                     _hitEffectPool,
-                    skills);
+                    skills,
+                    _audioManager);
             }
 
             // HUD
@@ -126,6 +174,19 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             if (_mapManager != null)
             {
                 _mapManager.Initialize(_enemySpawner, _combatManager, _characterView, enemyCatalog);
+                _mapManager.SetMetaMultipliers(
+                    _metaState.GetGoldMultiplier(),
+                    _metaState.GetXPMultiplier(),
+                    _metaState.GetDropRateBonus());
+
+                if (_audioManager != null)
+                {
+                    _mapManager.SetAudioManager(_audioManager);
+
+                    // Start combat music
+                    if (_audioManager.Library != null && _audioManager.Library.CombatMusic != null)
+                        _audioManager.PlayMusic(_audioManager.Library.CombatMusic);
+                }
 
                 // Wire announcer
                 if (_waveAnnouncer != null)
@@ -170,10 +231,25 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             }
 
             // Save system
-            _saveManager = SaveSystemBridge.GetOrCreate();
+            if (_saveManager == null) _saveManager = SaveSystemBridge.GetOrCreate();
             if (_autoSave && _mapManager != null)
             {
                 _mapManager.OnAreaSessionEnd += OnAutoSave;
+            }
+
+            // Show tutorial on first run
+            if (_tutorialOverlay != null)
+            {
+                var tutSave = _saveManager.LoadGame();
+                if (tutSave == null || !tutSave.TutorialComplete)
+                {
+                    _tutorialOverlay.Show(TutorialSequences.Gameplay, () =>
+                    {
+                        var s = _saveManager.LoadGame() ?? SaveData.CreateDefault();
+                        s.TutorialComplete = true;
+                        _saveManager.SaveGame(s);
+                    });
+                }
             }
         }
 
@@ -200,6 +276,9 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             // Add earned gold to existing total
             saveData.Gold += result.GoldEarned;
 
+            // Add earned Chronicle Coins
+            saveData.MetaCurrency += result.ChronicleCoinsEarned;
+
             // Add collected items to bag
             if (result.ItemsDropped != null && result.ItemsDropped.Length > 0)
             {
@@ -218,6 +297,32 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 }
 
                 saveData.BagItems = newBag;
+            }
+
+            // Death penalty — lose gold and items
+            if (result.PlayerDied)
+            {
+                var rng = new System.Random(System.Environment.TickCount);
+                float lossPercent = 0.15f + (float)rng.NextDouble() * 0.10f; // 15-25%
+                int goldLost = (int)(saveData.Gold * lossPercent);
+                saveData.Gold = Mathf.Max(0, saveData.Gold - goldLost);
+
+                // Lose 1-3 random bag items
+                if (saveData.BagItems != null && saveData.BagItems.Length > 0)
+                {
+                    int itemsToLose = Mathf.Min(rng.Next(1, 4), saveData.BagItems.Length);
+                    var bagList = new System.Collections.Generic.List<SerializedBagItem>(saveData.BagItems);
+                    for (int i = 0; i < itemsToLose; i++)
+                    {
+                        int removeIdx = rng.Next(0, bagList.Count);
+                        bagList.RemoveAt(removeIdx);
+                    }
+                    saveData.BagItems = bagList.ToArray();
+                }
+
+                // Set recovery cooldown — 2 minutes from now
+                saveData.HeroRecoveryTimestamp = System.DateTimeOffset.UtcNow.AddMinutes(2).Ticks;
+                Debug.Log($"[DeathPenalty] Lost {goldLost} gold, recovery until {System.DateTimeOffset.UtcNow.AddMinutes(2):HH:mm:ss}");
             }
 
             _saveManager.SaveGame(saveData);

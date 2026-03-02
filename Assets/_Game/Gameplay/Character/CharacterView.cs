@@ -8,6 +8,8 @@ namespace ConquerChronicles.Gameplay.Character
     {
         [SerializeField] private SpriteRenderer _spriteRenderer;
 
+        private CharacterStats _metaBonus;
+
         public CharacterState State { get; private set; }
 
         private void Awake()
@@ -23,9 +25,14 @@ namespace ConquerChronicles.Gameplay.Character
             State = new CharacterState(characterClass, baseStats, growth);
         }
 
+        public void SetMetaBonus(CharacterStats bonus)
+        {
+            _metaBonus = bonus;
+        }
+
         public CharacterStats GetComputedStats()
         {
-            return State.ComputeStats();
+            return State.ComputeStats() + _metaBonus;
         }
 
         public void TakeDamage(int damage)

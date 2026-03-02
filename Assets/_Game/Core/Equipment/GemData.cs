@@ -23,38 +23,41 @@ namespace ConquerChronicles.Core.Equipment
         {
             var stats = new CharacterStats();
 
+            // Exponential scaling: base * 2^(tier-1) per GDD
+            int mult = 1 << (tier - 1); // 2^(tier-1): 1, 2, 4, 8, 16, 32, 64, 128, 256
+
             switch (type)
             {
                 case GemType.Dragon:
-                    stats.HP = tier * 50;
+                    stats.HP = 100 * mult;
                     break;
                 case GemType.Phoenix:
-                    stats.ATK = tier * 5;
+                    stats.ATK = 5 * mult;
                     break;
                 case GemType.Moon:
-                    stats.MP = tier * 40;
+                    stats.MP = 40 * mult;
                     break;
                 case GemType.Fury:
-                    stats.CritRate = tier * 0.01f;
+                    stats.CritRate = 0.01f * mult;
                     break;
                 case GemType.Tortoise:
-                    stats.DEF = tier * 4;
+                    stats.DEF = 4 * mult;
                     break;
                 case GemType.Thunder:
-                    stats.MATK = tier * 5;
+                    stats.MATK = 5 * mult;
                     break;
                 case GemType.Violet:
                     // XP bonus is tracked separately, no stat bonus
                     break;
                 case GemType.Rainbow:
-                    stats.HP = tier * 10;
-                    stats.MP = tier * 8;
-                    stats.ATK = tier * 1;
-                    stats.DEF = tier * 1;
-                    stats.MATK = tier * 1;
-                    stats.MDEF = tier * 1;
-                    stats.AGI = tier * 1;
-                    stats.CritRate = tier * 0.002f;
+                    stats.HP = 10 * mult;
+                    stats.MP = 8 * mult;
+                    stats.ATK = 1 * mult;
+                    stats.DEF = 1 * mult;
+                    stats.MATK = 1 * mult;
+                    stats.MDEF = 1 * mult;
+                    stats.AGI = 1 * mult;
+                    stats.CritRate = 0.002f * mult;
                     break;
             }
 

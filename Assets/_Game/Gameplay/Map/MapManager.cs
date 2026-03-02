@@ -5,6 +5,7 @@ using ConquerChronicles.Core.Enemy;
 using ConquerChronicles.Core.Map;
 using ConquerChronicles.Gameplay.Enemy;
 using ConquerChronicles.Gameplay.Character;
+using ConquerChronicles.Gameplay.Audio;
 using ConquerChronicles.Gameplay.Combat;
 
 namespace ConquerChronicles.Gameplay.Map
@@ -22,6 +23,12 @@ namespace ConquerChronicles.Gameplay.Map
         private int _dropSeed;
         private List<string> _droppedItems;
 
+        private AudioManager _audioManager;
+
+        private float _metaGoldMultiplier = 1.0f;
+        private float _metaXPMultiplier = 1.0f;
+        private float _metaDropRateBonus = 0f;
+
         public AreaState AreaState => _areaState;
 
         public event Action<string> OnAreaAnnouncement;
@@ -31,6 +38,15 @@ namespace ConquerChronicles.Gameplay.Map
         public event Action<GoldDropInfo> OnGoldDropped;
         public event Action<LootDropInfo> OnEquipmentDropped;
         public event Action OnAreaSessionEnding;
+
+        public void SetMetaMultipliers(float goldMult, float xpMult, float dropBonus)
+        {
+            _metaGoldMultiplier = goldMult;
+            _metaXPMultiplier = xpMult;
+            _metaDropRateBonus = dropBonus;
+        }
+
+        public void SetAudioManager(AudioManager audioManager) { _audioManager = audioManager; }
 
         public void Initialize(
             EnemySpawner spawner,
@@ -108,14 +124,16 @@ namespace ConquerChronicles.Gameplay.Map
 
             var deathPos = enemy.transform.position;
 
-            // Track gold with area multiplier
-            int gold = (int)(enemy.State.Data.GoldReward * _areaState.Data.GoldMultiplier);
+            // Track gold with area multiplier and meta multiplier
+            int gold = (int)(enemy.State.Data.GoldReward * _areaState.Data.GoldMultiplier * _metaGoldMultiplier);
             _areaState.TotalGoldEarned += gold;
             OnGoldDropped?.Invoke(new GoldDropInfo(gold, deathPos.x, deathPos.y));
+            if (_audioManager?.Library != null) _audioManager.PlaySFX(_audioManager.Library.GoldCollect);
 
-            // Track XP with area multiplier (bonus portion — base already granted by CombatManager)
+            // Track XP with area multiplier and meta multiplier (bonus portion — base already granted by CombatManager)
             int baseXP = enemy.State.Data.XPReward;
-            int bonusXP = (int)(baseXP * (_areaState.Data.XPMultiplier - 1.0f));
+            float totalXPMult = _areaState.Data.XPMultiplier * _metaXPMultiplier;
+            int bonusXP = (int)(baseXP * (totalXPMult - 1.0f));
             _areaState.TotalXPEarned += baseXP + bonusXP;
             if (bonusXP > 0 && _player != null)
             {
@@ -128,7 +146,9 @@ namespace ConquerChronicles.Gameplay.Map
             foreach (var (itemID, qty) in areaDrops)
             {
                 OnEquipmentDropped?.Invoke(new LootDropInfo(itemID, qty, deathPos.x, deathPos.y));
+#if UNITY_EDITOR
                 Debug.Log($"[Loot] Area drop: {itemID} x{qty}");
+#endif
             }
 
             // Roll drops — enemy-specific drop table
@@ -136,7 +156,9 @@ namespace ConquerChronicles.Gameplay.Map
             foreach (var (itemID, qty) in enemyDrops)
             {
                 OnEquipmentDropped?.Invoke(new LootDropInfo(itemID, qty, deathPos.x, deathPos.y));
+#if UNITY_EDITOR
                 Debug.Log($"[Loot] Enemy drop: {itemID} x{qty}");
+#endif
             }
         }
 
@@ -145,7 +167,9 @@ namespace ConquerChronicles.Gameplay.Map
             for (int i = 0; i < quantity; i++)
                 _droppedItems.Add(itemID);
             OnItemDropped?.Invoke(itemID, quantity);
+#if UNITY_EDITOR
             Debug.Log($"[Loot] Collected: {itemID} x{quantity}");
+#endif
         }
 
         private void EndSession()
@@ -154,7 +178,9 @@ namespace ConquerChronicles.Gameplay.Map
             var result = AreaResult.Calculate(_areaState, _currentMap.ID, _droppedItems.ToArray());
             OnAreaSessionEnd?.Invoke(result);
             _enemySpawner.DespawnAll();
+#if UNITY_EDITOR
             Debug.Log($"[MapManager] Session ended: {result.EnemiesKilled} kills, {result.GoldEarned} gold, {result.XPEarned} XP, {result.ItemsDropped.Length} items");
+#endif
         }
     }
 }

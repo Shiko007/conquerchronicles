@@ -5,6 +5,7 @@ using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Equipment;
 using ConquerChronicles.Core.Inventory;
 using ConquerChronicles.Core.Save;
+using ConquerChronicles.Gameplay.Audio;
 using ConquerChronicles.Gameplay.Save;
 
 namespace ConquerChronicles.Gameplay.Equipment
@@ -19,10 +20,13 @@ namespace ConquerChronicles.Gameplay.Equipment
         private int _playerLevel;
         private CharacterClass _playerClass;
         private Dictionary<string, EquipmentData> _equipmentCatalog;
+        private AudioManager _audioManager;
         private BagItem _selectedBagItem;       // non-null when a bag item is selected
         private EquipmentInstance _selectedItem;  // non-null when an equipped item is selected
         private int _selectedSlotIndex = -1;
         private bool _selectedIsEquipped;
+
+        public void SetAudioManager(AudioManager audioManager) { _audioManager = audioManager; }
 
         private void Start()
         {
@@ -215,18 +219,21 @@ namespace ConquerChronicles.Gameplay.Equipment
                     _selectedBagItem = null;
                     _selectedSlotIndex = -1;
                     Debug.Log("[Equipment] Item destroyed during upgrade!");
+                    if (_audioManager?.Library != null) _audioManager.PlaySFX(_audioManager.Library.UpgradeDestroy);
                 }
                 else if (result.Success)
                 {
                     Debug.Log($"[Equipment] Upgrade success! Now +{result.NewLevel}");
                     bool canEquip = !_selectedIsEquipped && _inventory.CanEquip(_selectedItem, _playerLevel, _playerClass);
                     _equipmentUI.ShowItemDetail(_selectedItem, canEquip, _selectedIsEquipped);
+                    if (_audioManager?.Library != null) _audioManager.PlaySFX(_audioManager.Library.UpgradeSuccess);
                 }
                 else
                 {
                     Debug.Log($"[Equipment] Upgrade failed. Level is now +{result.NewLevel}");
                     bool canEquip = !_selectedIsEquipped && _inventory.CanEquip(_selectedItem, _playerLevel, _playerClass);
                     _equipmentUI.ShowItemDetail(_selectedItem, canEquip, _selectedIsEquipped);
+                    if (_audioManager?.Library != null) _audioManager.PlaySFX(_audioManager.Library.UpgradeFail);
                 }
 
                 RefreshAll();
