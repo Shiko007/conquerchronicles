@@ -246,13 +246,20 @@ namespace ConquerChronicles.Editor
                 tutCanvasGO.AddComponent<GraphicRaycaster>();
 
                 var overlay = new GameObject("TutorialOverlay");
+                overlay.AddComponent<RectTransform>();
                 overlay.transform.SetParent(tutCanvasGO.transform, false);
+                var overlayParentRT = overlay.GetComponent<RectTransform>();
+                overlayParentRT.anchorMin = Vector2.zero;
+                overlayParentRT.anchorMax = Vector2.one;
+                overlayParentRT.offsetMin = Vector2.zero;
+                overlayParentRT.offsetMax = Vector2.zero;
                 tutorialOverlay = overlay.AddComponent<TutorialOverlay>();
 
                 // Overlay root (full screen dark backdrop)
                 var overlayRoot = new GameObject("OverlayRoot");
+                overlayRoot.AddComponent<RectTransform>();
                 overlayRoot.transform.SetParent(overlay.transform, false);
-                var overlayRT = overlayRoot.AddComponent<RectTransform>();
+                var overlayRT = overlayRoot.GetComponent<RectTransform>();
                 overlayRT.anchorMin = Vector2.zero;
                 overlayRT.anchorMax = Vector2.one;
                 overlayRT.offsetMin = Vector2.zero;
@@ -264,8 +271,9 @@ namespace ConquerChronicles.Editor
 
                 // Tooltip text (centered)
                 var tooltipGO = new GameObject("TooltipText");
+                tooltipGO.AddComponent<RectTransform>();
                 tooltipGO.transform.SetParent(overlayRoot.transform, false);
-                var tooltipRT = tooltipGO.AddComponent<RectTransform>();
+                var tooltipRT = tooltipGO.GetComponent<RectTransform>();
                 tooltipRT.anchorMin = new Vector2(0.1f, 0.4f);
                 tooltipRT.anchorMax = new Vector2(0.9f, 0.6f);
                 tooltipRT.offsetMin = Vector2.zero;
@@ -277,8 +285,9 @@ namespace ConquerChronicles.Editor
 
                 // Dismiss button
                 var dismissGO = new GameObject("DismissButton");
+                dismissGO.AddComponent<RectTransform>();
                 dismissGO.transform.SetParent(overlayRoot.transform, false);
-                var dismissRT = dismissGO.AddComponent<RectTransform>();
+                var dismissRT = dismissGO.GetComponent<RectTransform>();
                 dismissRT.anchorMin = new Vector2(0.3f, 0.2f);
                 dismissRT.anchorMax = new Vector2(0.7f, 0.3f);
                 dismissRT.offsetMin = Vector2.zero;
@@ -289,8 +298,9 @@ namespace ConquerChronicles.Editor
                 dismissBtn.targetGraphic = dismissImg;
 
                 var dismissTextGO = new GameObject("Text");
+                dismissTextGO.AddComponent<RectTransform>();
                 dismissTextGO.transform.SetParent(dismissGO.transform, false);
-                var dismissTextRT = dismissTextGO.AddComponent<RectTransform>();
+                var dismissTextRT = dismissTextGO.GetComponent<RectTransform>();
                 dismissTextRT.anchorMin = Vector2.zero;
                 dismissTextRT.anchorMax = Vector2.one;
                 dismissTextRT.offsetMin = Vector2.zero;
