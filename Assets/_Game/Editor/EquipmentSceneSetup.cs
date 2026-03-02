@@ -200,7 +200,11 @@ namespace ConquerChronicles.Editor
             closeStatsBtnTextGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
 
             // ============================================================
-            // EQUIPPED PANEL — circle layout (0.35 to 0.96 — 61%)
+            // EQUIPPED PANEL — grid layout (0.35 to 0.96 — 61%)
+            // Row 1: Head
+            // Row 2: Neck, Armor
+            // Row 3: L.Hand, Ring, R.Hand
+            // Row 4: Boots
             // ============================================================
 
             var equippedPanelGO = CreateUIImage(safeAreaGO.transform, "EquippedPanel",
@@ -211,20 +215,24 @@ namespace ConquerChronicles.Editor
             equippedPanelRT.offsetMin = new Vector2(15, 0);
             equippedPanelRT.offsetMax = new Vector2(-15, -80);
 
-            // Circle positions (offsets from center of panel)
-            // Arranged for a character silhouette in the center
+            // Grid positions (offsets from center of panel)
+            // 4 rows, vertically spaced by ~170px
+            float rowSpacing = 170f;
+            float colSpacing = 170f;
+            float topY = rowSpacing * 1.5f;  // top row offset
+
             var slotPositions = new Vector2[]
             {
-                new Vector2(   0, +230),   // 0: Head — top center
-                new Vector2(-190, +100),   // 1: Neck — upper-left
-                new Vector2(-130, -210),   // 2: Armor — lower-left
-                new Vector2(-240,  -60),   // 3: Weapon — mid-left
-                new Vector2(+240,  -60),   // 4: Shield — mid-right
-                new Vector2(+190, +100),   // 5: Ring — upper-right
-                new Vector2(+130, -210),   // 6: Boots — lower-right
+                new Vector2(0, topY),                                        // 0: Head — row 1 center
+                new Vector2(-colSpacing * 0.5f, topY - rowSpacing),          // 1: Neck — row 2 left
+                new Vector2(+colSpacing * 0.5f, topY - rowSpacing),          // 2: Armor — row 2 right
+                new Vector2(-colSpacing, topY - rowSpacing * 2),             // 3: L.Hand — row 3 left
+                new Vector2(+colSpacing, topY - rowSpacing * 2),             // 4: R.Hand — row 3 right
+                new Vector2(0, topY - rowSpacing * 2),                       // 5: Ring — row 3 center
+                new Vector2(0, topY - rowSpacing * 3),                       // 6: Boots — row 4 center
             };
 
-            string[] slotLabels = { "Head", "Neck", "Armor", "Wpn", "Shield", "Ring", "Boots" };
+            string[] slotLabels = { "Head", "Neck", "Armor", "L.Hand", "R.Hand", "Ring", "Boots" };
             var slotButtons = new Button[7];
             var slotTexts = new TextMeshProUGUI[7];
 
@@ -233,7 +241,6 @@ namespace ConquerChronicles.Editor
                 var slotBtnGO = new GameObject($"SlotButton_{i}", typeof(RectTransform));
                 slotBtnGO.transform.SetParent(equippedPanelGO.transform, false);
                 var slotBtnRT = slotBtnGO.GetComponent<RectTransform>();
-                // Anchor at center of parent
                 slotBtnRT.anchorMin = new Vector2(0.5f, 0.5f);
                 slotBtnRT.anchorMax = new Vector2(0.5f, 0.5f);
                 slotBtnRT.pivot = new Vector2(0.5f, 0.5f);

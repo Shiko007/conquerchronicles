@@ -203,14 +203,23 @@ namespace ConquerChronicles.Editor
             refreshTimerTMP.alignment = TextAlignmentOptions.Center;
             refreshTimerTMP.color = new Color(0.7f, 0.7f, 0.7f, 1f);
 
-            // Scrollable listings area
+            // Scroll panel (handles horizontal inset)
+            var scrollPanelGO = new GameObject("ListingsPanel", typeof(RectTransform));
+            scrollPanelGO.transform.SetParent(buyPanelGO.transform, false);
+            var scrollPanelRT = scrollPanelGO.GetComponent<RectTransform>();
+            scrollPanelRT.anchorMin = new Vector2(0, 0);
+            scrollPanelRT.anchorMax = new Vector2(1, 1);
+            scrollPanelRT.offsetMin = new Vector2(20, 20);
+            scrollPanelRT.offsetMax = new Vector2(-20, -50); // below refresh timer
+
+            // Scroll View (fills panel, no offset — keeps RectMask2D bounds correct)
             var scrollGO = new GameObject("ListingsScroll", typeof(RectTransform));
-            scrollGO.transform.SetParent(buyPanelGO.transform, false);
+            scrollGO.transform.SetParent(scrollPanelGO.transform, false);
             var scrollRT = scrollGO.GetComponent<RectTransform>();
-            scrollRT.anchorMin = new Vector2(0, 0);
-            scrollRT.anchorMax = new Vector2(1, 1);
-            scrollRT.offsetMin = new Vector2(20, 20);
-            scrollRT.offsetMax = new Vector2(-20, -50); // below refresh timer
+            scrollRT.anchorMin = Vector2.zero;
+            scrollRT.anchorMax = Vector2.one;
+            scrollRT.offsetMin = Vector2.zero;
+            scrollRT.offsetMax = Vector2.zero;
             var scrollRect = scrollGO.AddComponent<ScrollRect>();
             scrollRect.horizontal = false;
             scrollRect.vertical = true;
@@ -273,6 +282,7 @@ namespace ConquerChronicles.Editor
                 listingTMP.alignment = TextAlignmentOptions.Left;
                 listingTMP.verticalAlignment = VerticalAlignmentOptions.Middle;
                 listingTMP.raycastTarget = false;
+                listingTMP.margin = new Vector4(40, 0, 0, 0); // left margin to prevent RectMask2D clipping + visual padding
             }
 
             // ============================================================

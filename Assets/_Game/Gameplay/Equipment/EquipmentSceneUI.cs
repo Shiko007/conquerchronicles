@@ -48,7 +48,7 @@ namespace ConquerChronicles.Gameplay.Equipment
         public System.Action OnUpgradePressed;
         public System.Action OnCloseDetailPressed;
 
-        private static readonly string[] SlotLabels = { "Head", "Neck", "Armor", "Wpn", "Shield", "Ring", "Boots" };
+        private static readonly string[] SlotLabels = { "Head", "Neck", "Armor", "L.Hand", "R.Hand", "Ring", "Boots" };
 
         // Bag slot GameObjects created at runtime
         private readonly List<GameObject> _bagSlotObjects = new List<GameObject>();

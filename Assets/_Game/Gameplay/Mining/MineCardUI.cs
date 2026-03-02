@@ -74,7 +74,7 @@ namespace ConquerChronicles.Gameplay.Mining
             {
                 if (isMiningActive) _startButtonText.text = "Mining...";
                 else if (!levelOk) _startButtonText.text = "Locked";
-                else _startButtonText.text = "Start Mining";
+                else _startButtonText.text = "Teleport";
             }
 
             if (_background != null)

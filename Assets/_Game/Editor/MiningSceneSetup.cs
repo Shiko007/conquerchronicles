@@ -116,14 +116,23 @@ namespace ConquerChronicles.Editor
             // MINE LIST (scrollable area)
             // ============================================================
 
-            // Scroll View container
+            // Scroll panel (handles horizontal inset)
+            var scrollPanelGO = new GameObject("MineListPanel", typeof(RectTransform));
+            scrollPanelGO.transform.SetParent(safeAreaGO.transform, false);
+            var scrollPanelRT = scrollPanelGO.GetComponent<RectTransform>();
+            scrollPanelRT.anchorMin = new Vector2(0, 0.15f);
+            scrollPanelRT.anchorMax = new Vector2(1, 0.93f);
+            scrollPanelRT.offsetMin = new Vector2(20, 0);
+            scrollPanelRT.offsetMax = new Vector2(-20, 0);
+
+            // Scroll View container (fills panel, no offset — keeps RectMask2D bounds correct)
             var scrollGO = new GameObject("MineListScroll", typeof(RectTransform));
-            scrollGO.transform.SetParent(safeAreaGO.transform, false);
+            scrollGO.transform.SetParent(scrollPanelGO.transform, false);
             var scrollRT = scrollGO.GetComponent<RectTransform>();
-            scrollRT.anchorMin = new Vector2(0, 0.15f);
-            scrollRT.anchorMax = new Vector2(1, 0.93f);
-            scrollRT.offsetMin = new Vector2(20, 0);
-            scrollRT.offsetMax = new Vector2(-20, 0);
+            scrollRT.anchorMin = Vector2.zero;
+            scrollRT.anchorMax = Vector2.one;
+            scrollRT.offsetMin = Vector2.zero;
+            scrollRT.offsetMax = Vector2.zero;
             var scrollRect = scrollGO.AddComponent<ScrollRect>();
             scrollRect.horizontal = false;
             scrollRect.vertical = true;
@@ -401,25 +410,22 @@ namespace ConquerChronicles.Editor
             var bgImg = cardGO.AddComponent<Image>();
             bgImg.color = new Color(0.12f, 0.12f, 0.18f, 0.9f);
 
-            // Mine name (bold, size 32)
-            var nameGO = CreateUIText(cardGO.transform, "NameText", mine.Name,
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(15, -10), new Vector2(600, 40), 32);
+            // Mine name (bold, size 32) — stretch across card
+            var nameGO = CreateStretchText(cardGO.transform, "NameText", mine.Name,
+                15, -15, -10, 40, 32);
             var nameTMP = nameGO.GetComponent<TextMeshProUGUI>();
             nameTMP.fontStyle = FontStyles.Bold;
 
             // "Req. Lv. X" text (size 22)
-            var levelGO = CreateUIText(cardGO.transform, "LevelText", $"Req. Lv. {mine.RequiredLevel}",
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(15, -50), new Vector2(300, 28), 22);
+            var levelGO = CreateStretchText(cardGO.transform, "LevelText", $"Req. Lv. {mine.RequiredLevel}",
+                15, -15, -50, 28, 22);
 
             // Duration text (size 22)
             int hours = mine.DurationSeconds / 3600;
             int mins = (mine.DurationSeconds % 3600) / 60;
             string durationStr = hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
-            var durationGO = CreateUIText(cardGO.transform, "DurationText", durationStr,
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(15, -78), new Vector2(300, 28), 22);
+            var durationGO = CreateStretchText(cardGO.transform, "DurationText", durationStr,
+                15, -15, -78, 28, 22);
 
             // Gems text (size 20)
             string gemsStr = "Gems: ";
@@ -431,9 +437,8 @@ namespace ConquerChronicles.Editor
                     gemsStr += mine.AvailableGems[i].ToString();
                 }
             }
-            var gemsGO = CreateUIText(cardGO.transform, "GemsText", gemsStr,
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(15, -106), new Vector2(700, 26), 20);
+            var gemsGO = CreateStretchText(cardGO.transform, "GemsText", gemsStr,
+                15, -15, -106, 26, 20);
             var gemsTMP = gemsGO.GetComponent<TextMeshProUGUI>();
             gemsTMP.color = new Color(0.6f, 0.9f, 1f, 1f);
 
@@ -447,35 +452,37 @@ namespace ConquerChronicles.Editor
                     oresStr += mine.AvailableOres[i].ToString();
                 }
             }
-            var oresGO = CreateUIText(cardGO.transform, "OresText", oresStr,
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(15, -132), new Vector2(700, 26), 20);
+            var oresGO = CreateStretchText(cardGO.transform, "OresText", oresStr,
+                15, -15, -132, 26, 20);
             var oresTMP = oresGO.GetComponent<TextMeshProUGUI>();
             oresTMP.color = new Color(1f, 0.8f, 0.5f, 1f);
 
             // Description text (size 18, gray)
-            var descGO = CreateUIText(cardGO.transform, "DescriptionText", mine.Description,
-                new Vector2(0, 1), new Vector2(0, 1),
-                new Vector2(15, -160), new Vector2(700, 50), 18);
+            var descGO = CreateStretchText(cardGO.transform, "DescriptionText", mine.Description,
+                15, -15, -160, 50, 18);
             var descTMP = descGO.GetComponent<TextMeshProUGUI>();
             descTMP.color = new Color(0.7f, 0.7f, 0.7f, 1f);
 
-            // "Start Mining" button (green, right side)
+            // "Teleport" button (circular, green, right side)
+            float circleSize = 140f;
             var startBtnGO = new GameObject("StartButton", typeof(RectTransform));
             startBtnGO.transform.SetParent(cardGO.transform, false);
             var startBtnRT = startBtnGO.GetComponent<RectTransform>();
-            startBtnRT.anchorMin = new Vector2(1, 0);
-            startBtnRT.anchorMax = new Vector2(1, 0);
-            startBtnRT.pivot = new Vector2(1, 0);
-            startBtnRT.anchoredPosition = new Vector2(-15, 15);
-            startBtnRT.sizeDelta = new Vector2(220, 55);
+            startBtnRT.anchorMin = new Vector2(1, 0.5f);
+            startBtnRT.anchorMax = new Vector2(1, 0.5f);
+            startBtnRT.pivot = new Vector2(0.5f, 0.5f);
+            startBtnRT.anchoredPosition = new Vector2(-120, 0);
+            startBtnRT.sizeDelta = new Vector2(circleSize, circleSize);
             var startBtnImg = startBtnGO.AddComponent<Image>();
             startBtnImg.color = new Color(0.15f, 0.55f, 0.15f, 1f); // green
+            startBtnImg.type = Image.Type.Simple;
+            // Make it circular using the built-in Knob sprite
+            startBtnImg.sprite = UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
             var startBtn = startBtnGO.AddComponent<Button>();
             startBtn.targetGraphic = startBtnImg;
 
-            var startBtnTextGO = CreateUIText(startBtnGO.transform, "StartText", "Start Mining",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 22);
+            var startBtnTextGO = CreateUIText(startBtnGO.transform, "StartText", "Teleport",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 18);
             var startBtnTMP = startBtnTextGO.GetComponent<TextMeshProUGUI>();
             startBtnTMP.alignment = TextAlignmentOptions.Center;
 
@@ -525,6 +532,30 @@ namespace ConquerChronicles.Editor
                 tmp.alignment = TextAlignmentOptions.Center;
             }
 
+            return go;
+        }
+
+        /// <summary>
+        /// Creates a text element that stretches horizontally across its parent,
+        /// anchored to the top edge. yPos should be negative (e.g. -10 = 10px below top).
+        /// </summary>
+        private static GameObject CreateStretchText(Transform parent, string name, string text,
+            float leftPad, float rightPad, float yPos, float height, float fontSize)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0, 1);
+            rt.anchorMax = new Vector2(1, 1);
+            rt.pivot = new Vector2(0, 1);
+            rt.offsetMin = new Vector2(leftPad, yPos - height);
+            rt.offsetMax = new Vector2(rightPad, yPos);
+            var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.text = text;
+            tmp.fontSize = fontSize;
+            tmp.color = Color.white;
+            tmp.alignment = TextAlignmentOptions.Left;
+            tmp.margin = new Vector4(40, 0, 0, 0); // left margin to prevent RectMask2D clipping + visual padding
             return go;
         }
 
