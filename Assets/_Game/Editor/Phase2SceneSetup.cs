@@ -256,7 +256,7 @@ namespace ConquerChronicles.Editor
                 var tutScaler = tutCanvasGO.AddComponent<CanvasScaler>();
                 tutScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
                 tutScaler.referenceResolution = new Vector2(1080, 1920);
-                tutScaler.matchWidthOrHeight = 1.0f;
+                tutScaler.matchWidthOrHeight = 0.5f;
                 tutCanvasGO.AddComponent<GraphicRaycaster>();
 
                 var overlay = new GameObject("TutorialOverlay");
@@ -554,7 +554,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 1.0f;
+            scaler.matchWidthOrHeight = 0.5f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
             // SafeArea container
@@ -745,37 +745,138 @@ namespace ConquerChronicles.Editor
             killTMP.alignment = TextAlignmentOptions.Left;
 
             // =============================================
-            // Back button — top-right
+            // Skill Slots — 4 slots right of the orb
             // =============================================
-            var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
-            backBtnGO.transform.SetParent(safeAreaGO.transform, false);
-            var backBtnRT = backBtnGO.GetComponent<RectTransform>();
-            backBtnRT.anchorMin = new Vector2(1, 1);
-            backBtnRT.anchorMax = new Vector2(1, 1);
-            backBtnRT.pivot = new Vector2(1, 1);
-            backBtnRT.anchoredPosition = new Vector2(-16, -16);
-            backBtnRT.sizeDelta = new Vector2(120, 44);
-            var backBtnImg = backBtnGO.AddComponent<Image>();
-            backBtnImg.color = new Color(0.5f, 0.12f, 0.12f, 0.85f);
-            var backBtn = backBtnGO.AddComponent<Button>();
-            backBtn.targetGraphic = backBtnImg;
-            var backOutline = backBtnGO.AddComponent<Outline>();
-            backOutline.effectColor = new Color(0.7f, 0.2f, 0.2f, 0.6f);
-            backOutline.effectDistance = new Vector2(1, -1);
+            int slotSize = 70;
+            int slotSpacing = 8;
+            float slotStartX = orbSize + 20;
+            float slotY = 20;
+            Image[] skillIcons = new Image[4];
 
-            var backBtnTextGO = new GameObject("Text", typeof(RectTransform));
-            backBtnTextGO.transform.SetParent(backBtnGO.transform, false);
-            var backBtnTextRT = backBtnTextGO.GetComponent<RectTransform>();
-            backBtnTextRT.anchorMin = Vector2.zero;
-            backBtnTextRT.anchorMax = Vector2.one;
-            backBtnTextRT.offsetMin = Vector2.zero;
-            backBtnTextRT.offsetMax = Vector2.zero;
-            var backBtnTMP = backBtnTextGO.AddComponent<TextMeshProUGUI>();
-            backBtnTMP.text = "Leave";
-            backBtnTMP.fontSize = 22;
-            backBtnTMP.color = Color.white;
-            backBtnTMP.fontStyle = FontStyles.Bold;
-            backBtnTMP.alignment = TextAlignmentOptions.Center;
+            for (int i = 0; i < 4; i++)
+            {
+                // Slot background
+                var slotGO = new GameObject($"SkillSlot_{i}", typeof(RectTransform));
+                slotGO.transform.SetParent(safeAreaGO.transform, false);
+                var slotRT = slotGO.GetComponent<RectTransform>();
+                slotRT.anchorMin = new Vector2(0, 0);
+                slotRT.anchorMax = new Vector2(0, 0);
+                slotRT.pivot = new Vector2(0, 0);
+                slotRT.anchoredPosition = new Vector2(slotStartX + i * (slotSize + slotSpacing), slotY);
+                slotRT.sizeDelta = new Vector2(slotSize, slotSize);
+                var slotImg = slotGO.AddComponent<Image>();
+                slotImg.color = new Color(0.1f, 0.1f, 0.15f, 0.85f);
+                var slotOutline = slotGO.AddComponent<Outline>();
+                slotOutline.effectColor = new Color(0.6f, 0.5f, 0.25f, 0.7f);
+                slotOutline.effectDistance = new Vector2(1, -1);
+
+                // Skill icon image (stretch to fill with 6px padding)
+                var iconGO = new GameObject("SkillIcon", typeof(RectTransform));
+                iconGO.transform.SetParent(slotGO.transform, false);
+                var iconRT = iconGO.GetComponent<RectTransform>();
+                iconRT.anchorMin = Vector2.zero;
+                iconRT.anchorMax = Vector2.one;
+                iconRT.offsetMin = new Vector2(6, 6);
+                iconRT.offsetMax = new Vector2(-6, -6);
+                var iconImg = iconGO.AddComponent<Image>();
+                iconImg.color = new Color(1f, 1f, 1f, 0.15f); // placeholder
+                iconImg.raycastTarget = false;
+
+                skillIcons[i] = iconImg;
+            }
+
+            // =============================================
+            // Navigation Buttons — right of skill slots
+            // =============================================
+            int navBtnSize = 50;
+            int navBtnSpacing = 8;
+            int navGap = 16; // gap between skill slots and nav buttons
+            float navStartX = slotStartX + 4 * (slotSize + slotSpacing) - slotSpacing + navGap;
+            // Center nav buttons vertically with skill slots
+            float navY = slotY + (slotSize - navBtnSize) / 2f;
+
+            // Helper arrays for the 5 nav buttons
+            string[] navNames = { "EquipmentButton", "InventoryButton", "MineButton", "MarketButton" };
+            string[] navLabels = { "E", "I", "Mi", "Mk" };
+            Color[] navBgColors = {
+                new Color(0.2f, 0.15f, 0.3f, 0.9f),   // Equipment: dark purple
+                new Color(0.15f, 0.2f, 0.3f, 0.9f),    // Inventory: dark blue
+                new Color(0.25f, 0.18f, 0.08f, 0.9f),  // Mine: dark brown
+                new Color(0.1f, 0.22f, 0.12f, 0.9f)    // Market: dark green
+            };
+            Color goldTextColor = new Color(1f, 0.84f, 0f, 1f);
+            Color goldOutlineColor = new Color(0.6f, 0.5f, 0.25f, 0.7f);
+
+            Button[] navBtns = new Button[4];
+
+            for (int i = 0; i < 4; i++)
+            {
+                var btnGO = new GameObject(navNames[i], typeof(RectTransform));
+                btnGO.transform.SetParent(safeAreaGO.transform, false);
+                var btnRT = btnGO.GetComponent<RectTransform>();
+                btnRT.anchorMin = new Vector2(0, 0);
+                btnRT.anchorMax = new Vector2(0, 0);
+                btnRT.pivot = new Vector2(0, 0);
+                btnRT.anchoredPosition = new Vector2(navStartX + i * (navBtnSize + navBtnSpacing), navY);
+                btnRT.sizeDelta = new Vector2(navBtnSize, navBtnSize);
+                var btnImg = btnGO.AddComponent<Image>();
+                btnImg.color = navBgColors[i];
+                var btn = btnGO.AddComponent<Button>();
+                btn.targetGraphic = btnImg;
+                var btnOutline = btnGO.AddComponent<Outline>();
+                btnOutline.effectColor = goldOutlineColor;
+                btnOutline.effectDistance = new Vector2(1, -1);
+
+                // Button label text
+                var btnTextGO = new GameObject("Text", typeof(RectTransform));
+                btnTextGO.transform.SetParent(btnGO.transform, false);
+                var btnTextRT = btnTextGO.GetComponent<RectTransform>();
+                btnTextRT.anchorMin = Vector2.zero;
+                btnTextRT.anchorMax = Vector2.one;
+                btnTextRT.offsetMin = Vector2.zero;
+                btnTextRT.offsetMax = Vector2.zero;
+                var btnTMP = btnTextGO.AddComponent<TextMeshProUGUI>();
+                btnTMP.text = navLabels[i];
+                btnTMP.fontSize = 24;
+                btnTMP.color = goldTextColor;
+                btnTMP.fontStyle = FontStyles.Bold;
+                btnTMP.alignment = TextAlignmentOptions.Center;
+
+                navBtns[i] = btn;
+            }
+
+            // navBtns[0]=Equipment, [1]=Inventory, [2]=Mine, [3]=Market
+
+            // =============================================
+            // Revive Overlay — centered banner rectangle, hidden by default
+            // =============================================
+            var reviveOverlay = new GameObject("ReviveOverlay", typeof(RectTransform));
+            reviveOverlay.transform.SetParent(canvasGO.transform, false);
+            var reviveRT = reviveOverlay.GetComponent<RectTransform>();
+            reviveRT.anchorMin = new Vector2(0.1f, 0.44f);
+            reviveRT.anchorMax = new Vector2(0.9f, 0.56f);
+            reviveRT.offsetMin = Vector2.zero;
+            reviveRT.offsetMax = Vector2.zero;
+            var reviveBgImg = reviveOverlay.AddComponent<Image>();
+            reviveBgImg.color = new Color(0f, 0f, 0f, 0.85f);
+            reviveBgImg.raycastTarget = false;
+
+            var reviveTextGO = new GameObject("ReviveTimerText", typeof(RectTransform));
+            reviveTextGO.transform.SetParent(reviveOverlay.transform, false);
+            var reviveTextRT = reviveTextGO.GetComponent<RectTransform>();
+            reviveTextRT.anchorMin = Vector2.zero;
+            reviveTextRT.anchorMax = Vector2.one;
+            reviveTextRT.offsetMin = Vector2.zero;
+            reviveTextRT.offsetMax = Vector2.zero;
+            var reviveTMP = reviveTextGO.AddComponent<TextMeshProUGUI>();
+            reviveTMP.text = "Reviving in 2:00";
+            reviveTMP.fontSize = 38;
+            reviveTMP.color = new Color(1f, 0.3f, 0.3f, 1f);
+            reviveTMP.fontStyle = FontStyles.Bold;
+            reviveTMP.alignment = TextAlignmentOptions.Center;
+            reviveTMP.raycastTarget = false;
+
+            reviveOverlay.SetActive(false);
 
             // =============================================
             // Wire PlayerHUD
@@ -788,7 +889,16 @@ namespace ConquerChronicles.Editor
             hudSO.FindProperty("_xpFill").objectReferenceValue = xpFillImg;
             hudSO.FindProperty("_levelText").objectReferenceValue = levelTMP;
             hudSO.FindProperty("_killCountText").objectReferenceValue = killTMP;
-            hudSO.FindProperty("_backButton").objectReferenceValue = backBtn;
+            hudSO.FindProperty("_reviveOverlay").objectReferenceValue = reviveOverlay;
+            hudSO.FindProperty("_reviveTimerText").objectReferenceValue = reviveTMP;
+            var skillIconsProp = hudSO.FindProperty("_skillSlotIcons");
+            skillIconsProp.arraySize = 4;
+            for (int i = 0; i < 4; i++)
+                skillIconsProp.GetArrayElementAtIndex(i).objectReferenceValue = skillIcons[i];
+            hudSO.FindProperty("_equipmentButton").objectReferenceValue = navBtns[0];
+            hudSO.FindProperty("_inventoryButton").objectReferenceValue = navBtns[1];
+            hudSO.FindProperty("_mineButton").objectReferenceValue = navBtns[2];
+            hudSO.FindProperty("_marketButton").objectReferenceValue = navBtns[3];
             hudSO.ApplyModifiedPropertiesWithoutUndo();
 
             return hud;
@@ -855,7 +965,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 1.0f;
+            scaler.matchWidthOrHeight = 0.5f;
 
             // Center text container with CanvasGroup for fading
             var containerGO = new GameObject("AnnouncerContainer", typeof(RectTransform));
@@ -905,7 +1015,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 1.0f;
+            scaler.matchWidthOrHeight = 0.5f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
             // Dark overlay panel

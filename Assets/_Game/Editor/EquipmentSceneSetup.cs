@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
@@ -10,50 +9,17 @@ namespace ConquerChronicles.Editor
 {
     public static class EquipmentSceneSetup
     {
-        // Slot size shared by equipped + bag
-        private const float SlotSize = 150f;
-
         [MenuItem("Conquer Chronicles/Setup Equipment Scene")]
         public static void Setup()
         {
-            // --- Clear current scene objects (except camera) ---
+            // --- Clear current scene objects ---
             var scene = EditorSceneManager.GetActiveScene();
             foreach (var root in scene.GetRootGameObjects())
             {
-                if (root.GetComponent<UnityEngine.Camera>() != null) continue;
                 Object.DestroyImmediate(root);
             }
-
-            // --- Main Camera ---
-            var cameraGO = GameObject.FindFirstObjectByType<UnityEngine.Camera>()?.gameObject;
-            if (cameraGO == null)
-            {
-                cameraGO = new GameObject("Main Camera");
-                var cam = cameraGO.AddComponent<UnityEngine.Camera>();
-                cam.orthographic = true;
-                cam.orthographicSize = 5f;
-                cameraGO.AddComponent<AudioListener>();
-                cameraGO.tag = "MainCamera";
-            }
-            cameraGO.transform.position = new Vector3(0, 0, -10);
-            var camera = cameraGO.GetComponent<UnityEngine.Camera>();
-            camera.orthographic = true;
-            camera.orthographicSize = 5f;
-            camera.backgroundColor = new Color(0.07f, 0.07f, 0.11f, 1f);
-            camera.clearFlags = CameraClearFlags.SolidColor;
-
-            // --- EventSystem ---
-            var existingES = GameObject.FindFirstObjectByType<EventSystem>();
-            if (existingES == null)
-            {
-                var esGO = new GameObject("EventSystem");
-                esGO.AddComponent<EventSystem>();
-                var inputModuleType = System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
-                if (inputModuleType != null)
-                    esGO.AddComponent(inputModuleType);
-                else
-                    esGO.AddComponent<StandaloneInputModule>();
-            }
+            // No Camera needed — this is a sub-scene with ScreenSpaceOverlay canvas.
+            // No EventSystem needed — the Gameplay scene already provides one.
 
             // --- Canvas (1080x1920 portrait phone) ---
             var canvasGO = new GameObject("Equipment_Canvas");
@@ -63,24 +29,28 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 1.0f;
+            scaler.matchWidthOrHeight = 0.5f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
-            // SafeArea
-            var safeAreaGO = new GameObject("SafeArea", typeof(RectTransform));
-            safeAreaGO.transform.SetParent(canvasGO.transform, false);
-            var safeAreaRT = safeAreaGO.GetComponent<RectTransform>();
-            safeAreaRT.anchorMin = Vector2.zero;
-            safeAreaRT.anchorMax = Vector2.one;
-            safeAreaRT.offsetMin = Vector2.zero;
-            safeAreaRT.offsetMax = Vector2.zero;
-            safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
-
             // ============================================================
-            // HEADER (top ~4%)
+            // TOP HALF CONTAINER — anchored to top 50% of screen
             // ============================================================
 
-            var titleGO = CreateUIText(safeAreaGO.transform, "TitleText", "EQUIPMENT",
+            var topHalfGO = new GameObject("TopHalfContainer", typeof(RectTransform));
+            topHalfGO.transform.SetParent(canvasGO.transform, false);
+            var topHalfRT = topHalfGO.GetComponent<RectTransform>();
+            topHalfRT.anchorMin = new Vector2(0, 0.5f);
+            topHalfRT.anchorMax = new Vector2(1, 1);
+            topHalfRT.offsetMin = Vector2.zero;
+            topHalfRT.offsetMax = new Vector2(0, -120); // safe area: clears dynamic island / notch
+            var topHalfImg = topHalfGO.AddComponent<Image>();
+            topHalfImg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
+
+            // ============================================================
+            // HEADER (top of container)
+            // ============================================================
+
+            var titleGO = CreateUIText(topHalfGO.transform, "TitleText", "EQUIPMENT",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -10), new Vector2(0, 60), 40);
             var titleRT = titleGO.GetComponent<RectTransform>();
@@ -94,158 +64,118 @@ namespace ConquerChronicles.Editor
             titleTMP.fontStyle = FontStyles.Bold;
             titleTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
-            // Back button
+            // Close button (X) — top-right corner
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
-            backBtnGO.transform.SetParent(safeAreaGO.transform, false);
+            backBtnGO.transform.SetParent(topHalfGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
-            backBtnRT.anchorMin = new Vector2(0, 1);
-            backBtnRT.anchorMax = new Vector2(0, 1);
-            backBtnRT.pivot = new Vector2(0, 1);
-            backBtnRT.anchoredPosition = new Vector2(15, -15);
-            backBtnRT.sizeDelta = new Vector2(140, 50);
+            backBtnRT.anchorMin = new Vector2(1, 1);
+            backBtnRT.anchorMax = new Vector2(1, 1);
+            backBtnRT.pivot = new Vector2(1, 1);
+            backBtnRT.anchoredPosition = new Vector2(-10, -10);
+            backBtnRT.sizeDelta = new Vector2(50, 50);
             var backBtnImg = backBtnGO.AddComponent<Image>();
-            backBtnImg.color = new Color(0.2f, 0.2f, 0.3f, 0.8f);
+            backBtnImg.color = new Color(0.3f, 0.15f, 0.15f, 0.9f);
             var backBtn = backBtnGO.AddComponent<Button>();
             backBtn.targetGraphic = backBtnImg;
-            var backBtnTextGO = CreateUIText(backBtnGO.transform, "BackText", "< Back",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 24);
-            backBtnTextGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
-
-            // Gold
-            var goldGO = CreateUIText(safeAreaGO.transform, "GoldText", "0 Gold",
-                new Vector2(1, 1), new Vector2(1, 1),
-                new Vector2(-15, -15), new Vector2(180, 50), 24);
-            var goldRT = goldGO.GetComponent<RectTransform>();
-            goldRT.anchorMin = new Vector2(1, 1);
-            goldRT.anchorMax = new Vector2(1, 1);
-            goldRT.pivot = new Vector2(1, 1);
-            goldRT.anchoredPosition = new Vector2(-15, -15);
-            goldRT.sizeDelta = new Vector2(180, 50);
-            var goldTMP = goldGO.GetComponent<TextMeshProUGUI>();
-            goldTMP.alignment = TextAlignmentOptions.Right;
-            goldTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
-
-            // Stats button (in header, next to gold)
-            var statsBtnGO = new GameObject("StatsButton", typeof(RectTransform));
-            statsBtnGO.transform.SetParent(safeAreaGO.transform, false);
-            var statsBtnRT = statsBtnGO.GetComponent<RectTransform>();
-            statsBtnRT.anchorMin = new Vector2(1, 1);
-            statsBtnRT.anchorMax = new Vector2(1, 1);
-            statsBtnRT.pivot = new Vector2(1, 1);
-            statsBtnRT.anchoredPosition = new Vector2(-200, -15);
-            statsBtnRT.sizeDelta = new Vector2(120, 50);
-            var statsBtnImg = statsBtnGO.AddComponent<Image>();
-            statsBtnImg.color = new Color(0.2f, 0.3f, 0.5f, 0.9f);
-            var statsBtn = statsBtnGO.AddComponent<Button>();
-            statsBtn.targetGraphic = statsBtnImg;
-            var statsBtnTextGO = CreateUIText(statsBtnGO.transform, "StatsBtnText", "Stats",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 24);
-            statsBtnTextGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
+            var backBtnTextGO = CreateUIText(backBtnGO.transform, "BackText", "X",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 28);
+            var backBtnTMP = backBtnTextGO.GetComponent<TextMeshProUGUI>();
+            backBtnTMP.alignment = TextAlignmentOptions.Center;
+            backBtnTMP.fontStyle = FontStyles.Bold;
 
             // ============================================================
-            // STATS OVERLAY PANEL (fullscreen overlay, hidden by default)
+            // TAB BAR (below header)
             // ============================================================
 
-            var statsOverlayGO = new GameObject("StatsPanel", typeof(RectTransform));
-            statsOverlayGO.transform.SetParent(safeAreaGO.transform, false);
-            var statsOverlayRT = statsOverlayGO.GetComponent<RectTransform>();
-            statsOverlayRT.anchorMin = Vector2.zero;
-            statsOverlayRT.anchorMax = Vector2.one;
-            statsOverlayRT.offsetMin = Vector2.zero;
-            statsOverlayRT.offsetMax = Vector2.zero;
-            statsOverlayGO.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+            var tabBarGO = new GameObject("TabBar", typeof(RectTransform));
+            tabBarGO.transform.SetParent(topHalfGO.transform, false);
+            var tabBarRT = tabBarGO.GetComponent<RectTransform>();
+            tabBarRT.anchorMin = new Vector2(0, 1);
+            tabBarRT.anchorMax = new Vector2(1, 1);
+            tabBarRT.pivot = new Vector2(0.5f, 1);
+            tabBarRT.anchoredPosition = new Vector2(0, -75);
+            tabBarRT.sizeDelta = new Vector2(0, 50);
 
-            var statsInnerGO = new GameObject("StatsInner", typeof(RectTransform));
-            statsInnerGO.transform.SetParent(statsOverlayGO.transform, false);
-            var statsInnerRT = statsInnerGO.GetComponent<RectTransform>();
-            statsInnerRT.anchorMin = new Vector2(0.1f, 0.3f);
-            statsInnerRT.anchorMax = new Vector2(0.9f, 0.7f);
-            statsInnerRT.offsetMin = Vector2.zero;
-            statsInnerRT.offsetMax = Vector2.zero;
-            statsInnerGO.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.14f, 1f);
+            // Tab 1: "Equipment" (left half)
+            var equipTabGO = new GameObject("EquipmentTab", typeof(RectTransform));
+            equipTabGO.transform.SetParent(tabBarGO.transform, false);
+            var equipTabRT = equipTabGO.GetComponent<RectTransform>();
+            equipTabRT.anchorMin = new Vector2(0, 0);
+            equipTabRT.anchorMax = new Vector2(0.5f, 1);
+            equipTabRT.offsetMin = new Vector2(15, 0);
+            equipTabRT.offsetMax = new Vector2(-4, 0);
+            var equipTabImg = equipTabGO.AddComponent<Image>();
+            equipTabImg.color = new Color(0.18f, 0.18f, 0.28f, 1f);
+            var equipTabBtn = equipTabGO.AddComponent<Button>();
+            equipTabBtn.targetGraphic = equipTabImg;
+            var equipTabTextGO = CreateUIText(equipTabGO.transform, "Text", "Equipment",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 24);
+            var equipTabTMP = equipTabTextGO.GetComponent<TextMeshProUGUI>();
+            equipTabTMP.alignment = TextAlignmentOptions.Center;
+            equipTabTMP.fontStyle = FontStyles.Bold;
+            equipTabTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
-            var statsTitleGO = CreateUIText(statsInnerGO.transform, "StatsTitle", "STATS",
-                new Vector2(0, 1), new Vector2(1, 1),
-                new Vector2(0, -15), new Vector2(0, 40), 30);
-            var statsTitleRT = statsTitleGO.GetComponent<RectTransform>();
-            statsTitleRT.anchorMin = new Vector2(0, 1);
-            statsTitleRT.anchorMax = new Vector2(1, 1);
-            statsTitleRT.pivot = new Vector2(0.5f, 1);
-            statsTitleRT.anchoredPosition = new Vector2(0, -15);
-            statsTitleRT.sizeDelta = new Vector2(0, 40);
-            var statsTitleTMP = statsTitleGO.GetComponent<TextMeshProUGUI>();
-            statsTitleTMP.alignment = TextAlignmentOptions.Center;
-            statsTitleTMP.fontStyle = FontStyles.Bold;
-            statsTitleTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
+            // Tab 2: "Stats" (right half)
+            var statsTabGO = new GameObject("StatsTab", typeof(RectTransform));
+            statsTabGO.transform.SetParent(tabBarGO.transform, false);
+            var statsTabRT = statsTabGO.GetComponent<RectTransform>();
+            statsTabRT.anchorMin = new Vector2(0.5f, 0);
+            statsTabRT.anchorMax = new Vector2(1, 1);
+            statsTabRT.offsetMin = new Vector2(4, 0);
+            statsTabRT.offsetMax = new Vector2(-15, 0);
+            var statsTabImg = statsTabGO.AddComponent<Image>();
+            statsTabImg.color = new Color(0.1f, 0.1f, 0.16f, 1f);
+            var statsTabBtn = statsTabGO.AddComponent<Button>();
+            statsTabBtn.targetGraphic = statsTabImg;
+            var statsTabTextGO = CreateUIText(statsTabGO.transform, "Text", "Stats",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 24);
+            var statsTabTMP = statsTabTextGO.GetComponent<TextMeshProUGUI>();
+            statsTabTMP.alignment = TextAlignmentOptions.Center;
+            statsTabTMP.fontStyle = FontStyles.Bold;
+            statsTabTMP.color = new Color(0.5f, 0.5f, 0.5f, 1f);
 
-            var statsTextGO = CreateUIText(statsInnerGO.transform, "StatsText",
-                "HP: 0\nMP: 0\nATK: 0\nDEF: 0\nMATK: 0\nMDEF: 0\nAGI: 0\nCrit%: 0.0%",
+            // ============================================================
+            // EQUIPPED PANEL — grid layout (fills container below tab bar)
+            // ============================================================
+
+            var equippedPanelGO = CreateUIImage(topHalfGO.transform, "EquippedPanel",
                 new Vector2(0, 0), new Vector2(1, 1),
-                Vector2.zero, Vector2.zero, 30);
-            var statsTextRT = statsTextGO.GetComponent<RectTransform>();
-            statsTextRT.anchorMin = new Vector2(0, 0);
-            statsTextRT.anchorMax = new Vector2(1, 1);
-            statsTextRT.offsetMin = new Vector2(20, 70);
-            statsTextRT.offsetMax = new Vector2(-20, -60);
-            var statsTextTMP = statsTextGO.GetComponent<TextMeshProUGUI>();
-            statsTextTMP.alignment = TextAlignmentOptions.Center;
-
-            var closeStatsBtnGO = CreateButton(statsInnerGO.transform, "CloseStatsButton",
-                new Vector2(0, 15), new Vector2(0, 50), new Color(0.35f, 0.35f, 0.4f, 1f));
-            closeStatsBtnGO.GetComponent<RectTransform>().anchorMin = new Vector2(0.2f, 0);
-            closeStatsBtnGO.GetComponent<RectTransform>().anchorMax = new Vector2(0.8f, 0);
-            var closeStatsBtn = closeStatsBtnGO.GetComponent<Button>();
-            var closeStatsBtnTextGO = CreateUIText(closeStatsBtnGO.transform, "CloseText", "Cancel",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 26);
-            closeStatsBtnTextGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
-
-            // ============================================================
-            // EQUIPPED PANEL — grid layout (0.35 to 0.96 — 61%)
-            // Row 1: Head
-            // Row 2: Neck, Armor
-            // Row 3: L.Hand, Ring, R.Hand
-            // Row 4: Boots
-            // ============================================================
-
-            var equippedPanelGO = CreateUIImage(safeAreaGO.transform, "EquippedPanel",
-                new Vector2(0, 0.35f), new Vector2(1, 0.96f),
                 Vector2.zero, Vector2.zero,
                 new Color(0.1f, 0.1f, 0.15f, 0.9f));
             var equippedPanelRT = equippedPanelGO.GetComponent<RectTransform>();
-            equippedPanelRT.offsetMin = new Vector2(15, 0);
-            equippedPanelRT.offsetMax = new Vector2(-15, -80);
+            equippedPanelRT.offsetMin = new Vector2(15, 10);
+            equippedPanelRT.offsetMax = new Vector2(-15, -130);
 
-            // Grid positions (offsets from center of panel)
-            // 4 rows, vertically spaced by ~170px
-            float rowSpacing = 170f;
-            float colSpacing = 170f;
-            float topY = rowSpacing * 1.5f;  // top row offset
-
-            var slotPositions = new Vector2[]
+            // Slot positions — 2 compact rows, anchor-based for screen scaling
+            // Row 1 (top): Head, Neck, Armor, Boots
+            // Row 2 (bot): L.Hand, Ring, R.Hand
+            var slotAnchors = new Vector2[]
             {
-                new Vector2(0, topY),                                        // 0: Head — row 1 center
-                new Vector2(-colSpacing * 0.5f, topY - rowSpacing),          // 1: Neck — row 2 left
-                new Vector2(+colSpacing * 0.5f, topY - rowSpacing),          // 2: Armor — row 2 right
-                new Vector2(-colSpacing, topY - rowSpacing * 2),             // 3: L.Hand — row 3 left
-                new Vector2(+colSpacing, topY - rowSpacing * 2),             // 4: R.Hand — row 3 right
-                new Vector2(0, topY - rowSpacing * 2),                       // 5: Ring — row 3 center
-                new Vector2(0, topY - rowSpacing * 3),                       // 6: Boots — row 4 center
+                new Vector2(0.14f, 0.68f),  // 0: Head
+                new Vector2(0.38f, 0.68f),  // 1: Neck
+                new Vector2(0.62f, 0.68f),  // 2: Armor
+                new Vector2(0.22f, 0.32f),  // 3: L.Hand
+                new Vector2(0.78f, 0.32f),  // 4: R.Hand
+                new Vector2(0.50f, 0.32f),  // 5: Ring
+                new Vector2(0.86f, 0.68f),  // 6: Boots
             };
 
             string[] slotLabels = { "Head", "Neck", "Armor", "L.Hand", "R.Hand", "Ring", "Boots" };
             var slotButtons = new Button[7];
             var slotTexts = new TextMeshProUGUI[7];
+            float slotSize = 130f;
 
             for (int i = 0; i < 7; i++)
             {
+                var anchor = slotAnchors[i];
                 var slotBtnGO = new GameObject($"SlotButton_{i}", typeof(RectTransform));
                 slotBtnGO.transform.SetParent(equippedPanelGO.transform, false);
                 var slotBtnRT = slotBtnGO.GetComponent<RectTransform>();
-                slotBtnRT.anchorMin = new Vector2(0.5f, 0.5f);
-                slotBtnRT.anchorMax = new Vector2(0.5f, 0.5f);
+                slotBtnRT.anchorMin = anchor;
+                slotBtnRT.anchorMax = anchor;
                 slotBtnRT.pivot = new Vector2(0.5f, 0.5f);
-                slotBtnRT.anchoredPosition = slotPositions[i];
-                slotBtnRT.sizeDelta = new Vector2(SlotSize, SlotSize);
+                slotBtnRT.anchoredPosition = Vector2.zero;
+                slotBtnRT.sizeDelta = new Vector2(slotSize, slotSize);
 
                 var slotBtnImg = slotBtnGO.AddComponent<Image>();
                 slotBtnImg.color = new Color(0.15f, 0.15f, 0.22f, 0.9f);
@@ -269,70 +199,195 @@ namespace ConquerChronicles.Editor
             }
 
             // ============================================================
-            // BAG GRID (0.0 to 0.30 — 30%, scrollable, centered)
+            // STATS CONTENT PANEL (same area as EquippedPanel, hidden by default)
             // ============================================================
 
-            var bagPanelGO = CreateUIImage(safeAreaGO.transform, "BagPanel",
-                new Vector2(0, 0), new Vector2(1, 0.35f),
+            var statsContentGO = CreateUIImage(topHalfGO.transform, "StatsContentPanel",
+                new Vector2(0, 0), new Vector2(1, 1),
                 Vector2.zero, Vector2.zero,
                 new Color(0.1f, 0.1f, 0.15f, 0.9f));
-            var bagPanelRT = bagPanelGO.GetComponent<RectTransform>();
-            bagPanelRT.offsetMin = new Vector2(15, 10);
-            bagPanelRT.offsetMax = new Vector2(-15, 0);
+            var statsContentRT = statsContentGO.GetComponent<RectTransform>();
+            statsContentRT.offsetMin = new Vector2(15, 10);
+            statsContentRT.offsetMax = new Vector2(-15, -130);
 
-            var bagCountGO = CreateUIText(bagPanelGO.transform, "BagCountText", "Bag: 0/50",
+            // --- Info Panel (top ~18% of stats content) ---
+            var statsInfoPanel = CreateUIImage(statsContentGO.transform, "StatsInfoPanel",
+                new Vector2(0, 0.82f), new Vector2(1, 1f),
+                Vector2.zero, Vector2.zero,
+                new Color(0.12f, 0.12f, 0.18f, 0.9f));
+            var statsInfoPanelRT = statsInfoPanel.GetComponent<RectTransform>();
+            statsInfoPanelRT.offsetMin = new Vector2(0, 0);
+            statsInfoPanelRT.offsetMax = new Vector2(0, 0);
+
+            var classGO = CreateUIText(statsInfoPanel.transform, "ClassText", "Trojan",
+                new Vector2(0, 0), new Vector2(0.35f, 1),
+                Vector2.zero, Vector2.zero, 28);
+            var classRT = classGO.GetComponent<RectTransform>();
+            classRT.anchorMin = new Vector2(0, 0);
+            classRT.anchorMax = new Vector2(0.35f, 1);
+            classRT.offsetMin = new Vector2(15, 5);
+            classRT.offsetMax = new Vector2(0, -5);
+            var classTMP = classGO.GetComponent<TextMeshProUGUI>();
+            classTMP.alignment = TextAlignmentOptions.Left;
+            classTMP.fontStyle = FontStyles.Bold;
+            classTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
+
+            var levelGO = CreateUIText(statsInfoPanel.transform, "LevelText", "Level 1",
+                new Vector2(0.35f, 0), new Vector2(0.65f, 1),
+                Vector2.zero, Vector2.zero, 26);
+            var levelRT = levelGO.GetComponent<RectTransform>();
+            levelRT.anchorMin = new Vector2(0.35f, 0);
+            levelRT.anchorMax = new Vector2(0.65f, 1);
+            levelRT.offsetMin = new Vector2(0, 5);
+            levelRT.offsetMax = new Vector2(0, -5);
+            var levelTMP = levelGO.GetComponent<TextMeshProUGUI>();
+            levelTMP.alignment = TextAlignmentOptions.Center;
+
+            var xpGO = CreateUIText(statsInfoPanel.transform, "XPText", "XP: 0 / 100",
+                new Vector2(0.65f, 0), new Vector2(1, 1),
+                Vector2.zero, Vector2.zero, 20);
+            var xpRT = xpGO.GetComponent<RectTransform>();
+            xpRT.anchorMin = new Vector2(0.65f, 0);
+            xpRT.anchorMax = new Vector2(1, 1);
+            xpRT.offsetMin = new Vector2(0, 5);
+            xpRT.offsetMax = new Vector2(-15, -5);
+            var xpTMP = xpGO.GetComponent<TextMeshProUGUI>();
+            xpTMP.alignment = TextAlignmentOptions.Right;
+
+            // --- Combat Stats Panel (middle ~47%) ---
+            var statsCombatPanel = CreateUIImage(statsContentGO.transform, "StatsCombatPanel",
+                new Vector2(0, 0.35f), new Vector2(1, 0.82f),
+                Vector2.zero, Vector2.zero,
+                new Color(0.12f, 0.12f, 0.18f, 0.9f));
+            var statsCombatPanelRT = statsCombatPanel.GetComponent<RectTransform>();
+            statsCombatPanelRT.offsetMin = new Vector2(0, 5);
+            statsCombatPanelRT.offsetMax = new Vector2(0, -5);
+
+            var statsLabelGO = CreateUIText(statsCombatPanel.transform, "StatsLabel", "COMBAT STATS",
                 new Vector2(0, 1), new Vector2(1, 1),
-                new Vector2(0, -2), new Vector2(0, 28), 20);
-            var bagCountRT = bagCountGO.GetComponent<RectTransform>();
-            bagCountRT.anchorMin = new Vector2(0, 1);
-            bagCountRT.anchorMax = new Vector2(1, 1);
-            bagCountRT.pivot = new Vector2(0.5f, 1);
-            bagCountRT.anchoredPosition = new Vector2(0, -2);
-            bagCountRT.sizeDelta = new Vector2(0, 28);
-            var bagCountTMP = bagCountGO.GetComponent<TextMeshProUGUI>();
-            bagCountTMP.alignment = TextAlignmentOptions.Center;
-            bagCountTMP.fontStyle = FontStyles.Bold;
+                new Vector2(0, -5), new Vector2(0, 30), 22);
+            var statsLabelRT = statsLabelGO.GetComponent<RectTransform>();
+            statsLabelRT.anchorMin = new Vector2(0, 1);
+            statsLabelRT.anchorMax = new Vector2(1, 1);
+            statsLabelRT.pivot = new Vector2(0.5f, 1);
+            statsLabelRT.anchoredPosition = new Vector2(0, -5);
+            statsLabelRT.sizeDelta = new Vector2(0, 30);
+            var statsLabelTMP = statsLabelGO.GetComponent<TextMeshProUGUI>();
+            statsLabelTMP.alignment = TextAlignmentOptions.Center;
+            statsLabelTMP.fontStyle = FontStyles.Bold;
+            statsLabelTMP.color = new Color(0.8f, 0.8f, 0.8f, 1f);
 
-            // Scrollable bag grid
-            var bagScrollGO = new GameObject("BagScroll", typeof(RectTransform));
-            bagScrollGO.transform.SetParent(bagPanelGO.transform, false);
-            var bagScrollRT = bagScrollGO.GetComponent<RectTransform>();
-            bagScrollRT.anchorMin = new Vector2(0, 0);
-            bagScrollRT.anchorMax = new Vector2(1, 1);
-            bagScrollRT.offsetMin = new Vector2(0, 5);
-            bagScrollRT.offsetMax = new Vector2(0, -32);
-            var bagScrollRect = bagScrollGO.AddComponent<ScrollRect>();
-            bagScrollRect.horizontal = false;
-            bagScrollRect.vertical = true;
-            bagScrollGO.AddComponent<RectMask2D>();
+            var statsTextGO = CreateUIText(statsCombatPanel.transform, "StatsText",
+                "HP: 0        MP: 0\nATK: 0       DEF: 0\nMATK: 0      MDEF: 0\nAGI: 0       AtkSpd: 1.00\nCrit: 0.0%   CritDmg: 150%",
+                new Vector2(0, 0), new Vector2(1, 1),
+                Vector2.zero, Vector2.zero, 22);
+            var statsTextRT = statsTextGO.GetComponent<RectTransform>();
+            statsTextRT.anchorMin = new Vector2(0, 0);
+            statsTextRT.anchorMax = new Vector2(1, 1);
+            statsTextRT.offsetMin = new Vector2(20, 10);
+            statsTextRT.offsetMax = new Vector2(-20, -38);
+            var statsTextTMP = statsTextGO.GetComponent<TextMeshProUGUI>();
+            statsTextTMP.alignment = TextAlignmentOptions.Center;
 
-            var bagContentGO = new GameObject("BagContent", typeof(RectTransform));
-            bagContentGO.transform.SetParent(bagScrollGO.transform, false);
-            var bagContentRT = bagContentGO.GetComponent<RectTransform>();
-            bagContentRT.anchorMin = new Vector2(0, 1);
-            bagContentRT.anchorMax = new Vector2(1, 1);
-            bagContentRT.pivot = new Vector2(0.5f, 1);
-            bagContentRT.anchoredPosition = Vector2.zero;
-            bagContentGO.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            // --- Allocation Panel (bottom ~35%) ---
+            var statsAllocPanel = CreateUIImage(statsContentGO.transform, "StatsAllocPanel",
+                new Vector2(0, 0), new Vector2(1, 0.35f),
+                Vector2.zero, Vector2.zero,
+                new Color(0.12f, 0.12f, 0.18f, 0.9f));
+            var statsAllocPanelRT = statsAllocPanel.GetComponent<RectTransform>();
+            statsAllocPanelRT.offsetMin = new Vector2(0, 0);
+            statsAllocPanelRT.offsetMax = new Vector2(0, -5);
 
-            var bagGridLayout = bagContentGO.AddComponent<GridLayoutGroup>();
-            bagGridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            bagGridLayout.constraintCount = 5;
-            bagGridLayout.cellSize = new Vector2(SlotSize, SlotSize);
-            bagGridLayout.spacing = new Vector2(8, 8);
-            bagGridLayout.padding = new RectOffset(10, 10, 5, 5);
-            bagGridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
-            bagGridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
-            bagGridLayout.childAlignment = TextAnchor.UpperCenter;
+            var statPointsGO = CreateUIText(statsAllocPanel.transform, "StatPointsText", "Stat Points: 0",
+                new Vector2(0, 1), new Vector2(1, 1),
+                new Vector2(0, -5), new Vector2(0, 35), 24);
+            var statPointsRT = statPointsGO.GetComponent<RectTransform>();
+            statPointsRT.anchorMin = new Vector2(0, 1);
+            statPointsRT.anchorMax = new Vector2(1, 1);
+            statPointsRT.pivot = new Vector2(0.5f, 1);
+            statPointsRT.anchoredPosition = new Vector2(0, -5);
+            statPointsRT.sizeDelta = new Vector2(0, 35);
+            var statPointsTMP = statPointsGO.GetComponent<TextMeshProUGUI>();
+            statPointsTMP.alignment = TextAlignmentOptions.Center;
+            statPointsTMP.fontStyle = FontStyles.Bold;
+            statPointsTMP.color = new Color(0.3f, 0.9f, 0.3f, 1f);
 
-            bagScrollRect.content = bagContentRT;
+            var allocatedGO = CreateUIText(statsAllocPanel.transform, "AllocatedText",
+                "VIT: 0    MAN: 0    STR: 0\nAGI: 0    SPI: 0",
+                new Vector2(0, 1), new Vector2(1, 1),
+                new Vector2(0, -42), new Vector2(0, 45), 20);
+            var allocatedRT = allocatedGO.GetComponent<RectTransform>();
+            allocatedRT.anchorMin = new Vector2(0, 1);
+            allocatedRT.anchorMax = new Vector2(1, 1);
+            allocatedRT.pivot = new Vector2(0.5f, 1);
+            allocatedRT.anchoredPosition = new Vector2(0, -42);
+            allocatedRT.sizeDelta = new Vector2(-20, 45);
+            var allocatedTMP = allocatedGO.GetComponent<TextMeshProUGUI>();
+            allocatedTMP.alignment = TextAlignmentOptions.Center;
+
+            // Stat allocation buttons
+            string[] statNames = { "VIT", "MAN", "STR", "AGI", "SPI" };
+            var statButtons = new Button[5];
+            float allocBtnWidth = 140f;
+            float allocBtnHeight = 45f;
+            float allocSpacing = 12f;
+            float allocTotalWidth = (allocBtnWidth * 3) + (allocSpacing * 2);
+            float allocStartX = -allocTotalWidth / 2f + allocBtnWidth / 2f;
+
+            // Row 1: VIT, MAN, STR
+            for (int i = 0; i < 3; i++)
+            {
+                var btnGO = new GameObject($"{statNames[i]}Button", typeof(RectTransform));
+                btnGO.transform.SetParent(statsAllocPanel.transform, false);
+                var btnRT = btnGO.GetComponent<RectTransform>();
+                btnRT.anchorMin = new Vector2(0.5f, 0);
+                btnRT.anchorMax = new Vector2(0.5f, 0);
+                btnRT.pivot = new Vector2(0.5f, 0);
+                btnRT.anchoredPosition = new Vector2(allocStartX + i * (allocBtnWidth + allocSpacing), 55);
+                btnRT.sizeDelta = new Vector2(allocBtnWidth, allocBtnHeight);
+                var btnImg = btnGO.AddComponent<Image>();
+                btnImg.color = new Color(0.15f, 0.35f, 0.15f, 1f);
+                var btn = btnGO.AddComponent<Button>();
+                btn.targetGraphic = btnImg;
+                statButtons[i] = btn;
+
+                var btnTextGO = CreateUIText(btnGO.transform, "Text", $"+ {statNames[i]}",
+                    Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 20);
+                btnTextGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
+            }
+
+            // Row 2: AGI, SPI
+            float row2Width = (allocBtnWidth * 2) + allocSpacing;
+            float row2StartX = -row2Width / 2f + allocBtnWidth / 2f;
+            for (int i = 0; i < 2; i++)
+            {
+                var btnGO = new GameObject($"{statNames[3 + i]}Button", typeof(RectTransform));
+                btnGO.transform.SetParent(statsAllocPanel.transform, false);
+                var btnRT = btnGO.GetComponent<RectTransform>();
+                btnRT.anchorMin = new Vector2(0.5f, 0);
+                btnRT.anchorMax = new Vector2(0.5f, 0);
+                btnRT.pivot = new Vector2(0.5f, 0);
+                btnRT.anchoredPosition = new Vector2(row2StartX + i * (allocBtnWidth + allocSpacing), 5);
+                btnRT.sizeDelta = new Vector2(allocBtnWidth, allocBtnHeight);
+                var btnImg = btnGO.AddComponent<Image>();
+                btnImg.color = new Color(0.15f, 0.35f, 0.15f, 1f);
+                var btn = btnGO.AddComponent<Button>();
+                btn.targetGraphic = btnImg;
+                statButtons[3 + i] = btn;
+
+                var btnTextGO = CreateUIText(btnGO.transform, "Text", $"+ {statNames[3 + i]}",
+                    Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 20);
+                btnTextGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
+            }
+
+            statsContentGO.SetActive(false);
 
             // ============================================================
-            // ITEM DETAIL PANEL (overlay, hidden by default)
+            // ITEM DETAIL PANEL (overlay within top-half container, hidden by default)
             // ============================================================
 
             var detailPanelGO = new GameObject("DetailPanel", typeof(RectTransform));
-            detailPanelGO.transform.SetParent(safeAreaGO.transform, false);
+            detailPanelGO.transform.SetParent(topHalfGO.transform, false);
             var detailPanelRT = detailPanelGO.GetComponent<RectTransform>();
             detailPanelRT.anchorMin = Vector2.zero;
             detailPanelRT.anchorMax = Vector2.one;
@@ -343,8 +398,8 @@ namespace ConquerChronicles.Editor
             var detailInnerGO = new GameObject("DetailInner", typeof(RectTransform));
             detailInnerGO.transform.SetParent(detailPanelGO.transform, false);
             var detailInnerRT = detailInnerGO.GetComponent<RectTransform>();
-            detailInnerRT.anchorMin = new Vector2(0.08f, 0.25f);
-            detailInnerRT.anchorMax = new Vector2(0.92f, 0.75f);
+            detailInnerRT.anchorMin = new Vector2(0.08f, 0.1f);
+            detailInnerRT.anchorMax = new Vector2(0.92f, 0.9f);
             detailInnerRT.offsetMin = Vector2.zero;
             detailInnerRT.offsetMax = Vector2.zero;
             detailInnerGO.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.14f, 0.95f);
@@ -434,10 +489,6 @@ namespace ConquerChronicles.Editor
 
             detailPanelGO.SetActive(false);
 
-            // Move stats overlay to render on top of everything
-            statsOverlayGO.transform.SetAsLastSibling();
-            statsOverlayGO.SetActive(false);
-
             // ============================================================
             // WIRE COMPONENTS
             // ============================================================
@@ -447,7 +498,18 @@ namespace ConquerChronicles.Editor
 
             uiSO.FindProperty("_titleText").objectReferenceValue = titleTMP;
             uiSO.FindProperty("_backButton").objectReferenceValue = backBtn;
-            uiSO.FindProperty("_goldText").objectReferenceValue = goldTMP;
+
+            // Tab buttons
+            uiSO.FindProperty("_equipmentTabButton").objectReferenceValue = equipTabBtn;
+            uiSO.FindProperty("_statsTabButton").objectReferenceValue = statsTabBtn;
+            uiSO.FindProperty("_equipmentTabImage").objectReferenceValue = equipTabImg;
+            uiSO.FindProperty("_statsTabImage").objectReferenceValue = statsTabImg;
+            uiSO.FindProperty("_equipmentTabText").objectReferenceValue = equipTabTMP;
+            uiSO.FindProperty("_statsTabText").objectReferenceValue = statsTabTMP;
+
+            // Content panels
+            uiSO.FindProperty("_equipmentContent").objectReferenceValue = equippedPanelGO;
+            uiSO.FindProperty("_statsContent").objectReferenceValue = statsContentGO;
 
             var slotButtonsProp = uiSO.FindProperty("_slotButtons");
             slotButtonsProp.arraySize = 7;
@@ -459,13 +521,6 @@ namespace ConquerChronicles.Editor
             for (int i = 0; i < 7; i++)
                 slotTextsProp.GetArrayElementAtIndex(i).objectReferenceValue = slotTexts[i];
 
-            uiSO.FindProperty("_statsButton").objectReferenceValue = statsBtn;
-            uiSO.FindProperty("_statsPanel").objectReferenceValue = statsOverlayGO;
-            uiSO.FindProperty("_statsText").objectReferenceValue = statsTextTMP;
-            uiSO.FindProperty("_closeStatsButton").objectReferenceValue = closeStatsBtn;
-            uiSO.FindProperty("_bagContainer").objectReferenceValue = bagContentGO.transform;
-            uiSO.FindProperty("_bagCountText").objectReferenceValue = bagCountTMP;
-
             uiSO.FindProperty("_detailPanel").objectReferenceValue = detailPanelGO;
             uiSO.FindProperty("_itemNameText").objectReferenceValue = itemNameTMP;
             uiSO.FindProperty("_itemStatsText").objectReferenceValue = itemStatsGO.GetComponent<TextMeshProUGUI>();
@@ -475,6 +530,19 @@ namespace ConquerChronicles.Editor
             uiSO.FindProperty("_upgradeButton").objectReferenceValue = upgradeBtn;
             uiSO.FindProperty("_upgradeRateText").objectReferenceValue = upgradeRateTMP;
             uiSO.FindProperty("_closeDetailButton").objectReferenceValue = closeBtn;
+
+            // Stats fields
+            uiSO.FindProperty("_classText").objectReferenceValue = classTMP;
+            uiSO.FindProperty("_levelText").objectReferenceValue = levelTMP;
+            uiSO.FindProperty("_xpText").objectReferenceValue = xpTMP;
+            uiSO.FindProperty("_statsText").objectReferenceValue = statsTextTMP;
+            uiSO.FindProperty("_statPointsText").objectReferenceValue = statPointsTMP;
+            uiSO.FindProperty("_allocatedText").objectReferenceValue = allocatedTMP;
+            uiSO.FindProperty("_vitalityButton").objectReferenceValue = statButtons[0];
+            uiSO.FindProperty("_manaButton").objectReferenceValue = statButtons[1];
+            uiSO.FindProperty("_strengthButton").objectReferenceValue = statButtons[2];
+            uiSO.FindProperty("_agilityButton").objectReferenceValue = statButtons[3];
+            uiSO.FindProperty("_spiritButton").objectReferenceValue = statButtons[4];
 
             uiSO.ApplyModifiedPropertiesWithoutUndo();
 

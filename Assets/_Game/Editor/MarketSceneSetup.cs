@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
@@ -13,44 +12,14 @@ namespace ConquerChronicles.Editor
         [MenuItem("Conquer Chronicles/Setup Market Scene")]
         public static void Setup()
         {
-            // --- Clear current scene objects (except camera) ---
+            // --- Clear current scene objects ---
             var scene = EditorSceneManager.GetActiveScene();
             foreach (var root in scene.GetRootGameObjects())
             {
-                if (root.GetComponent<UnityEngine.Camera>() != null) continue;
                 Object.DestroyImmediate(root);
             }
-
-            // --- Main Camera ---
-            var cameraGO = GameObject.FindFirstObjectByType<UnityEngine.Camera>()?.gameObject;
-            if (cameraGO == null)
-            {
-                cameraGO = new GameObject("Main Camera");
-                var cam = cameraGO.AddComponent<UnityEngine.Camera>();
-                cam.orthographic = true;
-                cam.orthographicSize = 5f;
-                cameraGO.AddComponent<AudioListener>();
-                cameraGO.tag = "MainCamera";
-            }
-            cameraGO.transform.position = new Vector3(0, 0, -10);
-            var camera = cameraGO.GetComponent<UnityEngine.Camera>();
-            camera.orthographic = true;
-            camera.orthographicSize = 5f;
-            camera.backgroundColor = new Color(0.07f, 0.07f, 0.11f, 1f);
-            camera.clearFlags = CameraClearFlags.SolidColor;
-
-            // --- EventSystem (required for UI input) ---
-            var existingES = GameObject.FindFirstObjectByType<EventSystem>();
-            if (existingES == null)
-            {
-                var esGO = new GameObject("EventSystem");
-                esGO.AddComponent<EventSystem>();
-                var inputModuleType = System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
-                if (inputModuleType != null)
-                    esGO.AddComponent(inputModuleType);
-                else
-                    esGO.AddComponent<StandaloneInputModule>();
-            }
+            // No Camera needed — this is a sub-scene with ScreenSpaceOverlay canvas.
+            // No EventSystem needed — the Gameplay scene already provides one.
 
             // --- Canvas ---
             var canvasGO = new GameObject("Market_Canvas");
@@ -60,18 +29,19 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 1.0f;
+            scaler.matchWidthOrHeight = 0.5f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
-            // SafeArea container
-            var safeAreaGO = new GameObject("SafeArea", typeof(RectTransform));
+            // Content container (no SafeAreaHandler — it overrides anchors in sub-scenes)
+            var safeAreaGO = new GameObject("ContentContainer", typeof(RectTransform));
             safeAreaGO.transform.SetParent(canvasGO.transform, false);
             var safeAreaRT = safeAreaGO.GetComponent<RectTransform>();
-            safeAreaRT.anchorMin = Vector2.zero;
+            safeAreaRT.anchorMin = new Vector2(0, 0.18f); // clears HP orb on 4:3 and taller
             safeAreaRT.anchorMax = Vector2.one;
             safeAreaRT.offsetMin = Vector2.zero;
-            safeAreaRT.offsetMax = Vector2.zero;
-            safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
+            safeAreaRT.offsetMax = new Vector2(0, -120); // safe area: clears dynamic island / notch
+            var contentBgImg = safeAreaGO.AddComponent<Image>();
+            contentBgImg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
 
             // ============================================================
             // HEADER
@@ -92,37 +62,38 @@ namespace ConquerChronicles.Editor
             titleTMP.fontStyle = FontStyles.Bold;
             titleTMP.color = new Color(1f, 0.85f, 0.2f, 1f); // gold
 
-            // Back button - top-left
+            // Close button (X) — top-right corner
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
             backBtnGO.transform.SetParent(safeAreaGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
-            backBtnRT.anchorMin = new Vector2(0, 1);
-            backBtnRT.anchorMax = new Vector2(0, 1);
-            backBtnRT.pivot = new Vector2(0, 1);
-            backBtnRT.anchoredPosition = new Vector2(20, -20);
-            backBtnRT.sizeDelta = new Vector2(160, 60);
+            backBtnRT.anchorMin = new Vector2(1, 1);
+            backBtnRT.anchorMax = new Vector2(1, 1);
+            backBtnRT.pivot = new Vector2(1, 1);
+            backBtnRT.anchoredPosition = new Vector2(-10, -10);
+            backBtnRT.sizeDelta = new Vector2(50, 50);
             var backBtnImg = backBtnGO.AddComponent<Image>();
-            backBtnImg.color = new Color(0.2f, 0.2f, 0.3f, 0.8f);
+            backBtnImg.color = new Color(0.3f, 0.15f, 0.15f, 0.9f);
             var backBtn = backBtnGO.AddComponent<Button>();
             backBtn.targetGraphic = backBtnImg;
 
-            var backBtnTextGO = CreateUIText(backBtnGO.transform, "BackText", "< Back",
+            var backBtnTextGO = CreateUIText(backBtnGO.transform, "BackText", "X",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 28);
             var backBtnTMP = backBtnTextGO.GetComponent<TextMeshProUGUI>();
             backBtnTMP.alignment = TextAlignmentOptions.Center;
+            backBtnTMP.fontStyle = FontStyles.Bold;
 
-            // Gold display - top-right
+            // Gold display — centered below tab bar, above listings
             var goldGO = CreateUIText(safeAreaGO.transform, "GoldText", "0 Gold",
-                new Vector2(1, 1), new Vector2(1, 1),
-                new Vector2(-20, -20), new Vector2(200, 60), 28);
+                new Vector2(0, 1), new Vector2(1, 1),
+                new Vector2(0, -175), new Vector2(0, 40), 28);
             var goldRT = goldGO.GetComponent<RectTransform>();
-            goldRT.anchorMin = new Vector2(1, 1);
+            goldRT.anchorMin = new Vector2(0, 1);
             goldRT.anchorMax = new Vector2(1, 1);
-            goldRT.pivot = new Vector2(1, 1);
-            goldRT.anchoredPosition = new Vector2(-20, -20);
-            goldRT.sizeDelta = new Vector2(200, 60);
+            goldRT.pivot = new Vector2(0.5f, 1);
+            goldRT.anchoredPosition = new Vector2(0, -175);
+            goldRT.sizeDelta = new Vector2(0, 40);
             var goldTMP = goldGO.GetComponent<TextMeshProUGUI>();
-            goldTMP.alignment = TextAlignmentOptions.Right;
+            goldTMP.alignment = TextAlignmentOptions.Center;
             goldTMP.color = new Color(1f, 0.85f, 0.2f, 1f); // gold
 
             // ============================================================
@@ -187,7 +158,7 @@ namespace ConquerChronicles.Editor
             buyPanelRT.anchorMax = new Vector2(1, 1);
             buyPanelRT.pivot = new Vector2(0.5f, 0.5f);
             buyPanelRT.offsetMin = new Vector2(0, 0);
-            buyPanelRT.offsetMax = new Vector2(0, -180); // below tab bar
+            buyPanelRT.offsetMax = new Vector2(0, -220); // below gold display
 
             // Refresh timer text at top of buy panel
             var refreshTimerGO = CreateUIText(buyPanelGO.transform, "RefreshTimerText", "Refresh in: 3:59:42",
@@ -405,7 +376,7 @@ namespace ConquerChronicles.Editor
             boothPanelRT.anchorMax = new Vector2(1, 1);
             boothPanelRT.pivot = new Vector2(0.5f, 0.5f);
             boothPanelRT.offsetMin = new Vector2(20, 20);
-            boothPanelRT.offsetMax = new Vector2(-20, -180); // below tab bar
+            boothPanelRT.offsetMax = new Vector2(-20, -220); // below gold display
 
             // Revenue text
             var boothRevenueGO = CreateUIText(boothPanelGO.transform, "BoothRevenueText", "Uncollected Revenue: 0 Gold",

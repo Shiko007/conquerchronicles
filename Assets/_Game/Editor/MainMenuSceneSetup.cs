@@ -61,7 +61,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 1.0f;
+            scaler.matchWidthOrHeight = 0.5f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
             // SafeArea container

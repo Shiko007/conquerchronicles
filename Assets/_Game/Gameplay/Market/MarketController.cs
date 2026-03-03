@@ -69,7 +69,7 @@ namespace ConquerChronicles.Gameplay.Market
             _marketUI.OnBackPressed = () =>
             {
                 SaveState();
-                SceneManager.LoadScene("MainMenu");
+                SceneManager.UnloadSceneAsync("Market");
             };
 
             _marketUI.OnBuyTabPressed = () =>

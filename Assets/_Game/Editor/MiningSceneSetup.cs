@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using TMPro;
@@ -14,44 +13,14 @@ namespace ConquerChronicles.Editor
         [MenuItem("Conquer Chronicles/Setup Mining Scene")]
         public static void Setup()
         {
-            // --- Clear current scene objects (except camera) ---
+            // --- Clear current scene objects ---
             var scene = EditorSceneManager.GetActiveScene();
             foreach (var root in scene.GetRootGameObjects())
             {
-                if (root.GetComponent<UnityEngine.Camera>() != null) continue;
                 Object.DestroyImmediate(root);
             }
-
-            // --- Main Camera ---
-            var cameraGO = GameObject.FindFirstObjectByType<UnityEngine.Camera>()?.gameObject;
-            if (cameraGO == null)
-            {
-                cameraGO = new GameObject("Main Camera");
-                var cam = cameraGO.AddComponent<UnityEngine.Camera>();
-                cam.orthographic = true;
-                cam.orthographicSize = 5f;
-                cameraGO.AddComponent<AudioListener>();
-                cameraGO.tag = "MainCamera";
-            }
-            cameraGO.transform.position = new Vector3(0, 0, -10);
-            var camera = cameraGO.GetComponent<UnityEngine.Camera>();
-            camera.orthographic = true;
-            camera.orthographicSize = 5f;
-            camera.backgroundColor = new Color(0.06f, 0.06f, 0.1f, 1f);
-            camera.clearFlags = CameraClearFlags.SolidColor;
-
-            // --- EventSystem (required for UI input) ---
-            var existingES = GameObject.FindFirstObjectByType<EventSystem>();
-            if (existingES == null)
-            {
-                var esGO = new GameObject("EventSystem");
-                esGO.AddComponent<EventSystem>();
-                var inputModuleType = System.Type.GetType("UnityEngine.InputSystem.UI.InputSystemUIInputModule, Unity.InputSystem");
-                if (inputModuleType != null)
-                    esGO.AddComponent(inputModuleType);
-                else
-                    esGO.AddComponent<StandaloneInputModule>();
-            }
+            // No Camera needed — this is a sub-scene with ScreenSpaceOverlay canvas.
+            // No EventSystem needed — the Gameplay scene already provides one.
 
             // --- Canvas ---
             var canvasGO = new GameObject("Mining_Canvas");
@@ -61,18 +30,19 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 1.0f;
+            scaler.matchWidthOrHeight = 0.5f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
-            // SafeArea container
-            var safeAreaGO = new GameObject("SafeArea", typeof(RectTransform));
+            // Content container (no SafeAreaHandler — it overrides anchors in sub-scenes)
+            var safeAreaGO = new GameObject("ContentContainer", typeof(RectTransform));
             safeAreaGO.transform.SetParent(canvasGO.transform, false);
             var safeAreaRT = safeAreaGO.GetComponent<RectTransform>();
-            safeAreaRT.anchorMin = Vector2.zero;
+            safeAreaRT.anchorMin = new Vector2(0, 0.18f); // clears HP orb on 4:3 and taller
             safeAreaRT.anchorMax = Vector2.one;
             safeAreaRT.offsetMin = Vector2.zero;
-            safeAreaRT.offsetMax = Vector2.zero;
-            safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
+            safeAreaRT.offsetMax = new Vector2(0, -120); // safe area: clears dynamic island / notch
+            var contentBgImg = safeAreaGO.AddComponent<Image>();
+            contentBgImg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
 
             // ============================================================
             // HEADER
@@ -93,70 +63,71 @@ namespace ConquerChronicles.Editor
             titleTMP.fontStyle = FontStyles.Bold;
             titleTMP.color = new Color(1f, 0.85f, 0.2f, 1f); // gold
 
-            // Back button - top-left
+            // Close button (X) — top-right corner
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
             backBtnGO.transform.SetParent(safeAreaGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
-            backBtnRT.anchorMin = new Vector2(0, 1);
-            backBtnRT.anchorMax = new Vector2(0, 1);
-            backBtnRT.pivot = new Vector2(0, 1);
-            backBtnRT.anchoredPosition = new Vector2(20, -20);
-            backBtnRT.sizeDelta = new Vector2(160, 60);
+            backBtnRT.anchorMin = new Vector2(1, 1);
+            backBtnRT.anchorMax = new Vector2(1, 1);
+            backBtnRT.pivot = new Vector2(1, 1);
+            backBtnRT.anchoredPosition = new Vector2(-10, -10);
+            backBtnRT.sizeDelta = new Vector2(50, 50);
             var backBtnImg = backBtnGO.AddComponent<Image>();
-            backBtnImg.color = new Color(0.2f, 0.2f, 0.3f, 0.8f);
+            backBtnImg.color = new Color(0.3f, 0.15f, 0.15f, 0.9f);
             var backBtn = backBtnGO.AddComponent<Button>();
             backBtn.targetGraphic = backBtnImg;
 
-            var backBtnTextGO = CreateUIText(backBtnGO.transform, "BackText", "< Back",
+            var backBtnTextGO = CreateUIText(backBtnGO.transform, "BackText", "X",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 28);
             var backBtnTMP = backBtnTextGO.GetComponent<TextMeshProUGUI>();
             backBtnTMP.alignment = TextAlignmentOptions.Center;
+            backBtnTMP.fontStyle = FontStyles.Bold;
+
+            // Instruction text
+            var instructionGO = CreateUIText(safeAreaGO.transform, "InstructionText",
+                "Select which mine to teleport to",
+                new Vector2(0, 1), new Vector2(1, 1),
+                new Vector2(0, -92), new Vector2(0, 30), 20);
+            var instructionRT = instructionGO.GetComponent<RectTransform>();
+            instructionRT.anchorMin = new Vector2(0, 1);
+            instructionRT.anchorMax = new Vector2(1, 1);
+            instructionRT.pivot = new Vector2(0.5f, 1);
+            instructionRT.anchoredPosition = new Vector2(0, -92);
+            instructionRT.sizeDelta = new Vector2(0, 30);
+            var instructionTMP = instructionGO.GetComponent<TextMeshProUGUI>();
+            instructionTMP.alignment = TextAlignmentOptions.Center;
+            instructionTMP.color = new Color(0.7f, 0.7f, 0.7f, 1f);
 
             // ============================================================
-            // MINE LIST (scrollable area)
+            // MINE LIST (compact cards, non-scrollable)
             // ============================================================
 
-            // Scroll panel (handles horizontal inset)
-            var scrollPanelGO = new GameObject("MineListPanel", typeof(RectTransform));
-            scrollPanelGO.transform.SetParent(safeAreaGO.transform, false);
-            var scrollPanelRT = scrollPanelGO.GetComponent<RectTransform>();
-            scrollPanelRT.anchorMin = new Vector2(0, 0.15f);
-            scrollPanelRT.anchorMax = new Vector2(1, 0.93f);
-            scrollPanelRT.offsetMin = new Vector2(20, 0);
-            scrollPanelRT.offsetMax = new Vector2(-20, 0);
+            var gridPanelGO = new GameObject("MineGridPanel", typeof(RectTransform));
+            gridPanelGO.transform.SetParent(safeAreaGO.transform, false);
+            var gridPanelRT = gridPanelGO.GetComponent<RectTransform>();
+            gridPanelRT.anchorMin = new Vector2(0, 0.15f);
+            gridPanelRT.anchorMax = new Vector2(1, 0.87f);
+            gridPanelRT.offsetMin = new Vector2(15, 0);
+            gridPanelRT.offsetMax = new Vector2(-15, 0);
 
-            // Scroll View container (fills panel, no offset — keeps RectMask2D bounds correct)
-            var scrollGO = new GameObject("MineListScroll", typeof(RectTransform));
-            scrollGO.transform.SetParent(scrollPanelGO.transform, false);
-            var scrollRT = scrollGO.GetComponent<RectTransform>();
-            scrollRT.anchorMin = Vector2.zero;
-            scrollRT.anchorMax = Vector2.one;
-            scrollRT.offsetMin = Vector2.zero;
-            scrollRT.offsetMax = Vector2.zero;
-            var scrollRect = scrollGO.AddComponent<ScrollRect>();
-            scrollRect.horizontal = false;
-            scrollRect.vertical = true;
-            var scrollMask = scrollGO.AddComponent<RectMask2D>();
-
-            // Content container for mine cards
+            // Content fills the panel directly — no ScrollRect
             var contentGO = new GameObject("Content", typeof(RectTransform));
-            contentGO.transform.SetParent(scrollGO.transform, false);
+            contentGO.transform.SetParent(gridPanelGO.transform, false);
             var contentRT = contentGO.GetComponent<RectTransform>();
-            contentRT.anchorMin = new Vector2(0, 1);
-            contentRT.anchorMax = new Vector2(1, 1);
-            contentRT.pivot = new Vector2(0.5f, 1);
-            contentRT.anchoredPosition = Vector2.zero;
-            var contentSizeFitter = contentGO.AddComponent<ContentSizeFitter>();
-            contentSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            var vertLayout = contentGO.AddComponent<VerticalLayoutGroup>();
-            vertLayout.spacing = 15f;
-            vertLayout.padding = new RectOffset(10, 10, 10, 10);
-            vertLayout.childForceExpandWidth = true;
-            vertLayout.childForceExpandHeight = false;
-            vertLayout.childControlWidth = true;
-            vertLayout.childControlHeight = false;
+            contentRT.anchorMin = Vector2.zero;
+            contentRT.anchorMax = Vector2.one;
+            contentRT.offsetMin = Vector2.zero;
+            contentRT.offsetMax = Vector2.zero;
 
-            scrollRect.content = contentRT;
+            var gridLayout = contentGO.AddComponent<GridLayoutGroup>();
+            gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
+            gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            gridLayout.constraintCount = 1;
+            gridLayout.cellSize = new Vector2(1020, 110);
+            gridLayout.spacing = new Vector2(0, 10);
+            gridLayout.padding = new RectOffset(5, 5, 5, 5);
+            gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
+            gridLayout.childAlignment = TextAnchor.UpperCenter;
 
             // Create 5 mine cards
             var mines = TestMines.GetAll();
@@ -397,106 +368,67 @@ namespace ConquerChronicles.Editor
 
         private static GameObject CreateMineCard(Transform parent, MineData mine, int index)
         {
-            // Card container
+            // Compact card — the whole card is the button
             var cardGO = new GameObject($"MineCard_{mine.ID}", typeof(RectTransform));
             cardGO.transform.SetParent(parent, false);
-            var cardRT = cardGO.GetComponent<RectTransform>();
-            cardRT.sizeDelta = new Vector2(0, 260);
-            var layoutElement = cardGO.AddComponent<LayoutElement>();
-            layoutElement.preferredHeight = 260;
-            layoutElement.flexibleWidth = 1;
 
-            // Background
             var bgImg = cardGO.AddComponent<Image>();
             bgImg.color = new Color(0.12f, 0.12f, 0.18f, 0.9f);
+            var startBtn = cardGO.AddComponent<Button>();
+            startBtn.targetGraphic = bgImg;
 
-            // Mine name (bold, size 32) — stretch across card
+            // Mine name (bold, top)
             var nameGO = CreateStretchText(cardGO.transform, "NameText", mine.Name,
-                15, -15, -10, 40, 32);
+                15, -15, -6, 30, 22);
             var nameTMP = nameGO.GetComponent<TextMeshProUGUI>();
             nameTMP.fontStyle = FontStyles.Bold;
+            nameTMP.alignment = TextAlignmentOptions.Center;
 
-            // "Req. Lv. X" text (size 22)
-            var levelGO = CreateStretchText(cardGO.transform, "LevelText", $"Req. Lv. {mine.RequiredLevel}",
-                15, -15, -50, 28, 22);
-
-            // Duration text (size 22)
+            // Level + Duration on one line
             int hours = mine.DurationSeconds / 3600;
             int mins = (mine.DurationSeconds % 3600) / 60;
             string durationStr = hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
+
+            var levelGO = CreateStretchText(cardGO.transform, "LevelText", $"Lv.{mine.RequiredLevel}",
+                15, -15, -38, 22, 16);
+            var levelTMP = levelGO.GetComponent<TextMeshProUGUI>();
+            levelTMP.alignment = TextAlignmentOptions.Center;
+
             var durationGO = CreateStretchText(cardGO.transform, "DurationText", durationStr,
-                15, -15, -78, 28, 22);
+                15, -15, -58, 22, 16);
+            var durationTMP = durationGO.GetComponent<TextMeshProUGUI>();
+            durationTMP.alignment = TextAlignmentOptions.Center;
+            durationTMP.color = new Color(0.8f, 0.8f, 0.6f, 1f);
 
-            // Gems text (size 20)
-            string gemsStr = "Gems: ";
-            if (mine.AvailableGems != null)
-            {
-                for (int i = 0; i < mine.AvailableGems.Length; i++)
-                {
-                    if (i > 0) gemsStr += ", ";
-                    gemsStr += mine.AvailableGems[i].ToString();
-                }
-            }
-            var gemsGO = CreateStretchText(cardGO.transform, "GemsText", gemsStr,
-                15, -15, -106, 26, 20);
-            var gemsTMP = gemsGO.GetComponent<TextMeshProUGUI>();
-            gemsTMP.color = new Color(0.6f, 0.9f, 1f, 1f);
+            // Gold range
+            var goldGO = CreateStretchText(cardGO.transform, "GoldRange", $"{mine.MinGold}-{mine.MaxGold} Gold",
+                15, -15, -80, 22, 16);
+            var goldTMP = goldGO.GetComponent<TextMeshProUGUI>();
+            goldTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
+            goldTMP.alignment = TextAlignmentOptions.Center;
 
-            // Ores text (size 20)
-            string oresStr = "Ores: ";
-            if (mine.AvailableOres != null)
-            {
-                for (int i = 0; i < mine.AvailableOres.Length; i++)
-                {
-                    if (i > 0) oresStr += ", ";
-                    oresStr += mine.AvailableOres[i].ToString();
-                }
-            }
-            var oresGO = CreateStretchText(cardGO.transform, "OresText", oresStr,
-                15, -15, -132, 26, 20);
-            var oresTMP = oresGO.GetComponent<TextMeshProUGUI>();
-            oresTMP.color = new Color(1f, 0.8f, 0.5f, 1f);
+            // Hidden status text (MineCardUI uses this for "Locked"/"Mining..." display)
+            var statusGO = new GameObject("StatusText", typeof(RectTransform));
+            statusGO.transform.SetParent(cardGO.transform, false);
+            var statusRT = statusGO.GetComponent<RectTransform>();
+            statusRT.anchorMin = Vector2.zero;
+            statusRT.anchorMax = Vector2.one;
+            statusRT.offsetMin = Vector2.zero;
+            statusRT.offsetMax = Vector2.zero;
+            var statusTMP = statusGO.AddComponent<TextMeshProUGUI>();
+            statusTMP.text = "";
+            statusTMP.fontSize = 0;
+            statusTMP.color = Color.clear;
+            statusTMP.raycastTarget = false;
 
-            // Description text (size 18, gray)
-            var descGO = CreateStretchText(cardGO.transform, "DescriptionText", mine.Description,
-                15, -15, -160, 50, 18);
-            var descTMP = descGO.GetComponent<TextMeshProUGUI>();
-            descTMP.color = new Color(0.7f, 0.7f, 0.7f, 1f);
-
-            // "Teleport" button (circular, green, right side)
-            float circleSize = 140f;
-            var startBtnGO = new GameObject("StartButton", typeof(RectTransform));
-            startBtnGO.transform.SetParent(cardGO.transform, false);
-            var startBtnRT = startBtnGO.GetComponent<RectTransform>();
-            startBtnRT.anchorMin = new Vector2(1, 0.5f);
-            startBtnRT.anchorMax = new Vector2(1, 0.5f);
-            startBtnRT.pivot = new Vector2(0.5f, 0.5f);
-            startBtnRT.anchoredPosition = new Vector2(-120, 0);
-            startBtnRT.sizeDelta = new Vector2(circleSize, circleSize);
-            var startBtnImg = startBtnGO.AddComponent<Image>();
-            startBtnImg.color = new Color(0.15f, 0.55f, 0.15f, 1f); // green
-            startBtnImg.type = Image.Type.Simple;
-            // Make it circular using the built-in Knob sprite
-            startBtnImg.sprite = UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
-            var startBtn = startBtnGO.AddComponent<Button>();
-            startBtn.targetGraphic = startBtnImg;
-
-            var startBtnTextGO = CreateUIText(startBtnGO.transform, "StartText", "Teleport",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 18);
-            var startBtnTMP = startBtnTextGO.GetComponent<TextMeshProUGUI>();
-            startBtnTMP.alignment = TextAlignmentOptions.Center;
-
-            // Wire MineCardUI component
+            // Wire MineCardUI — gems/ores/description left null (handled by null checks)
             var mineCard = cardGO.AddComponent<MineCardUI>();
             var cardSO = new SerializedObject(mineCard);
             cardSO.FindProperty("_nameText").objectReferenceValue = nameTMP;
-            cardSO.FindProperty("_levelText").objectReferenceValue = levelGO.GetComponent<TextMeshProUGUI>();
-            cardSO.FindProperty("_durationText").objectReferenceValue = durationGO.GetComponent<TextMeshProUGUI>();
-            cardSO.FindProperty("_gemsText").objectReferenceValue = gemsTMP;
-            cardSO.FindProperty("_oresText").objectReferenceValue = oresTMP;
-            cardSO.FindProperty("_descriptionText").objectReferenceValue = descTMP;
+            cardSO.FindProperty("_levelText").objectReferenceValue = levelTMP;
+            cardSO.FindProperty("_durationText").objectReferenceValue = durationTMP;
             cardSO.FindProperty("_startButton").objectReferenceValue = startBtn;
-            cardSO.FindProperty("_startButtonText").objectReferenceValue = startBtnTMP;
+            cardSO.FindProperty("_startButtonText").objectReferenceValue = statusTMP;
             cardSO.FindProperty("_background").objectReferenceValue = bgImg;
             cardSO.ApplyModifiedPropertiesWithoutUndo();
 

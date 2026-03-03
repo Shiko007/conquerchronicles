@@ -23,10 +23,23 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         [Header("Kill Counter")]
         [SerializeField] private TextMeshProUGUI _killCountText;
 
-        [Header("Navigation")]
-        [SerializeField] private Button _backButton;
+        [Header("Revive")]
+        [SerializeField] private GameObject _reviveOverlay;
+        [SerializeField] private TextMeshProUGUI _reviveTimerText;
 
-        public System.Action OnBackPressed;
+        [Header("Skill Slots")]
+        [SerializeField] private Image[] _skillSlotIcons; // 4 skill slot icons
+
+        [Header("Navigation")]
+        [SerializeField] private Button _equipmentButton;
+        [SerializeField] private Button _inventoryButton;
+        [SerializeField] private Button _mineButton;
+        [SerializeField] private Button _marketButton;
+
+        public System.Action OnEquipmentPressed;
+        public System.Action OnInventoryPressed;
+        public System.Action OnMinePressed;
+        public System.Action OnMarketPressed;
 
         private CharacterView _player;
         private CombatManager _combatManager;
@@ -64,8 +77,14 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             if (_combatManager != null)
                 _combatManager.OnKillCountChanged += UpdateKillCount;
 
-            if (_backButton != null)
-                _backButton.onClick.AddListener(() => OnBackPressed?.Invoke());
+            if (_equipmentButton != null)
+                _equipmentButton.onClick.AddListener(() => OnEquipmentPressed?.Invoke());
+            if (_inventoryButton != null)
+                _inventoryButton.onClick.AddListener(() => OnInventoryPressed?.Invoke());
+            if (_mineButton != null)
+                _mineButton.onClick.AddListener(() => OnMinePressed?.Invoke());
+            if (_marketButton != null)
+                _marketButton.onClick.AddListener(() => OnMarketPressed?.Invoke());
 
             // Cache RectTransforms
             if (_hpFill != null) _hpFillRT = _hpFill.GetComponent<RectTransform>();
@@ -213,6 +232,29 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             _xpFillRT.offsetMax = new Vector2(-1, -1);
         }
 
+        public void ShowReviveTimer(float secondsRemaining)
+        {
+            if (_reviveOverlay != null && !_reviveOverlay.activeSelf)
+            {
+                _reviveOverlay.SetActive(true);
+                // Don't block raycasts to nav buttons
+                var overlayImg = _reviveOverlay.GetComponent<UnityEngine.UI.Image>();
+                if (overlayImg != null) overlayImg.raycastTarget = false;
+            }
+            if (_reviveTimerText != null)
+            {
+                int mins = (int)(secondsRemaining / 60f);
+                int secs = (int)(secondsRemaining % 60f);
+                _reviveTimerText.text = $"Reviving in {mins}:{secs:00}";
+            }
+        }
+
+        public void HideReviveTimer()
+        {
+            if (_reviveOverlay != null)
+                _reviveOverlay.SetActive(false);
+        }
+
         private void UpdateKillCount(int count)
         {
             if (_killCountText != null)
@@ -223,8 +265,14 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         {
             if (_combatManager != null)
                 _combatManager.OnKillCountChanged -= UpdateKillCount;
-            if (_backButton != null)
-                _backButton.onClick.RemoveAllListeners();
+            if (_equipmentButton != null)
+                _equipmentButton.onClick.RemoveAllListeners();
+            if (_inventoryButton != null)
+                _inventoryButton.onClick.RemoveAllListeners();
+            if (_mineButton != null)
+                _mineButton.onClick.RemoveAllListeners();
+            if (_marketButton != null)
+                _marketButton.onClick.RemoveAllListeners();
         }
     }
 }

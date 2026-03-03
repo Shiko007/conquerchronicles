@@ -18,9 +18,6 @@ namespace ConquerChronicles.Gameplay.UI.MainMenu
             if (_menuUI == null) return;
 
             _menuUI.OnMapSelectPressed = OnBattlePressed;
-            _menuUI.OnMiningPressed = () => SceneManager.LoadScene("Mining");
-            _menuUI.OnEquipmentPressed = () => SceneManager.LoadScene("Equipment");
-            _menuUI.OnMarketPressed = () => SceneManager.LoadScene("Market");
 
             // Load save data and display player info
             _saveManager = SaveSystemBridge.GetOrCreate();

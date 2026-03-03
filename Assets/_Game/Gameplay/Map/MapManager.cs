@@ -18,6 +18,7 @@ namespace ConquerChronicles.Gameplay.Map
 
         private AreaState _areaState;
         private MapData _currentMap;
+        private AreaData _currentArea;
         private Dictionary<string, EnemyData> _enemyCatalog;
         private System.Random _spawnRng;
         private int _dropSeed;
@@ -29,11 +30,15 @@ namespace ConquerChronicles.Gameplay.Map
         private float _metaXPMultiplier = 1.0f;
         private float _metaDropRateBonus = 0f;
 
-        // Delay before showing defeat UI so the death animation can finish.
+        // Delay before starting revive timer so the death animation can finish.
         // Death anim plays at 8 fps; 1.5 s covers up to 12 frames comfortably.
         private const float DeathAnimDuration = 1.5f;
         private float _deathAnimDelay = -1f;
         private bool _loggedFirstUpdate;
+
+        // Revive timer — player stays dead for this many seconds before auto-reviving.
+        private const float ReviveDuration = 120f;
+        private float _reviveTimer = -1f;
 
         public AreaState AreaState => _areaState;
 
@@ -44,6 +49,8 @@ namespace ConquerChronicles.Gameplay.Map
         public event Action<GoldDropInfo> OnGoldDropped;
         public event Action<LootDropInfo> OnEquipmentDropped;
         public event Action OnAreaSessionEnding;
+        public event Action<float> OnReviveTimerTick;
+        public event Action OnPlayerRevived;
 
         public void SetMetaMultipliers(float goldMult, float xpMult, float dropBonus)
         {
@@ -71,6 +78,7 @@ namespace ConquerChronicles.Gameplay.Map
         {
             Debug.Log($"[MapManager] EnterArea: {area.Name}, MaxEnemies={area.MaxConcurrentEnemies}, SpawnInterval={area.SpawnInterval}");
             _currentMap = map;
+            _currentArea = area;
             _areaState = new AreaState(area);
             _spawnRng = new System.Random(Environment.TickCount);
             _dropSeed = Environment.TickCount;
@@ -108,7 +116,22 @@ namespace ConquerChronicles.Gameplay.Map
                 _deathAnimDelay -= Time.deltaTime;
                 if (_deathAnimDelay < 0f)
                 {
-                    EndSession();
+                    // Death animation finished — despawn all enemies and start revive countdown.
+                    _enemySpawner.DespawnAll();
+                    _reviveTimer = ReviveDuration;
+                    Debug.Log($"[MapManager] Death anim finished. Starting {ReviveDuration}s revive timer.");
+                }
+                return;
+            }
+
+            // Revive countdown — player stays dead, waiting to auto-revive.
+            if (_reviveTimer >= 0f)
+            {
+                _reviveTimer -= Time.deltaTime;
+                OnReviveTimerTick?.Invoke(Mathf.Max(0f, _reviveTimer));
+                if (_reviveTimer < 0f)
+                {
+                    RevivePlayer();
                 }
                 return;
             }
@@ -217,6 +240,31 @@ namespace ConquerChronicles.Gameplay.Map
 #if UNITY_EDITOR
             Debug.Log($"[Loot] Collected: {itemID} x{quantity}");
 #endif
+        }
+
+        private void RevivePlayer()
+        {
+            _reviveTimer = -1f;
+            _deathAnimDelay = -1f;
+
+            // Restore player HP/MP to full and clear death state.
+            if (_player != null && _player.State != null)
+            {
+                var stats = _player.GetComputedStats();
+                _player.State.CurrentHP = stats.HP;
+                _player.State.CurrentMP = stats.MP;
+                _player.ResetActionState();
+                _player.PlayIdle();
+            }
+
+            // Re-enable combat.
+            if (_combatManager != null) _combatManager.enabled = true;
+
+            // Re-enter the same area to restart enemy spawning.
+            Debug.Log($"[MapManager] Player revived. Re-entering area: {_currentArea.Name}");
+            EnterArea(_currentMap, _currentArea);
+
+            OnPlayerRevived?.Invoke();
         }
 
         private void EndSession()

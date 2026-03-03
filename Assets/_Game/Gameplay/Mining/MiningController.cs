@@ -37,7 +37,7 @@ namespace ConquerChronicles.Gameplay.Mining
 
             _miningUI.Initialize(TestMines.GetAll(), _miningState, playerLevel);
 
-            _miningUI.OnBackPressed = () => SceneManager.LoadScene("MainMenu");
+            _miningUI.OnBackPressed = () => SceneManager.UnloadSceneAsync("Mining");
 
             _miningUI.OnStartMining = (mineID) =>
             {

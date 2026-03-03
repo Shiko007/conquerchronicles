@@ -4,7 +4,6 @@ using UnityEngine.UI;
 using TMPro;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Equipment;
-using ConquerChronicles.Core.Inventory;
 
 namespace ConquerChronicles.Gameplay.Equipment
 {
@@ -13,21 +12,22 @@ namespace ConquerChronicles.Gameplay.Equipment
         [Header("Header")]
         [SerializeField] private TextMeshProUGUI _titleText;
         [SerializeField] private Button _backButton;
-        [SerializeField] private TextMeshProUGUI _goldText;
 
         [Header("Equipped Slots (7)")]
         [SerializeField] private Button[] _slotButtons;       // 7 buttons
         [SerializeField] private TextMeshProUGUI[] _slotTexts; // 7 texts showing item name
 
-        [Header("Stats Panel")]
-        [SerializeField] private Button _statsButton;
-        [SerializeField] private GameObject _statsPanel;
-        [SerializeField] private TextMeshProUGUI _statsText;
-        [SerializeField] private Button _closeStatsButton;
+        [Header("Tabs")]
+        [SerializeField] private Button _equipmentTabButton;
+        [SerializeField] private Button _statsTabButton;
+        [SerializeField] private Image _equipmentTabImage;
+        [SerializeField] private Image _statsTabImage;
+        [SerializeField] private TextMeshProUGUI _equipmentTabText;
+        [SerializeField] private TextMeshProUGUI _statsTabText;
 
-        [Header("Bag Panel")]
-        [SerializeField] private Transform _bagContainer;
-        [SerializeField] private TextMeshProUGUI _bagCountText;
+        [Header("Content Panels")]
+        [SerializeField] private GameObject _equipmentContent;
+        [SerializeField] private GameObject _statsContent;
 
         [Header("Item Detail Panel")]
         [SerializeField] private GameObject _detailPanel;
@@ -40,18 +40,32 @@ namespace ConquerChronicles.Gameplay.Equipment
         [SerializeField] private TextMeshProUGUI _upgradeRateText;
         [SerializeField] private Button _closeDetailButton;
 
+        [Header("Stats - Character Info")]
+        [SerializeField] private TextMeshProUGUI _classText;
+        [SerializeField] private TextMeshProUGUI _levelText;
+        [SerializeField] private TextMeshProUGUI _xpText;
+
+        [Header("Stats - Combat Stats")]
+        [SerializeField] private TextMeshProUGUI _statsText;
+
+        [Header("Stats - Stat Points")]
+        [SerializeField] private TextMeshProUGUI _statPointsText;
+        [SerializeField] private TextMeshProUGUI _allocatedText;
+        [SerializeField] private Button _vitalityButton;
+        [SerializeField] private Button _manaButton;
+        [SerializeField] private Button _strengthButton;
+        [SerializeField] private Button _agilityButton;
+        [SerializeField] private Button _spiritButton;
+
         // Events
         public System.Action OnBackPressed;
         public System.Action<int> OnSlotPressed;          // slot index 0-6
-        public System.Action<int> OnBagItemPressed;       // bag index
         public System.Action OnEquipPressed;
         public System.Action OnUpgradePressed;
         public System.Action OnCloseDetailPressed;
+        public System.Action<string> OnAllocateStat;
 
         private static readonly string[] SlotLabels = { "Head", "Neck", "Armor", "L.Hand", "R.Hand", "Ring", "Boots" };
-
-        // Bag slot GameObjects created at runtime
-        private readonly List<GameObject> _bagSlotObjects = new List<GameObject>();
 
         // Color maps
         private static readonly Dictionary<EquipmentQuality, Color> QualityColors = new()
@@ -77,6 +91,12 @@ namespace ConquerChronicles.Gameplay.Equipment
 
         private static readonly Color EmptySlotColor = new Color(0.12f, 0.12f, 0.18f, 0.6f);
 
+        // Tab colors
+        private static readonly Color ActiveTabBg = new Color(0.18f, 0.18f, 0.28f, 1f);
+        private static readonly Color InactiveTabBg = new Color(0.1f, 0.1f, 0.16f, 1f);
+        private static readonly Color ActiveTabText = new Color(1f, 0.85f, 0.2f, 1f);
+        private static readonly Color InactiveTabText = new Color(0.5f, 0.5f, 0.5f, 1f);
+
         public void Initialize()
         {
             // Wire header buttons
@@ -89,17 +109,24 @@ namespace ConquerChronicles.Gameplay.Equipment
                 _slotButtons[i].onClick.AddListener(() => OnSlotPressed?.Invoke(index));
             }
 
-            // Wire stats button
-            _statsButton.onClick.AddListener(() => _statsPanel.SetActive(true));
-            _closeStatsButton.onClick.AddListener(() => _statsPanel.SetActive(false));
-
             // Wire detail panel buttons
             _equipButton.onClick.AddListener(() => OnEquipPressed?.Invoke());
             _upgradeButton.onClick.AddListener(() => OnUpgradePressed?.Invoke());
             _closeDetailButton.onClick.AddListener(() => OnCloseDetailPressed?.Invoke());
 
+            // Wire tab buttons
+            _equipmentTabButton.onClick.AddListener(() => SwitchToTab(0));
+            _statsTabButton.onClick.AddListener(() => SwitchToTab(1));
+
+            // Wire stat allocation buttons
+            _vitalityButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Vitality"));
+            _manaButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Mana"));
+            _strengthButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Strength"));
+            _agilityButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Agility"));
+            _spiritButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Spirit"));
+
             HideItemDetail();
-            _statsPanel.SetActive(false);
+            SwitchToTab(0);
         }
 
         public void RefreshEquippedSlots(EquipmentInstance[] equipped)
@@ -125,84 +152,6 @@ namespace ConquerChronicles.Gameplay.Equipment
                         btnImg.color = EmptySlotColor;
                 }
             }
-        }
-
-        public void RefreshStats(CharacterStats stats)
-        {
-            _statsText.text =
-                $"HP: {stats.HP}\n" +
-                $"MP: {stats.MP}\n" +
-                $"ATK: {stats.ATK}\n" +
-                $"DEF: {stats.DEF}\n" +
-                $"MATK: {stats.MATK}\n" +
-                $"MDEF: {stats.MDEF}\n" +
-                $"AGI: {stats.AGI}\n" +
-                $"Crit%: {(stats.CritRate * 100f):F1}%";
-        }
-
-        public void RefreshBag(List<BagItem> bag)
-        {
-            _bagCountText.text = $"Bag: {bag.Count}/{InventoryState.BagCapacity}";
-
-            // Clear existing bag slot objects
-            foreach (var go in _bagSlotObjects)
-            {
-                if (go != null)
-                    Destroy(go);
-            }
-            _bagSlotObjects.Clear();
-
-            // Always show all 50 slots
-            int totalSlots = InventoryState.BagCapacity;
-
-            for (int i = 0; i < totalSlots; i++)
-            {
-                int index = i;
-                bool hasItem = i < bag.Count;
-
-                var slotGO = new GameObject($"BagSlot_{i}", typeof(RectTransform));
-                slotGO.transform.SetParent(_bagContainer, false);
-
-                var img = slotGO.AddComponent<Image>();
-
-                if (hasItem)
-                {
-                    var bagItem = bag[i];
-                    img.color = GetSlotColor(bagItem);
-
-                    var btn = slotGO.AddComponent<Button>();
-                    btn.targetGraphic = img;
-                    btn.onClick.AddListener(() => OnBagItemPressed?.Invoke(index));
-
-                    // Label text
-                    var textGO = new GameObject("Label", typeof(RectTransform));
-                    textGO.transform.SetParent(slotGO.transform, false);
-                    var textRT = textGO.GetComponent<RectTransform>();
-                    textRT.anchorMin = Vector2.zero;
-                    textRT.anchorMax = Vector2.one;
-                    textRT.offsetMin = new Vector2(2, 2);
-                    textRT.offsetMax = new Vector2(-2, -2);
-
-                    var tmp = textGO.AddComponent<TextMeshProUGUI>();
-                    tmp.text = GetSlotLabel(bagItem);
-                    tmp.fontSize = 18;
-                    tmp.color = Color.white;
-                    tmp.alignment = TextAlignmentOptions.Center;
-                    tmp.textWrappingMode = TextWrappingModes.NoWrap;
-                    tmp.overflowMode = TextOverflowModes.Truncate;
-                }
-                else
-                {
-                    img.color = EmptySlotColor;
-                }
-
-                _bagSlotObjects.Add(slotGO);
-            }
-        }
-
-        public void RefreshGold(int gold)
-        {
-            _goldText.text = $"{gold} Gold";
         }
 
         /// <summary>
@@ -268,57 +217,12 @@ namespace ConquerChronicles.Gameplay.Equipment
             }
         }
 
-        /// <summary>
-        /// Show detail for a bag item (equipment or gem).
-        /// </summary>
-        public void ShowItemDetail(BagItem bagItem, bool canEquip, bool isEquipped)
-        {
-            if (bagItem.Type == BagItemType.Equipment)
-            {
-                ShowItemDetail(bagItem.Equipment, canEquip, isEquipped);
-                return;
-            }
-
-            // Gem detail
-            _detailPanel.SetActive(true);
-            var gem = bagItem.Gem;
-
-            _itemNameText.text = $"{gem.Type} Gem";
-            _itemNameText.color = GetGemTypeColor(gem.Type);
-
-            // Gem stats
-            var bonus = gem.GetBonus();
-            var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"Tier: {gem.Tier}");
-            sb.AppendLine("");
-            string bonusText = FormatStats(bonus);
-            if (string.IsNullOrEmpty(bonusText))
-                sb.Append("XP Bonus");
-            else
-                sb.Append(bonusText);
-            _itemStatsText.text = sb.ToString().TrimEnd();
-
-            _itemInfoText.text = $"Type: {gem.Type}\nTier: {gem.Tier}/9";
-
-            // Hide equip and upgrade buttons for gems
-            _equipButton.gameObject.SetActive(false);
-            _upgradeButton.gameObject.SetActive(false);
-            _upgradeRateText.gameObject.SetActive(false);
-        }
-
         public void HideItemDetail()
         {
             _detailPanel.SetActive(false);
         }
 
         // --- Helpers ---
-
-        private static Color GetSlotColor(BagItem item)
-        {
-            if (item.Type == BagItemType.Equipment)
-                return GetEquipmentQualityColor(item.Equipment.Data.Quality);
-            return GetGemTypeColor(item.Gem.Type);
-        }
 
         private static Color GetEquipmentQualityColor(EquipmentQuality quality)
         {
@@ -328,24 +232,6 @@ namespace ConquerChronicles.Gameplay.Equipment
         private static Color GetGemTypeColor(GemType gemType)
         {
             return GemColors.TryGetValue(gemType, out var c) ? c : Color.gray;
-        }
-
-        private static string GetSlotLabel(BagItem item)
-        {
-            if (item.Type == BagItemType.Equipment)
-            {
-                var eq = item.Equipment;
-                // Short name: first 3 chars + upgrade
-                string name = eq.Data.Name.Length > 4 ? eq.Data.Name.Substring(0, 4) : eq.Data.Name;
-                string upgrade = eq.UpgradeLevel > 0 ? $"\n+{eq.UpgradeLevel}" : "";
-                return $"{name}{upgrade}";
-            }
-            else
-            {
-                // Gem: type initial + tier
-                string initial = item.Gem.Type.ToString().Substring(0, 1);
-                return $"{initial}{item.Gem.Tier}";
-            }
         }
 
         private static string FormatStats(CharacterStats stats)
@@ -362,6 +248,55 @@ namespace ConquerChronicles.Gameplay.Equipment
             return sb.ToString().TrimEnd();
         }
 
+        public void SwitchToTab(int tabIndex)
+        {
+            bool isEquipment = tabIndex == 0;
+
+            _equipmentContent.SetActive(isEquipment);
+            _statsContent.SetActive(!isEquipment);
+
+            _equipmentTabImage.color = isEquipment ? ActiveTabBg : InactiveTabBg;
+            _statsTabImage.color = isEquipment ? InactiveTabBg : ActiveTabBg;
+            _equipmentTabText.color = isEquipment ? ActiveTabText : InactiveTabText;
+            _statsTabText.color = isEquipment ? InactiveTabText : ActiveTabText;
+
+            _titleText.text = isEquipment ? "EQUIPMENT" : "CHARACTER STATS";
+
+            if (!isEquipment)
+                HideItemDetail();
+        }
+
+        public void RefreshStats(CharacterClass characterClass, int level, int xp,
+            CharacterStats stats, int statPointsAvailable,
+            int vitality, int mana, int strength, int agility, int spirit)
+        {
+            _classText.text = characterClass.ToString();
+            _levelText.text = $"Level {level}";
+
+            int requiredXP = LevelUpTable.GetRequiredXP(level);
+            _xpText.text = $"XP: {xp} / {requiredXP}";
+
+            _statsText.text =
+                $"<mspace=0.55em>{"HP:",-7}{stats.HP,-10}{"MP:",-7}{stats.MP}\n" +
+                $"{"ATK:",-7}{stats.ATK,-10}{"DEF:",-7}{stats.DEF}\n" +
+                $"{"MATK:",-7}{stats.MATK,-10}{"MDEF:",-7}{stats.MDEF}\n" +
+                $"{"AGI:",-7}{stats.AGI,-10}{"AtkSpd:",-8}{stats.AttackSpeed:F2}\n" +
+                $"{"Crit:",-7}{(stats.CritRate * 100f):F1}{"% ",-8}{"CritDmg:",-9}{(stats.CritDmg * 100f):F0}%</mspace>";
+
+            _statPointsText.text = $"Stat Points: {statPointsAvailable}";
+
+            _allocatedText.text =
+                $"VIT: {vitality}    MAN: {mana}    STR: {strength}\n" +
+                $"AGI: {agility}    SPI: {spirit}";
+
+            bool hasPoints = statPointsAvailable > 0;
+            _vitalityButton.interactable = hasPoints;
+            _manaButton.interactable = hasPoints;
+            _strengthButton.interactable = hasPoints;
+            _agilityButton.interactable = hasPoints;
+            _spiritButton.interactable = hasPoints;
+        }
+
         private void OnDestroy()
         {
             // Remove all listeners
@@ -376,11 +311,17 @@ namespace ConquerChronicles.Gameplay.Equipment
                 }
             }
 
-            if (_statsButton != null) _statsButton.onClick.RemoveAllListeners();
-            if (_closeStatsButton != null) _closeStatsButton.onClick.RemoveAllListeners();
             if (_equipButton != null) _equipButton.onClick.RemoveAllListeners();
             if (_upgradeButton != null) _upgradeButton.onClick.RemoveAllListeners();
             if (_closeDetailButton != null) _closeDetailButton.onClick.RemoveAllListeners();
+
+            if (_equipmentTabButton != null) _equipmentTabButton.onClick.RemoveAllListeners();
+            if (_statsTabButton != null) _statsTabButton.onClick.RemoveAllListeners();
+            if (_vitalityButton != null) _vitalityButton.onClick.RemoveAllListeners();
+            if (_manaButton != null) _manaButton.onClick.RemoveAllListeners();
+            if (_strengthButton != null) _strengthButton.onClick.RemoveAllListeners();
+            if (_agilityButton != null) _agilityButton.onClick.RemoveAllListeners();
+            if (_spiritButton != null) _spiritButton.onClick.RemoveAllListeners();
         }
 
     }

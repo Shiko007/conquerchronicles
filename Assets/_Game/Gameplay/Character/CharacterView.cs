@@ -129,6 +129,16 @@ namespace ConquerChronicles.Gameplay.Character
             _animator.PlayOneShot("death", _deathFrames, 8f);
         }
 
+        /// <summary>
+        /// Reset the action-lock flag so PlayIdle() can be called again.
+        /// Used after reviving from death, since the death animation sets
+        /// _playingAction = true and never clears it.
+        /// </summary>
+        public void ResetActionState()
+        {
+            _playingAction = false;
+        }
+
         public void SetMetaBonus(CharacterStats bonus)
         {
             _metaBonus = bonus;

@@ -38,17 +38,21 @@ namespace ConquerChronicles.Editor
             // 5. Create and setup Market scene
             CreateAndSetupScene("Market", () => MarketSceneSetup.Setup());
 
-            // 6. Add all scenes to Build Settings
+            // 6. Create and setup Inventory scene
+            CreateAndSetupScene("Inventory", () => InventorySceneSetup.Setup());
+
+            // 7. Add all scenes to Build Settings
             AddScenesToBuildSettings(new[]
             {
                 $"{ScenesFolder}/MainMenu.unity",
                 $"{ScenesFolder}/Gameplay.unity",
                 $"{ScenesFolder}/Mining.unity",
                 $"{ScenesFolder}/Equipment.unity",
-                $"{ScenesFolder}/Market.unity"
+                $"{ScenesFolder}/Market.unity",
+                $"{ScenesFolder}/Inventory.unity"
             });
 
-            // 7. Return to MainMenu scene
+            // 8. Return to MainMenu scene
             EditorSceneManager.OpenScene($"{ScenesFolder}/MainMenu.unity");
 
             Debug.Log("[Conquer Chronicles] All scenes created and added to Build Settings!\n" +
@@ -56,7 +60,8 @@ namespace ConquerChronicles.Editor
                       "  - Gameplay (index 1)\n" +
                       "  - Mining (index 2)\n" +
                       "  - Equipment (index 3)\n" +
-                      "  - Market (index 4)");
+                      "  - Market (index 4)\n" +
+                      "  - Inventory (index 5)");
         }
 
         private static void CreateAndSetupScene(string sceneName, System.Action setupAction)

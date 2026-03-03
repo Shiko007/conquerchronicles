@@ -67,8 +67,8 @@ namespace ConquerChronicles.Gameplay.Bootstrap
 
         private SaveManager _saveManager;
         private MetaProgressionState _metaState;
-        private bool _leavingToMenu;
-        private bool _playerDied;
+        private readonly System.Collections.Generic.HashSet<string> _activeSubScenes = new();
+
 
         public AudioManager AudioManager => _audioManager;
 
@@ -85,26 +85,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             _characterView.Initialize(_testClass);
             Debug.Log("[GameplaySetup] Player initialized");
 
-            // Check hero recovery cooldown
             _saveManager = SaveSystemBridge.GetOrCreate();
-            var checkSave = _saveManager.LoadGame();
-            if (checkSave != null && checkSave.HeroRecoveryTimestamp > 0)
-            {
-                long nowTicks = System.DateTimeOffset.UtcNow.Ticks;
-                if (nowTicks < checkSave.HeroRecoveryTimestamp)
-                {
-                    var remaining = System.TimeSpan.FromTicks(checkSave.HeroRecoveryTimestamp - nowTicks);
-                    Debug.Log($"[Recovery] Hero is recovering! {remaining.Minutes}m {remaining.Seconds}s remaining.");
-                    SceneManager.LoadScene("MainMenu");
-                    return;
-                }
-                else
-                {
-                    // Recovery complete — clear the timestamp
-                    checkSave.HeroRecoveryTimestamp = 0;
-                    _saveManager.SaveGame(checkSave);
-                }
-            }
 
             // Load meta progression
             _metaState = new MetaProgressionState();
@@ -165,12 +146,10 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             if (_playerHUD != null)
             {
                 _playerHUD.Initialize(_characterView, _combatManager);
-                _playerHUD.OnBackPressed = () =>
-                {
-                    _leavingToMenu = true;
-                    if (_mapManager != null)
-                        _mapManager.LeaveArea();
-                };
+                _playerHUD.OnEquipmentPressed = () => ToggleSubScene("Equipment");
+                _playerHUD.OnInventoryPressed = () => ToggleSubScene("Inventory");
+                _playerHUD.OnMinePressed = () => ToggleSubScene("Mining");
+                _playerHUD.OnMarketPressed = () => ToggleSubScene("Market");
             }
 
             // Build enemy catalog from TestMaps
@@ -226,6 +205,13 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _lootVisualManager.OnEquipmentCollected += _mapManager.CollectItem;
                 }
 
+                // Wire revive timer to HUD
+                if (_playerHUD != null)
+                {
+                    _mapManager.OnReviveTimerTick += _playerHUD.ShowReviveTimer;
+                    _mapManager.OnPlayerRevived += _playerHUD.HideReviveTimer;
+                }
+
                 // Enter the test area
                 var maps = TestMaps.AllMaps;
                 int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
@@ -263,6 +249,47 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     });
                 }
             }
+
+            // Listen for sub-scene unloads
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
+        }
+
+        private void ToggleSubScene(string sceneName)
+        {
+            if (_activeSubScenes.Contains(sceneName))
+            {
+                // Close: unload the scene
+                _activeSubScenes.Remove(sceneName);
+                SceneManager.UnloadSceneAsync(sceneName);
+                return;
+            }
+
+            // Open: load additively
+            _activeSubScenes.Add(sceneName);
+            var op = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+            op.completed += _ => OnSubSceneLoaded(sceneName);
+        }
+
+        private void OnSubSceneLoaded(string sceneName)
+        {
+            var scene = SceneManager.GetSceneByName(sceneName);
+            if (!scene.IsValid()) return;
+
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                // Destroy duplicate EventSystem (Gameplay scene already has one)
+                var es = root.GetComponent<UnityEngine.EventSystems.EventSystem>();
+                if (es != null) { Object.Destroy(root); continue; }
+
+                // Destroy duplicate Camera
+                var cam = root.GetComponent<UnityEngine.Camera>();
+                if (cam != null) { Object.Destroy(root); continue; }
+            }
+        }
+
+        private void OnSceneUnloaded(UnityEngine.SceneManagement.Scene scene)
+        {
+            _activeSubScenes.Remove(scene.name);
         }
 
         private void OnAutoCollectLoot()
@@ -332,12 +359,8 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     saveData.BagItems = bagList.ToArray();
                 }
 
-                // Set recovery cooldown — 2 minutes from now
-                saveData.HeroRecoveryTimestamp = System.DateTimeOffset.UtcNow.AddMinutes(2).Ticks;
-                Debug.Log($"[DeathPenalty] Lost {goldLost} gold, recovery until {System.DateTimeOffset.UtcNow.AddMinutes(2):HH:mm:ss}");
+                Debug.Log($"[DeathPenalty] Lost {goldLost} gold.");
             }
-
-            _playerDied = result.PlayerDied;
 
             _saveManager.SaveGame(saveData);
             Debug.Log($"[SaveSystem] Auto-saved after area session. Level={saveData.CharacterLevel}, Gold={saveData.Gold}, Bag={saveData.BagItems.Length} items");
@@ -345,13 +368,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
 
         private void OnAreaContinue()
         {
-            if (_leavingToMenu || _playerDied)
-            {
-                SceneManager.LoadScene("MainMenu");
-                return;
-            }
-
-            // Re-enter the same area for testing
+            // Re-enter the same area
             var maps = TestMaps.AllMaps;
             int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
             var map = maps[mapIdx];
@@ -378,9 +395,15 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _lootVisualManager.OnEquipmentCollected -= _mapManager.CollectItem;
                     _mapManager.OnAreaSessionEnding -= OnAutoCollectLoot;
                 }
+                if (_playerHUD != null)
+                {
+                    _mapManager.OnReviveTimerTick -= _playerHUD.ShowReviveTimer;
+                    _mapManager.OnPlayerRevived -= _playerHUD.HideReviveTimer;
+                }
             }
             if (_runSummary != null)
                 _runSummary.OnContinue -= OnAreaContinue;
+            SceneManager.sceneUnloaded -= OnSceneUnloaded;
         }
     }
 }
