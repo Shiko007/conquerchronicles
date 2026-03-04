@@ -10,7 +10,9 @@ namespace ConquerChronicles.Core.Character
         public static long GetRequiredXP(int level)
         {
             if (level < 1 || level >= MaxLevel) return long.MaxValue;
-            return 100;
+            // Quadratic growth: 50 * level^2
+            // Lv1=50, Lv5=1250, Lv10=5000, Lv50=125000, Lv100=500000
+            return 50L * level * level;
         }
 
         public static bool TryLevelUp(CharacterState state)

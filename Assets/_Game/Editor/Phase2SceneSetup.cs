@@ -415,11 +415,11 @@ namespace ConquerChronicles.Editor
             healthBarRoot.transform.localPosition = new Vector3(0f, 0.8f, 0f); // above the enemy sprite
             healthBarRoot.SetActive(true); // always visible
 
-            // Background (dark bar)
+            // Background (light grey bar)
             var bgGo = new GameObject("BG");
             bgGo.transform.SetParent(healthBarRoot.transform, false);
             var bgSr = bgGo.AddComponent<SpriteRenderer>();
-            bgSr.sprite = CreateRectSprite("HealthBarBG_Thin", new Color(0.15f, 0.15f, 0.15f, 0.8f), 24, 2);
+            bgSr.sprite = CreateRectSprite("HealthBarBG_Thin", new Color(0.75f, 0.75f, 0.75f, 0.9f), 24, 2);
             bgSr.sortingLayerName = "Default";
             bgSr.sortingOrder = 10;
 
@@ -1294,9 +1294,8 @@ namespace ConquerChronicles.Editor
         private static Sprite CreateRectSprite(string name, Color color, int width, int height)
         {
             string path = $"Assets/Visual/Sprites/{name}.png";
-            var existing = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-            if (existing != null) return existing;
 
+            // Always recreate to pick up color changes
             var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
             tex.filterMode = FilterMode.Point;
 

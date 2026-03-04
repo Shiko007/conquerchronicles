@@ -165,12 +165,18 @@ namespace ConquerChronicles.Gameplay.Enemy
             gameObject.SetActive(false);
         }
 
+        // Full bar width in world units (24px sprite at 32 PPU)
+        private const float BarWidth = 0.75f;
+
         private void UpdateHealthBar()
         {
             if (_healthBarFill == null || _healthBarRoot == null) return;
 
             float ratio = (float)State.CurrentHP / State.Data.Stats.HP;
             _healthBarFill.localScale = new Vector3(ratio, 1f, 1f);
+            // Offset so the bar shrinks from right to left (left edge stays fixed)
+            float offset = -BarWidth * (1f - ratio) * 0.5f;
+            _healthBarFill.localPosition = new Vector3(offset, 0f, 0f);
             _healthBarRoot.SetActive(true);
         }
 
