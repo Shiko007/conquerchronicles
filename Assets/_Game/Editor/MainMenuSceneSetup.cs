@@ -61,7 +61,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 0f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
             // SafeArea container
@@ -97,14 +97,16 @@ namespace ConquerChronicles.Editor
             var infoPanelGO = CreateUIImage(safeAreaGO.transform, "PlayerInfoPanel",
                 new Vector2(0.1f, 0.68f), new Vector2(0.9f, 0.78f),
                 Vector2.zero, Vector2.zero,
-                new Color(0.1f, 0.1f, 0.15f, 0.9f));
+                Color.white);
+            UIAtlasHelper.SetSlicedPanel(infoPanelGO.GetComponent<Image>());
+            var infoPanelContent = UIAtlasHelper.CreatePanelContent(infoPanelGO.transform);
             // Stretch to fill anchor area
             var infoPanelRT = infoPanelGO.GetComponent<RectTransform>();
             infoPanelRT.offsetMin = Vector2.zero;
             infoPanelRT.offsetMax = Vector2.zero;
 
             // Player name (class)
-            var playerNameGO = CreateUIText(infoPanelGO.transform, "PlayerNameText", "Trojan",
+            var playerNameGO = CreateUIText(infoPanelContent, "PlayerNameText", "Trojan",
                 new Vector2(0, 0.55f), new Vector2(1, 1),
                 Vector2.zero, Vector2.zero, 32);
             var playerNameTMP = playerNameGO.GetComponent<TextMeshProUGUI>();
@@ -115,7 +117,7 @@ namespace ConquerChronicles.Editor
             playerNameRT.offsetMax = Vector2.zero;
 
             // Level and Gold on the bottom half of the info panel, side by side
-            var levelGO = CreateUIText(infoPanelGO.transform, "LevelText", "Lv. 1",
+            var levelGO = CreateUIText(infoPanelContent, "LevelText", "Lv. 1",
                 new Vector2(0, 0), new Vector2(0.5f, 0.55f),
                 Vector2.zero, Vector2.zero, 28);
             var levelTMP = levelGO.GetComponent<TextMeshProUGUI>();
@@ -124,7 +126,7 @@ namespace ConquerChronicles.Editor
             levelRT.offsetMin = Vector2.zero;
             levelRT.offsetMax = Vector2.zero;
 
-            var goldGO = CreateUIText(infoPanelGO.transform, "GoldText", "0 Gold",
+            var goldGO = CreateUIText(infoPanelContent, "GoldText", "0 Gold",
                 new Vector2(0.5f, 0), new Vector2(1, 0.55f),
                 Vector2.zero, Vector2.zero, 28);
             var goldTMP = goldGO.GetComponent<TextMeshProUGUI>();
@@ -134,44 +136,23 @@ namespace ConquerChronicles.Editor
             goldRT.offsetMax = Vector2.zero;
 
             // ======================
-            // 3. Navigation Buttons (center, stacked vertically)
+            // 3. Battle Button (centered)
             // ======================
-            // Buttons centered around y=0.35-0.65 area, each 80px tall, ~80% width, with spacing
-            float buttonWidth = 0.8f; // 80% of screen
-            float buttonLeft = (1f - buttonWidth) / 2f; // 0.1
-            float buttonRight = buttonLeft + buttonWidth; // 0.9
-            float buttonHeightNorm = 80f / 1920f; // 80px in normalized coords
-            float spacingNorm = 20f / 1920f; // 20px spacing
-            float totalButtonsHeight = 4 * buttonHeightNorm + 3 * spacingNorm;
-            float startY = 0.5f + totalButtonsHeight / 2f; // Start from top of button block
+            float buttonWidthNorm = 0.35f; // narrow, fits "Battle" text
+            float buttonLeft = (1f - buttonWidthNorm) / 2f;
+            float buttonRight = buttonLeft + buttonWidthNorm;
+            float buttonHeightNorm = 80f / 1920f;
+            float buttonCenterY = 0.5f;
+            float buttonBottom = buttonCenterY - buttonHeightNorm / 2f;
+            float buttonTop = buttonCenterY + buttonHeightNorm / 2f;
 
-            // Battle button (green)
-            float y = startY;
-            y -= buttonHeightNorm;
             var battleBtn = CreateButton(safeAreaGO.transform, "BattleButton", "Battle",
-                new Vector2(buttonLeft, y), new Vector2(buttonRight, y + buttonHeightNorm),
-                new Color(0.2f, 0.65f, 0.2f, 1f));
-
-            // Character button (blue) — opens Equipment scene
-            y -= spacingNorm;
-            y -= buttonHeightNorm;
-            var equipmentBtn = CreateButton(safeAreaGO.transform, "CharacterButton", "Character",
-                new Vector2(buttonLeft, y), new Vector2(buttonRight, y + buttonHeightNorm),
-                new Color(0.2f, 0.4f, 0.75f, 1f));
-
-            // Mining button (amber/brown)
-            y -= spacingNorm;
-            y -= buttonHeightNorm;
-            var miningBtn = CreateButton(safeAreaGO.transform, "MiningButton", "Mining",
-                new Vector2(buttonLeft, y), new Vector2(buttonRight, y + buttonHeightNorm),
-                new Color(0.65f, 0.45f, 0.15f, 1f));
-
-            // Market button (purple)
-            y -= spacingNorm;
-            y -= buttonHeightNorm;
-            var marketBtn = CreateButton(safeAreaGO.transform, "MarketButton", "Market",
-                new Vector2(buttonLeft, y), new Vector2(buttonRight, y + buttonHeightNorm),
-                new Color(0.55f, 0.25f, 0.7f, 1f));
+                new Vector2(buttonLeft, buttonBottom), new Vector2(buttonRight, buttonTop),
+                Color.white);
+            UIAtlasHelper.SetSpriteSwapButton(battleBtn.GetComponent<Button>(), battleBtn.GetComponent<Image>(), "Button_Unpressed", "Button_Pressed");
+            var battleBtnContent = UIAtlasHelper.CreateButtonContent(battleBtn.transform, 80f);
+            var battleLabel = battleBtn.transform.Find("Label");
+            if (battleLabel != null) battleLabel.SetParent(battleBtnContent, false);
 
             // ======================
             // 4. Version Text (bottom)
@@ -197,9 +178,6 @@ namespace ConquerChronicles.Editor
             so.FindProperty("_levelText").objectReferenceValue = levelTMP;
             so.FindProperty("_goldText").objectReferenceValue = goldTMP;
             so.FindProperty("_mapSelectButton").objectReferenceValue = battleBtn.GetComponent<Button>();
-            so.FindProperty("_miningButton").objectReferenceValue = miningBtn.GetComponent<Button>();
-            so.FindProperty("_equipmentButton").objectReferenceValue = equipmentBtn.GetComponent<Button>();
-            so.FindProperty("_marketButton").objectReferenceValue = marketBtn.GetComponent<Button>();
 
             so.ApplyModifiedPropertiesWithoutUndo();
 

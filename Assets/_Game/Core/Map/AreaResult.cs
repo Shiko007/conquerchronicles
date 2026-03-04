@@ -7,7 +7,7 @@ namespace ConquerChronicles.Core.Map
         public int EnemiesKilled;
         public float TimeElapsed;
         public int GoldEarned;
-        public int XPEarned;
+        public long XPEarned;
         public string[] ItemsDropped;
         public bool PlayerDied;
         public int ChronicleCoinsEarned;

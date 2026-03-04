@@ -7,17 +7,17 @@ namespace ConquerChronicles.Core.Character
         public const int MaxLevel = 130;
         public const int StatPointsPerLevel = 3;
 
-        public static int GetRequiredXP(int level)
+        public static long GetRequiredXP(int level)
         {
-            if (level < 1 || level >= MaxLevel) return int.MaxValue;
-            return (int)(100 * Math.Pow(level, 1.5));
+            if (level < 1 || level >= MaxLevel) return long.MaxValue;
+            return 100;
         }
 
         public static bool TryLevelUp(CharacterState state)
         {
             if (state.Level >= MaxLevel) return false;
 
-            int required = GetRequiredXP(state.Level);
+            long required = GetRequiredXP(state.Level);
             if (state.XP < required) return false;
 
             state.XP -= required;

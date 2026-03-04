@@ -5,6 +5,7 @@ using TMPro;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Equipment;
 using ConquerChronicles.Core.Inventory;
+using ConquerChronicles.Gameplay.Animation;
 
 namespace ConquerChronicles.Gameplay.Inventory
 {
@@ -17,7 +18,6 @@ namespace ConquerChronicles.Gameplay.Inventory
 
         [Header("Bag")]
         [SerializeField] private Transform _bagContainer;
-        [SerializeField] private TextMeshProUGUI _bagCountText;
 
         [Header("Item Detail")]
         [SerializeField] private GameObject _detailPanel;
@@ -70,8 +70,6 @@ namespace ConquerChronicles.Gameplay.Inventory
 
         public void RefreshBag(List<BagItem> bag)
         {
-            _bagCountText.text = $"Bag: {bag.Count}/{InventoryState.BagCapacity}";
-
             foreach (var go in _bagSlotObjects)
             {
                 if (go != null) Destroy(go);
@@ -80,15 +78,57 @@ namespace ConquerChronicles.Gameplay.Inventory
 
             int totalSlots = InventoryState.BagCapacity;
 
+            // Compute optimal columns and square slot size from actual container
+            Canvas.ForceUpdateCanvases();
+            var containerRT = _bagContainer.GetComponent<RectTransform>();
+            float W = containerRT.rect.width;
+            float H = containerRT.rect.height;
+
+            float gap = 4f;
+            int cols = 1;
+            int rows = totalSlots;
+            float slotSize = 0f;
+
+            // Find column count that gives the largest square slots fitting all items
+            for (int c = 3; c <= 12; c++)
+            {
+                int r = Mathf.CeilToInt((float)totalSlots / c);
+                float sW = (W - (c - 1) * gap) / c;
+                float sH = (H - (r - 1) * gap) / r;
+                float s = Mathf.Min(sW, sH);
+                if (s > slotSize)
+                {
+                    slotSize = s;
+                    cols = c;
+                    rows = r;
+                }
+            }
+
+            float totalGridW = cols * slotSize + (cols - 1) * gap;
+            float totalGridH = rows * slotSize + (rows - 1) * gap;
+            float xOffset = (W - totalGridW) / 2f; // center horizontally
+            float yOffset = (H - totalGridH) / 2f; // center vertically
+
             for (int i = 0; i < totalSlots; i++)
             {
                 int index = i;
                 bool hasItem = i < bag.Count;
+                int col = i % cols;
+                int row = i / cols;
 
                 var slotGO = new GameObject($"BagSlot_{i}", typeof(RectTransform));
                 slotGO.transform.SetParent(_bagContainer, false);
+                var slotRT = slotGO.GetComponent<RectTransform>();
+                slotRT.anchorMin = new Vector2(0, 1);
+                slotRT.anchorMax = new Vector2(0, 1);
+                slotRT.pivot = new Vector2(0, 1);
+                slotRT.sizeDelta = new Vector2(slotSize, slotSize);
+                slotRT.anchoredPosition = new Vector2(
+                    xOffset + col * (slotSize + gap),
+                    -yOffset - row * (slotSize + gap));
 
                 var img = slotGO.AddComponent<Image>();
+                img.sprite = SpriteAtlasLoader.GetSprite("Blank_Slot");
 
                 if (hasItem)
                 {
@@ -112,6 +152,9 @@ namespace ConquerChronicles.Gameplay.Inventory
                     tmp.fontSize = 18;
                     tmp.color = Color.white;
                     tmp.alignment = TextAlignmentOptions.Center;
+                    tmp.enableAutoSizing = true;
+                    tmp.fontSizeMin = 8;
+                    tmp.fontSizeMax = 18;
                     tmp.textWrappingMode = TextWrappingModes.NoWrap;
                     tmp.overflowMode = TextOverflowModes.Truncate;
                 }
@@ -126,7 +169,7 @@ namespace ConquerChronicles.Gameplay.Inventory
 
         public void RefreshGold(int gold)
         {
-            _goldText.text = $"{gold} Gold";
+            _goldText.text = $"{gold:N0}";
         }
 
         public void ShowItemDetail(BagItem bagItem, bool canEquip)

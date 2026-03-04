@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using TMPro;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Equipment;
+using ConquerChronicles.Gameplay.Animation;
 
 namespace ConquerChronicles.Gameplay.Equipment
 {
@@ -25,6 +26,10 @@ namespace ConquerChronicles.Gameplay.Equipment
         [SerializeField] private TextMeshProUGUI _equipmentTabText;
         [SerializeField] private TextMeshProUGUI _statsTabText;
 
+        [Header("Character Preview")]
+        [SerializeField] private Image _characterPreview;
+        [SerializeField] private UISpriteAnimator _characterAnimator;
+
         [Header("Content Panels")]
         [SerializeField] private GameObject _equipmentContent;
         [SerializeField] private GameObject _statsContent;
@@ -43,16 +48,17 @@ namespace ConquerChronicles.Gameplay.Equipment
         [Header("Stats - Character Info")]
         [SerializeField] private TextMeshProUGUI _classText;
         [SerializeField] private TextMeshProUGUI _levelText;
-        [SerializeField] private TextMeshProUGUI _xpText;
 
         [Header("Stats - Combat Stats")]
         [SerializeField] private TextMeshProUGUI _statsText;
 
         [Header("Stats - Stat Points")]
         [SerializeField] private TextMeshProUGUI _statPointsText;
-        [SerializeField] private TextMeshProUGUI _allocatedText;
+        [SerializeField] private TextMeshProUGUI _vitalityText;
+        [SerializeField] private TextMeshProUGUI _strengthText;
+        [SerializeField] private TextMeshProUGUI _agilityText;
+        [SerializeField] private TextMeshProUGUI _spiritText;
         [SerializeField] private Button _vitalityButton;
-        [SerializeField] private Button _manaButton;
         [SerializeField] private Button _strengthButton;
         [SerializeField] private Button _agilityButton;
         [SerializeField] private Button _spiritButton;
@@ -120,13 +126,18 @@ namespace ConquerChronicles.Gameplay.Equipment
 
             // Wire stat allocation buttons
             _vitalityButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Vitality"));
-            _manaButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Mana"));
             _strengthButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Strength"));
             _agilityButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Agility"));
             _spiritButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Spirit"));
 
             HideItemDetail();
             SwitchToTab(0);
+        }
+
+        public void SetCharacterPreview(string spritePrefix)
+        {
+            if (_characterAnimator != null)
+                _characterAnimator.Play(spritePrefix);
         }
 
         public void RefreshEquippedSlots(EquipmentInstance[] equipped)
@@ -255,8 +266,8 @@ namespace ConquerChronicles.Gameplay.Equipment
             _equipmentContent.SetActive(isEquipment);
             _statsContent.SetActive(!isEquipment);
 
-            _equipmentTabImage.color = isEquipment ? ActiveTabBg : InactiveTabBg;
-            _statsTabImage.color = isEquipment ? InactiveTabBg : ActiveTabBg;
+            _equipmentTabImage.sprite = SpriteAtlasLoader.GetSprite(isEquipment ? "EquipmentTab_Opened" : "EquipmentTab_Closed");
+            _statsTabImage.sprite = SpriteAtlasLoader.GetSprite(isEquipment ? "CharacterTab_Closed" : "CharacterTab_Opened");
             _equipmentTabText.color = isEquipment ? ActiveTabText : InactiveTabText;
             _statsTabText.color = isEquipment ? InactiveTabText : ActiveTabText;
 
@@ -266,32 +277,33 @@ namespace ConquerChronicles.Gameplay.Equipment
                 HideItemDetail();
         }
 
-        public void RefreshStats(CharacterClass characterClass, int level, int xp,
+        public void RefreshStats(CharacterClass characterClass, int level,
             CharacterStats stats, int statPointsAvailable,
-            int vitality, int mana, int strength, int agility, int spirit)
+            int vitality, int strength, int agility, int spirit)
         {
             _classText.text = characterClass.ToString();
             _levelText.text = $"Level {level}";
 
-            int requiredXP = LevelUpTable.GetRequiredXP(level);
-            _xpText.text = $"XP: {xp} / {requiredXP}";
-
             _statsText.text =
-                $"<mspace=0.55em>{"HP:",-7}{stats.HP,-10}{"MP:",-7}{stats.MP}\n" +
-                $"{"ATK:",-7}{stats.ATK,-10}{"DEF:",-7}{stats.DEF}\n" +
-                $"{"MATK:",-7}{stats.MATK,-10}{"MDEF:",-7}{stats.MDEF}\n" +
-                $"{"AGI:",-7}{stats.AGI,-10}{"AtkSpd:",-8}{stats.AttackSpeed:F2}\n" +
-                $"{"Crit:",-7}{(stats.CritRate * 100f):F1}{"% ",-8}{"CritDmg:",-9}{(stats.CritDmg * 100f):F0}%</mspace>";
+                $"Health: {stats.HP}\n" +
+                $"Mana: {stats.MP}\n" +
+                $"Attack: {stats.ATK}\n" +
+                $"Defence: {stats.DEF}\n" +
+                $"Magic Attack: {stats.MATK}\n" +
+                $"Magic Defence: {stats.MDEF}\n" +
+                $"Attack Speed: {stats.AttackSpeed:F2}\n" +
+                $"Critical Rate: {(stats.CritRate * 100f):F1}%\n" +
+                $"Critical Damage: {(stats.CritDmg * 100f):F0}%";
 
             _statPointsText.text = $"Stat Points: {statPointsAvailable}";
 
-            _allocatedText.text =
-                $"VIT: {vitality}    MAN: {mana}    STR: {strength}\n" +
-                $"AGI: {agility}    SPI: {spirit}";
+            _vitalityText.text = $"Vitality: {vitality}";
+            _strengthText.text = $"Strength: {strength}";
+            _agilityText.text = $"Agility: {agility}";
+            _spiritText.text = $"Spirit: {spirit}";
 
             bool hasPoints = statPointsAvailable > 0;
             _vitalityButton.interactable = hasPoints;
-            _manaButton.interactable = hasPoints;
             _strengthButton.interactable = hasPoints;
             _agilityButton.interactable = hasPoints;
             _spiritButton.interactable = hasPoints;
@@ -318,7 +330,6 @@ namespace ConquerChronicles.Gameplay.Equipment
             if (_equipmentTabButton != null) _equipmentTabButton.onClick.RemoveAllListeners();
             if (_statsTabButton != null) _statsTabButton.onClick.RemoveAllListeners();
             if (_vitalityButton != null) _vitalityButton.onClick.RemoveAllListeners();
-            if (_manaButton != null) _manaButton.onClick.RemoveAllListeners();
             if (_strengthButton != null) _strengthButton.onClick.RemoveAllListeners();
             if (_agilityButton != null) _agilityButton.onClick.RemoveAllListeners();
             if (_spiritButton != null) _spiritButton.onClick.RemoveAllListeners();

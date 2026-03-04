@@ -256,7 +256,7 @@ namespace ConquerChronicles.Editor
                 var tutScaler = tutCanvasGO.AddComponent<CanvasScaler>();
                 tutScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
                 tutScaler.referenceResolution = new Vector2(1080, 1920);
-                tutScaler.matchWidthOrHeight = 0.5f;
+                tutScaler.matchWidthOrHeight = 0f;
                 tutCanvasGO.AddComponent<GraphicRaycaster>();
 
                 var overlay = new GameObject("TutorialOverlay");
@@ -554,7 +554,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 0f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
             // SafeArea container
@@ -568,33 +568,26 @@ namespace ConquerChronicles.Editor
             safeAreaGO.AddComponent<ConquerChronicles.Gameplay.UI.SafeAreaHandler>();
 
             // =============================================
-            // XP Bar — thin golden bar across very top
+            // Compute element sizes to fit within reference width
+            // Bottom row: margin + HP orb + gap + 4 skill slots + gap + EXP orb + margin
+            // Nav row: 4 nav buttons directly above the skill slots
             // =============================================
-            var xpBarBG = new GameObject("XP_Bar_BG", typeof(RectTransform));
-            xpBarBG.transform.SetParent(safeAreaGO.transform, false);
-            var xpBgRT = xpBarBG.GetComponent<RectTransform>();
-            xpBgRT.anchorMin = new Vector2(0, 0);
-            xpBgRT.anchorMax = new Vector2(1, 0);
-            xpBgRT.pivot = new Vector2(0.5f, 0);
-            xpBgRT.anchoredPosition = new Vector2(0, 0);
-            xpBgRT.sizeDelta = new Vector2(0, 14);
-            var xpBgImg = xpBarBG.AddComponent<Image>();
-            xpBgImg.color = new Color(0.08f, 0.06f, 0.02f, 0.9f);
-
-            var xpFillGO = new GameObject("XP_Fill", typeof(RectTransform));
-            xpFillGO.transform.SetParent(xpBarBG.transform, false);
-            var xpFillRT = xpFillGO.GetComponent<RectTransform>();
-            xpFillRT.anchorMin = Vector2.zero;
-            xpFillRT.anchorMax = Vector2.one;
-            xpFillRT.offsetMin = new Vector2(1, 1);
-            xpFillRT.offsetMax = new Vector2(-1, -1);
-            var xpFillImg = xpFillGO.AddComponent<Image>();
-            xpFillImg.color = new Color(1f, 0.84f, 0f, 1f);
+            float refWidth = 1080f;
+            float margin = 5f;
+            float orbToSlotGap = 5f;
+            float orbRatio = 1.8f;
+            // 2 orbs (orbRatio each) + 4 skill slots (nav buttons moved to right edge)
+            float denom = 2f * orbRatio + 4f;
+            int slotSize = Mathf.FloorToInt((refWidth - 2f * margin - 2f * orbToSlotGap) / denom);
+            int orbSize = Mathf.RoundToInt(orbRatio * slotSize);
+            int iconInset = Mathf.RoundToInt(slotSize * 0.09f);
+            // No inset — circle mask fills full container to match orb sprite size.
+            // The orb sprite on top visually defines the circular boundary.
+            int orbInset = 0;
 
             // =============================================
             // Orb — bottom-left, Conquer Online style
             // =============================================
-            int orbSize = 200;
 
             // Orb container (anchored bottom-left)
             var orbContainer = new GameObject("Orb_Container", typeof(RectTransform));
@@ -603,36 +596,34 @@ namespace ConquerChronicles.Editor
             orbContRT.anchorMin = new Vector2(0, 0);
             orbContRT.anchorMax = new Vector2(0, 0);
             orbContRT.pivot = new Vector2(0, 0);
-            orbContRT.anchoredPosition = new Vector2(10, 20);
+            orbContRT.anchoredPosition = new Vector2(margin, 20);
             orbContRT.sizeDelta = new Vector2(orbSize, orbSize);
 
-            // Orb dark background (circle)
-            var orbBG = new GameObject("Orb_BG", typeof(RectTransform));
-            orbBG.transform.SetParent(orbContainer.transform, false);
-            var orbBgRT = orbBG.GetComponent<RectTransform>();
-            orbBgRT.anchorMin = Vector2.zero;
-            orbBgRT.anchorMax = Vector2.one;
-            orbBgRT.offsetMin = Vector2.zero;
-            orbBgRT.offsetMax = Vector2.zero;
-            var orbBgImg = orbBG.AddComponent<Image>();
-            orbBgImg.sprite = CreateCircleSprite("OrbBG", new Color(0.05f, 0.03f, 0.03f, 1f), 128);
-            orbBgImg.color = new Color(0.05f, 0.03f, 0.03f, 1f);
-
-            // Circular mask to clip the fills
+            // Circular mask (solid circle) to clip fills — inset to match orb sprite size
             var orbMask = new GameObject("Orb_Mask", typeof(RectTransform));
             orbMask.transform.SetParent(orbContainer.transform, false);
             var orbMaskRT = orbMask.GetComponent<RectTransform>();
             orbMaskRT.anchorMin = Vector2.zero;
             orbMaskRT.anchorMax = Vector2.one;
-            orbMaskRT.offsetMin = new Vector2(6, 6);
-            orbMaskRT.offsetMax = new Vector2(-6, -6);
+            orbMaskRT.offsetMin = new Vector2(orbInset, orbInset);
+            orbMaskRT.offsetMax = new Vector2(-orbInset, -orbInset);
             var maskImg = orbMask.AddComponent<Image>();
-            maskImg.sprite = CreateCircleSprite("OrbMask", Color.white, 128);
-            maskImg.color = Color.white;
+            maskImg.sprite = CreateCircleSprite("OrbMaskCircle", Color.white, 64);
             var mask = orbMask.AddComponent<Mask>();
             mask.showMaskGraphic = false;
 
-            // HP fill (left half) — anchor-driven height, clipped by circular mask
+            // Dark background fill (visible when HP/MP is depleted)
+            var orbDarkBG = new GameObject("Orb_DarkBG", typeof(RectTransform));
+            orbDarkBG.transform.SetParent(orbMask.transform, false);
+            var orbDarkBGRT = orbDarkBG.GetComponent<RectTransform>();
+            orbDarkBGRT.anchorMin = Vector2.zero;
+            orbDarkBGRT.anchorMax = Vector2.one;
+            orbDarkBGRT.offsetMin = Vector2.zero;
+            orbDarkBGRT.offsetMax = Vector2.zero;
+            var orbDarkBGImg = orbDarkBG.AddComponent<Image>();
+            orbDarkBGImg.color = new Color(0.1f, 0.05f, 0.05f, 1f);
+
+            // HP fill (left half) — anchor-driven height, clipped by circle mask
             var hpFillGO = new GameObject("HP_Fill", typeof(RectTransform));
             hpFillGO.transform.SetParent(orbMask.transform, false);
             var hpFillRT = hpFillGO.GetComponent<RectTransform>();
@@ -643,7 +634,7 @@ namespace ConquerChronicles.Editor
             var hpFillImg = hpFillGO.AddComponent<Image>();
             hpFillImg.color = new Color(0.75f, 0.08f, 0.08f, 1f);
 
-            // MP fill (right half) — anchor-driven height, clipped by circular mask
+            // MP fill (right half) — anchor-driven height, clipped by circle mask
             var mpFillGO = new GameObject("MP_Fill", typeof(RectTransform));
             mpFillGO.transform.SetParent(orbMask.transform, false);
             var mpFillRT = mpFillGO.GetComponent<RectTransform>();
@@ -666,90 +657,48 @@ namespace ConquerChronicles.Editor
             var divImg = divider.AddComponent<Image>();
             divImg.color = new Color(0.15f, 0.12f, 0.1f, 0.8f);
 
-            // Orb frame (circle outline overlaid on top)
-            var orbFrame = new GameObject("Orb_Frame", typeof(RectTransform));
-            orbFrame.transform.SetParent(orbContainer.transform, false);
-            var orbFrameRT = orbFrame.GetComponent<RectTransform>();
-            orbFrameRT.anchorMin = Vector2.zero;
-            orbFrameRT.anchorMax = Vector2.one;
-            orbFrameRT.offsetMin = Vector2.zero;
-            orbFrameRT.offsetMax = Vector2.zero;
-            var orbFrameImg = orbFrame.AddComponent<Image>();
-            orbFrameImg.sprite = CreateRingSprite("OrbFrame", new Color(0.6f, 0.5f, 0.25f, 1f), 128, 8);
-            orbFrameImg.color = new Color(0.6f, 0.5f, 0.25f, 1f);
-            orbFrameImg.raycastTarget = false;
+            // Orb sprite on top — untinted, transparent areas reveal fills behind
+            var orbSprite = new GameObject("Orb_Sprite", typeof(RectTransform));
+            orbSprite.transform.SetParent(orbContainer.transform, false);
+            var orbSpriteRT = orbSprite.GetComponent<RectTransform>();
+            orbSpriteRT.anchorMin = Vector2.zero;
+            orbSpriteRT.anchorMax = Vector2.one;
+            orbSpriteRT.offsetMin = Vector2.zero;
+            orbSpriteRT.offsetMax = Vector2.zero;
+            var orbSpriteImg = orbSprite.AddComponent<Image>();
+            UIAtlasHelper.SetSimpleSprite(orbSpriteImg, "HP_MP_Orb");
+            orbSpriteImg.raycastTarget = false;
 
-            // Orb center text (HP value, or HP\nMP for Taoist)
+            // Orb click button (transparent, covers orb for tap detection)
+            var orbBtnImg = orbContainer.AddComponent<Image>();
+            orbBtnImg.color = new Color(0, 0, 0, 0);
+            var orbBtn = orbContainer.AddComponent<Button>();
+            orbBtn.targetGraphic = orbBtnImg;
+
+            // HP/MP text above the orb (hidden by default, shown on click)
             var orbTextGO = new GameObject("Orb_Text", typeof(RectTransform));
             orbTextGO.transform.SetParent(orbContainer.transform, false);
             var orbTextRT = orbTextGO.GetComponent<RectTransform>();
-            orbTextRT.anchorMin = new Vector2(0.1f, 0.2f);
-            orbTextRT.anchorMax = new Vector2(0.9f, 0.8f);
-            orbTextRT.offsetMin = Vector2.zero;
-            orbTextRT.offsetMax = Vector2.zero;
+            orbTextRT.anchorMin = new Vector2(0.5f, 1f);
+            orbTextRT.anchorMax = new Vector2(0.5f, 1f);
+            orbTextRT.pivot = new Vector2(0.5f, 0f);
+            orbTextRT.anchoredPosition = new Vector2(0, 4);
+            orbTextRT.sizeDelta = new Vector2(120, 40);
             var orbTMP = orbTextGO.AddComponent<TextMeshProUGUI>();
             orbTMP.text = "100";
-            orbTMP.fontSize = 24;
+            orbTMP.fontSize = 20;
             orbTMP.color = Color.white;
             orbTMP.fontStyle = FontStyles.Bold;
             orbTMP.alignment = TextAlignmentOptions.Center;
             orbTMP.enableWordWrapping = false;
             orbTMP.overflowMode = TMPro.TextOverflowModes.Overflow;
-
-            // Level badge — top of orb
-            var levelBadge = new GameObject("Level_Badge", typeof(RectTransform));
-            levelBadge.transform.SetParent(orbContainer.transform, false);
-            var lvBadgeRT = levelBadge.GetComponent<RectTransform>();
-            lvBadgeRT.anchorMin = new Vector2(0.5f, 1);
-            lvBadgeRT.anchorMax = new Vector2(0.5f, 1);
-            lvBadgeRT.pivot = new Vector2(0.5f, 0.5f);
-            lvBadgeRT.anchoredPosition = new Vector2(0, 4);
-            lvBadgeRT.sizeDelta = new Vector2(60, 28);
-            var lvBadgeImg = levelBadge.AddComponent<Image>();
-            lvBadgeImg.sprite = CreateCircleSprite("LevelBadgeBG", new Color(0.12f, 0.1f, 0.2f, 1f), 32);
-            lvBadgeImg.color = new Color(0.12f, 0.1f, 0.2f, 0.95f);
-            var lvOutline = levelBadge.AddComponent<Outline>();
-            lvOutline.effectColor = new Color(0.6f, 0.5f, 0.25f, 0.9f);
-            lvOutline.effectDistance = new Vector2(1, -1);
-
-            var levelTextGO = new GameObject("Level_Text", typeof(RectTransform));
-            levelTextGO.transform.SetParent(levelBadge.transform, false);
-            var levelTextRT = levelTextGO.GetComponent<RectTransform>();
-            levelTextRT.anchorMin = Vector2.zero;
-            levelTextRT.anchorMax = Vector2.one;
-            levelTextRT.offsetMin = Vector2.zero;
-            levelTextRT.offsetMax = Vector2.zero;
-            var levelTMP = levelTextGO.AddComponent<TextMeshProUGUI>();
-            levelTMP.text = "1";
-            levelTMP.fontSize = 18;
-            levelTMP.color = new Color(1f, 0.84f, 0f, 1f);
-            levelTMP.fontStyle = FontStyles.Bold;
-            levelTMP.alignment = TextAlignmentOptions.Center;
-
-            // =============================================
-            // Kill counter — right of orb
-            // =============================================
-            var killText = new GameObject("Kill_Text", typeof(RectTransform));
-            killText.transform.SetParent(safeAreaGO.transform, false);
-            var killTextRT = killText.GetComponent<RectTransform>();
-            killTextRT.anchorMin = new Vector2(0, 0);
-            killTextRT.anchorMax = new Vector2(0, 0);
-            killTextRT.pivot = new Vector2(0, 0);
-            killTextRT.anchoredPosition = new Vector2(orbSize + 20, 100);
-            killTextRT.sizeDelta = new Vector2(200, 28);
-            var killTMP = killText.AddComponent<TextMeshProUGUI>();
-            killTMP.text = "Kills: 0";
-            killTMP.fontSize = 22;
-            killTMP.color = new Color(0.9f, 0.9f, 0.9f, 0.85f);
-            killTMP.fontStyle = FontStyles.Bold;
-            killTMP.alignment = TextAlignmentOptions.Left;
+            orbTextGO.SetActive(false);
 
             // =============================================
             // Skill Slots — 4 slots right of the orb
             // =============================================
-            int slotSize = 70;
-            int slotSpacing = 8;
-            float slotStartX = orbSize + 20;
+            int slotSpacing = 0;
+            float slotStartX = margin + orbSize + orbToSlotGap;
             float slotY = 20;
             Image[] skillIcons = new Image[4];
 
@@ -765,49 +714,35 @@ namespace ConquerChronicles.Editor
                 slotRT.anchoredPosition = new Vector2(slotStartX + i * (slotSize + slotSpacing), slotY);
                 slotRT.sizeDelta = new Vector2(slotSize, slotSize);
                 var slotImg = slotGO.AddComponent<Image>();
-                slotImg.color = new Color(0.1f, 0.1f, 0.15f, 0.85f);
-                var slotOutline = slotGO.AddComponent<Outline>();
-                slotOutline.effectColor = new Color(0.6f, 0.5f, 0.25f, 0.7f);
-                slotOutline.effectDistance = new Vector2(1, -1);
+                UIAtlasHelper.SetSimpleSprite(slotImg, "Blank_Slot");
 
-                // Skill icon image (stretch to fill with 6px padding)
+                // Skill icon image (stretch to fill with proportional padding)
                 var iconGO = new GameObject("SkillIcon", typeof(RectTransform));
                 iconGO.transform.SetParent(slotGO.transform, false);
                 var iconRT = iconGO.GetComponent<RectTransform>();
                 iconRT.anchorMin = Vector2.zero;
                 iconRT.anchorMax = Vector2.one;
-                iconRT.offsetMin = new Vector2(6, 6);
-                iconRT.offsetMax = new Vector2(-6, -6);
+                iconRT.offsetMin = new Vector2(iconInset, iconInset);
+                iconRT.offsetMax = new Vector2(-iconInset, -iconInset);
                 var iconImg = iconGO.AddComponent<Image>();
-                iconImg.color = new Color(1f, 1f, 1f, 0.15f); // placeholder
+                iconImg.color = new Color(1f, 1f, 1f, 0f); // invisible until skill assigned
                 iconImg.raycastTarget = false;
 
                 skillIcons[i] = iconImg;
             }
 
             // =============================================
-            // Navigation Buttons — right of skill slots
+            // Navigation Buttons — above skill slots, same horizontal span
             // =============================================
-            int navBtnSize = 50;
-            int navBtnSpacing = 8;
-            int navGap = 16; // gap between skill slots and nav buttons
-            float navStartX = slotStartX + 4 * (slotSize + slotSpacing) - slotSpacing + navGap;
-            // Center nav buttons vertically with skill slots
-            float navY = slotY + (slotSize - navBtnSize) / 2f;
+            int navBtnSize = slotSize;
+            int navBtnSpacing = 0;
+            float navY = slotY + slotSize + 4; // just above skill slots
 
-            // Helper arrays for the 5 nav buttons
             string[] navNames = { "EquipmentButton", "InventoryButton", "MineButton", "MarketButton" };
-            string[] navLabels = { "E", "I", "Mi", "Mk" };
-            Color[] navBgColors = {
-                new Color(0.2f, 0.15f, 0.3f, 0.9f),   // Equipment: dark purple
-                new Color(0.15f, 0.2f, 0.3f, 0.9f),    // Inventory: dark blue
-                new Color(0.25f, 0.18f, 0.08f, 0.9f),  // Mine: dark brown
-                new Color(0.1f, 0.22f, 0.12f, 0.9f)    // Market: dark green
-            };
-            Color goldTextColor = new Color(1f, 0.84f, 0f, 1f);
-            Color goldOutlineColor = new Color(0.6f, 0.5f, 0.25f, 0.7f);
+            string[] navIconNames = { "Equipment_Closed", "Inventory_Closed", "Mining_Closed", "Market_Closed" };
 
             Button[] navBtns = new Button[4];
+            Image[] navIcons = new Image[4];
 
             for (int i = 0; i < 4; i++)
             {
@@ -817,35 +752,134 @@ namespace ConquerChronicles.Editor
                 btnRT.anchorMin = new Vector2(0, 0);
                 btnRT.anchorMax = new Vector2(0, 0);
                 btnRT.pivot = new Vector2(0, 0);
-                btnRT.anchoredPosition = new Vector2(navStartX + i * (navBtnSize + navBtnSpacing), navY);
+                btnRT.anchoredPosition = new Vector2(slotStartX + i * (navBtnSize + navBtnSpacing), navY);
                 btnRT.sizeDelta = new Vector2(navBtnSize, navBtnSize);
                 var btnImg = btnGO.AddComponent<Image>();
-                btnImg.color = navBgColors[i];
+                btnImg.color = new Color(0, 0, 0, 0);
                 var btn = btnGO.AddComponent<Button>();
                 btn.targetGraphic = btnImg;
-                var btnOutline = btnGO.AddComponent<Outline>();
-                btnOutline.effectColor = goldOutlineColor;
-                btnOutline.effectDistance = new Vector2(1, -1);
 
-                // Button label text
-                var btnTextGO = new GameObject("Text", typeof(RectTransform));
-                btnTextGO.transform.SetParent(btnGO.transform, false);
-                var btnTextRT = btnTextGO.GetComponent<RectTransform>();
-                btnTextRT.anchorMin = Vector2.zero;
-                btnTextRT.anchorMax = Vector2.one;
-                btnTextRT.offsetMin = Vector2.zero;
-                btnTextRT.offsetMax = Vector2.zero;
-                var btnTMP = btnTextGO.AddComponent<TextMeshProUGUI>();
-                btnTMP.text = navLabels[i];
-                btnTMP.fontSize = 24;
-                btnTMP.color = goldTextColor;
-                btnTMP.fontStyle = FontStyles.Bold;
-                btnTMP.alignment = TextAlignmentOptions.Center;
+                // Icon child
+                var iconGO = new GameObject("Icon", typeof(RectTransform));
+                iconGO.transform.SetParent(btnGO.transform, false);
+                var iconRT = iconGO.GetComponent<RectTransform>();
+                iconRT.anchorMin = Vector2.zero;
+                iconRT.anchorMax = Vector2.one;
+                iconRT.offsetMin = new Vector2(iconInset, iconInset);
+                iconRT.offsetMax = new Vector2(-iconInset, -iconInset);
+                var iconImg = iconGO.AddComponent<Image>();
+                UIAtlasHelper.SetSimpleSprite(iconImg, navIconNames[i]);
+                iconImg.raycastTarget = false;
 
                 navBtns[i] = btn;
+                navIcons[i] = iconImg;
             }
 
             // navBtns[0]=Equipment, [1]=Inventory, [2]=Mine, [3]=Market
+
+            // =============================================
+            // EXP Orb — right of skill slots, same size as HP orb
+            // =============================================
+            int expOrbSize = orbSize;
+            float expOrbX = slotStartX + 4 * slotSize + orbToSlotGap;
+            float expOrbY = slotY; // same baseline as HP orb
+
+            // Container
+            var expOrbContainer = new GameObject("EXP_Orb", typeof(RectTransform));
+            expOrbContainer.transform.SetParent(safeAreaGO.transform, false);
+            var expOrbContRT = expOrbContainer.GetComponent<RectTransform>();
+            expOrbContRT.anchorMin = new Vector2(0, 0);
+            expOrbContRT.anchorMax = new Vector2(0, 0);
+            expOrbContRT.pivot = new Vector2(0, 0);
+            expOrbContRT.anchoredPosition = new Vector2(expOrbX, expOrbY);
+            expOrbContRT.sizeDelta = new Vector2(expOrbSize, expOrbSize);
+
+            // Circle mask to clip fill — inset to match orb sprite size
+            var expOrbMask = new GameObject("EXP_Mask", typeof(RectTransform));
+            expOrbMask.transform.SetParent(expOrbContainer.transform, false);
+            var expMaskRT = expOrbMask.GetComponent<RectTransform>();
+            expMaskRT.anchorMin = Vector2.zero;
+            expMaskRT.anchorMax = Vector2.one;
+            expMaskRT.offsetMin = new Vector2(orbInset, orbInset);
+            expMaskRT.offsetMax = new Vector2(-orbInset, -orbInset);
+            var expMaskImg = expOrbMask.AddComponent<Image>();
+            expMaskImg.sprite = CreateCircleSprite("OrbMaskCircle", Color.white, 64);
+            expOrbMask.AddComponent<UnityEngine.UI.Mask>().showMaskGraphic = false;
+
+            // Dark background (visible when XP is empty)
+            var expDarkBG = new GameObject("EXP_DarkBG", typeof(RectTransform));
+            expDarkBG.transform.SetParent(expOrbMask.transform, false);
+            var expDarkBGRT = expDarkBG.GetComponent<RectTransform>();
+            expDarkBGRT.anchorMin = Vector2.zero;
+            expDarkBGRT.anchorMax = Vector2.one;
+            expDarkBGRT.offsetMin = Vector2.zero;
+            expDarkBGRT.offsetMax = Vector2.zero;
+            var expDarkBGImg = expDarkBG.AddComponent<Image>();
+            expDarkBGImg.color = new Color(0.1f, 0.08f, 0.02f, 1f);
+
+            // Yellow fill — anchor-driven height (bottom-up)
+            var expFillGO = new GameObject("XP_Fill", typeof(RectTransform));
+            expFillGO.transform.SetParent(expOrbMask.transform, false);
+            var expFillRT = expFillGO.GetComponent<RectTransform>();
+            expFillRT.anchorMin = Vector2.zero;
+            expFillRT.anchorMax = new Vector2(1, 0); // starts empty
+            expFillRT.offsetMin = Vector2.zero;
+            expFillRT.offsetMax = Vector2.zero;
+            var xpFillImg = expFillGO.AddComponent<Image>();
+            xpFillImg.color = new Color(1f, 0.84f, 0f, 1f); // yellow
+
+            // Orb sprite on top — untinted, transparent areas reveal yellow fill
+            var expOrbSprite = new GameObject("EXP_Sprite", typeof(RectTransform));
+            expOrbSprite.transform.SetParent(expOrbContainer.transform, false);
+            var expSpriteRT = expOrbSprite.GetComponent<RectTransform>();
+            expSpriteRT.anchorMin = Vector2.zero;
+            expSpriteRT.anchorMax = Vector2.one;
+            expSpriteRT.offsetMin = Vector2.zero;
+            expSpriteRT.offsetMax = Vector2.zero;
+            var expSpriteImg = expOrbSprite.AddComponent<Image>();
+            UIAtlasHelper.SetSimpleSprite(expSpriteImg, "Exp_Orb");
+            expSpriteImg.raycastTarget = false;
+
+            // EXP orb click button (transparent, covers orb for tap detection)
+            var expBtnImg = expOrbContainer.AddComponent<Image>();
+            expBtnImg.color = new Color(0, 0, 0, 0);
+            var expBtn = expOrbContainer.AddComponent<Button>();
+            expBtn.targetGraphic = expBtnImg;
+
+            // XP text above the EXP orb (hidden by default, shown on click)
+            var expXpTextGO = new GameObject("XP_Text", typeof(RectTransform));
+            expXpTextGO.transform.SetParent(expOrbContainer.transform, false);
+            var expXpTextRT = expXpTextGO.GetComponent<RectTransform>();
+            expXpTextRT.anchorMin = new Vector2(0.5f, 1f);
+            expXpTextRT.anchorMax = new Vector2(0.5f, 1f);
+            expXpTextRT.pivot = new Vector2(0.5f, 0f);
+            expXpTextRT.anchoredPosition = new Vector2(0, 4);
+            expXpTextRT.sizeDelta = new Vector2(120, 28);
+            var expXpTMP = expXpTextGO.AddComponent<TextMeshProUGUI>();
+            expXpTMP.text = "0";
+            expXpTMP.fontSize = 20;
+            expXpTMP.color = Color.white;
+            expXpTMP.fontStyle = FontStyles.Bold;
+            expXpTMP.alignment = TextAlignmentOptions.Center;
+            expXpTMP.enableWordWrapping = false;
+            expXpTextGO.SetActive(false);
+
+            // Level badge above the EXP orb (hidden by default, shown on click)
+            var expLvBadge = new GameObject("Level_Badge", typeof(RectTransform));
+            expLvBadge.transform.SetParent(expOrbContainer.transform, false);
+            var expLvBadgeRT = expLvBadge.GetComponent<RectTransform>();
+            expLvBadgeRT.anchorMin = new Vector2(0.5f, 1f);
+            expLvBadgeRT.anchorMax = new Vector2(0.5f, 1f);
+            expLvBadgeRT.pivot = new Vector2(0.5f, 0f);
+            expLvBadgeRT.anchoredPosition = new Vector2(0, 32);
+            expLvBadgeRT.sizeDelta = new Vector2(80, 28);
+            var expLvTMP = expLvBadge.AddComponent<TextMeshProUGUI>();
+            expLvTMP.text = "Lv.1";
+            expLvTMP.fontSize = 20;
+            expLvTMP.color = new Color(1f, 0.84f, 0f, 1f);
+            expLvTMP.fontStyle = FontStyles.Bold;
+            expLvTMP.alignment = TextAlignmentOptions.Center;
+            expLvBadge.SetActive(false);
 
             // =============================================
             // Revive Overlay — centered banner rectangle, hidden by default
@@ -887,18 +921,28 @@ namespace ConquerChronicles.Editor
             hudSO.FindProperty("_mpFill").objectReferenceValue = mpFillImg;
             hudSO.FindProperty("_orbText").objectReferenceValue = orbTMP;
             hudSO.FindProperty("_xpFill").objectReferenceValue = xpFillImg;
-            hudSO.FindProperty("_levelText").objectReferenceValue = levelTMP;
-            hudSO.FindProperty("_killCountText").objectReferenceValue = killTMP;
+            hudSO.FindProperty("_xpText").objectReferenceValue = expXpTMP;
+            hudSO.FindProperty("_levelText").objectReferenceValue = expLvTMP;
+
             hudSO.FindProperty("_reviveOverlay").objectReferenceValue = reviveOverlay;
             hudSO.FindProperty("_reviveTimerText").objectReferenceValue = reviveTMP;
             var skillIconsProp = hudSO.FindProperty("_skillSlotIcons");
             skillIconsProp.arraySize = 4;
             for (int i = 0; i < 4; i++)
                 skillIconsProp.GetArrayElementAtIndex(i).objectReferenceValue = skillIcons[i];
+            hudSO.FindProperty("_orbButton").objectReferenceValue = orbBtn;
+            hudSO.FindProperty("_expOrbButton").objectReferenceValue = expBtn;
+            hudSO.FindProperty("_orbTextGO").objectReferenceValue = orbTextGO;
+            hudSO.FindProperty("_expTextGO").objectReferenceValue = expXpTextGO;
+            hudSO.FindProperty("_levelTextGO").objectReferenceValue = expLvBadge;
             hudSO.FindProperty("_equipmentButton").objectReferenceValue = navBtns[0];
             hudSO.FindProperty("_inventoryButton").objectReferenceValue = navBtns[1];
             hudSO.FindProperty("_mineButton").objectReferenceValue = navBtns[2];
             hudSO.FindProperty("_marketButton").objectReferenceValue = navBtns[3];
+            hudSO.FindProperty("_equipmentIcon").objectReferenceValue = navIcons[0];
+            hudSO.FindProperty("_inventoryIcon").objectReferenceValue = navIcons[1];
+            hudSO.FindProperty("_mineIcon").objectReferenceValue = navIcons[2];
+            hudSO.FindProperty("_marketIcon").objectReferenceValue = navIcons[3];
             hudSO.ApplyModifiedPropertiesWithoutUndo();
 
             return hud;
@@ -965,7 +1009,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 0f;
 
             // Center text container with CanvasGroup for fading
             var containerGO = new GameObject("AnnouncerContainer", typeof(RectTransform));
@@ -1015,7 +1059,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 0f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
             // Dark overlay panel

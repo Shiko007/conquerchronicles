@@ -4,7 +4,7 @@ namespace ConquerChronicles.Core.Character
     {
         public CharacterClass Class;
         public int Level;
-        public int XP;
+        public long XP;
         public int CurrentHP;
         public int CurrentMP;
         public int StatPointsAvailable;

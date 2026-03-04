@@ -30,7 +30,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 0f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
             // Content container (no SafeAreaHandler — it overrides anchors in sub-scenes)
@@ -42,49 +42,34 @@ namespace ConquerChronicles.Editor
             safeAreaRT.offsetMin = Vector2.zero;
             safeAreaRT.offsetMax = new Vector2(0, -120); // safe area: clears dynamic island / notch
             var contentBgImg = safeAreaGO.AddComponent<Image>();
-            contentBgImg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
+            UIAtlasHelper.SetSlicedPanel(contentBgImg, new Color(0.85f, 0.85f, 0.9f, 0.92f));
+            var safeAreaContent = UIAtlasHelper.CreatePanelContent(safeAreaGO.transform);
 
             // ============================================================
             // HEADER
             // ============================================================
 
-            // Title text - centered at top
-            var titleGO = CreateUIText(safeAreaGO.transform, "TitleText", "MINING",
+            var titleGO = CreateUIText(safeAreaContent, "TitleText", "",
                 new Vector2(0, 1), new Vector2(1, 1),
-                new Vector2(0, -20), new Vector2(0, 70), 48);
-            var titleRT = titleGO.GetComponent<RectTransform>();
-            titleRT.anchorMin = new Vector2(0, 1);
-            titleRT.anchorMax = new Vector2(1, 1);
-            titleRT.pivot = new Vector2(0.5f, 1);
-            titleRT.anchoredPosition = new Vector2(0, -20);
-            titleRT.sizeDelta = new Vector2(0, 70);
+                Vector2.zero, new Vector2(0, 0), 1);
             var titleTMP = titleGO.GetComponent<TextMeshProUGUI>();
-            titleTMP.alignment = TextAlignmentOptions.Center;
-            titleTMP.fontStyle = FontStyles.Bold;
-            titleTMP.color = new Color(1f, 0.85f, 0.2f, 1f); // gold
 
-            // Close button (X) — top-right corner
+            // Close button (X) — top-right edge of panel
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
             backBtnGO.transform.SetParent(safeAreaGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
             backBtnRT.anchorMin = new Vector2(1, 1);
             backBtnRT.anchorMax = new Vector2(1, 1);
             backBtnRT.pivot = new Vector2(1, 1);
-            backBtnRT.anchoredPosition = new Vector2(-10, -10);
+            backBtnRT.anchoredPosition = Vector2.zero;
             backBtnRT.sizeDelta = new Vector2(50, 50);
             var backBtnImg = backBtnGO.AddComponent<Image>();
-            backBtnImg.color = new Color(0.3f, 0.15f, 0.15f, 0.9f);
             var backBtn = backBtnGO.AddComponent<Button>();
             backBtn.targetGraphic = backBtnImg;
-
-            var backBtnTextGO = CreateUIText(backBtnGO.transform, "BackText", "X",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 28);
-            var backBtnTMP = backBtnTextGO.GetComponent<TextMeshProUGUI>();
-            backBtnTMP.alignment = TextAlignmentOptions.Center;
-            backBtnTMP.fontStyle = FontStyles.Bold;
+            UIAtlasHelper.SetXButton(backBtn, backBtnImg);
 
             // Instruction text
-            var instructionGO = CreateUIText(safeAreaGO.transform, "InstructionText",
+            var instructionGO = CreateUIText(safeAreaContent, "InstructionText",
                 "Select which mine to teleport to",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -92), new Vector2(0, 30), 20);
@@ -103,7 +88,7 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var gridPanelGO = new GameObject("MineGridPanel", typeof(RectTransform));
-            gridPanelGO.transform.SetParent(safeAreaGO.transform, false);
+            gridPanelGO.transform.SetParent(safeAreaContent, false);
             var gridPanelRT = gridPanelGO.GetComponent<RectTransform>();
             gridPanelRT.anchorMin = new Vector2(0, 0.15f);
             gridPanelRT.anchorMax = new Vector2(1, 0.87f);
@@ -145,17 +130,18 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var activePanelGO = new GameObject("ActiveMiningPanel", typeof(RectTransform));
-            activePanelGO.transform.SetParent(safeAreaGO.transform, false);
+            activePanelGO.transform.SetParent(safeAreaContent, false);
             var activePanelRT = activePanelGO.GetComponent<RectTransform>();
             activePanelRT.anchorMin = new Vector2(0, 0);
             activePanelRT.anchorMax = new Vector2(1, 0.15f);
             activePanelRT.offsetMin = Vector2.zero;
             activePanelRT.offsetMax = Vector2.zero;
             var activePanelImg = activePanelGO.AddComponent<Image>();
-            activePanelImg.color = new Color(0.08f, 0.08f, 0.14f, 0.95f);
+            UIAtlasHelper.SetSlicedPanel(activePanelImg);
+            var activePanelContent = UIAtlasHelper.CreatePanelContent(activePanelGO.transform);
 
             // Active mine name
-            var activeMineNameGO = CreateUIText(activePanelGO.transform, "ActiveMineName", "Mine Name",
+            var activeMineNameGO = CreateUIText(activePanelContent, "ActiveMineName", "Mine Name",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -5), new Vector2(0, 40), 28);
             var activeMineNameRT = activeMineNameGO.GetComponent<RectTransform>();
@@ -170,7 +156,7 @@ namespace ConquerChronicles.Editor
             activeMineNameTMP.fontStyle = FontStyles.Bold;
 
             // Progress bar background
-            var progressBgGO = CreateUIImage(activePanelGO.transform, "ProgressBG",
+            var progressBgGO = CreateUIImage(activePanelContent, "ProgressBG",
                 new Vector2(0.05f, 0.35f), new Vector2(0.7f, 0.65f),
                 Vector2.zero, Vector2.zero,
                 new Color(0.15f, 0.15f, 0.2f, 1f));
@@ -198,19 +184,20 @@ namespace ConquerChronicles.Editor
 
             // Collect button
             var collectBtnGO = new GameObject("CollectButton", typeof(RectTransform));
-            collectBtnGO.transform.SetParent(activePanelGO.transform, false);
+            collectBtnGO.transform.SetParent(activePanelContent, false);
             var collectBtnRT = collectBtnGO.GetComponent<RectTransform>();
             collectBtnRT.anchorMin = new Vector2(0.72f, 0.2f);
             collectBtnRT.anchorMax = new Vector2(0.95f, 0.8f);
             collectBtnRT.offsetMin = Vector2.zero;
             collectBtnRT.offsetMax = Vector2.zero;
             var collectBtnImg = collectBtnGO.AddComponent<Image>();
-            collectBtnImg.color = new Color(0.85f, 0.7f, 0.1f, 1f); // gold
             var collectBtn = collectBtnGO.AddComponent<Button>();
             collectBtn.targetGraphic = collectBtnImg;
             collectBtn.interactable = false;
+            UIAtlasHelper.SetSpriteSwapButton(collectBtn, collectBtnImg, "Button_Unpressed", "Button_Pressed");
+            var collectBtnContent = UIAtlasHelper.CreateButtonContent(collectBtnGO.transform, 60f);
 
-            var collectBtnTextGO = CreateUIText(collectBtnGO.transform, "CollectText", "Mining...",
+            var collectBtnTextGO = CreateUIText(collectBtnContent, "CollectText", "Mining...",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 22);
             var collectBtnTMP = collectBtnTextGO.GetComponent<TextMeshProUGUI>();
             collectBtnTMP.alignment = TextAlignmentOptions.Center;
@@ -224,7 +211,7 @@ namespace ConquerChronicles.Editor
 
             // Backdrop (full-screen semi-transparent)
             var yieldPanelGO = new GameObject("YieldPanel", typeof(RectTransform));
-            yieldPanelGO.transform.SetParent(safeAreaGO.transform, false);
+            yieldPanelGO.transform.SetParent(safeAreaContent, false);
             var yieldPanelRT = yieldPanelGO.GetComponent<RectTransform>();
             yieldPanelRT.anchorMin = Vector2.zero;
             yieldPanelRT.anchorMax = Vector2.one;
@@ -242,10 +229,11 @@ namespace ConquerChronicles.Editor
             yieldInnerRT.offsetMin = Vector2.zero;
             yieldInnerRT.offsetMax = Vector2.zero;
             var yieldInnerImg = yieldInnerGO.AddComponent<Image>();
-            yieldInnerImg.color = new Color(0.08f, 0.08f, 0.14f, 0.95f);
+            UIAtlasHelper.SetSlicedPanel(yieldInnerImg);
+            var yieldInnerContent = UIAtlasHelper.CreatePanelContent(yieldInnerGO.transform);
 
             // Yield title
-            var yieldTitleGO = CreateUIText(yieldInnerGO.transform, "YieldTitle", "Mining Results",
+            var yieldTitleGO = CreateUIText(yieldInnerContent, "YieldTitle", "Mining Results",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -10), new Vector2(0, 60), 36);
             var yieldTitleRT = yieldTitleGO.GetComponent<RectTransform>();
@@ -260,7 +248,7 @@ namespace ConquerChronicles.Editor
             yieldTitleTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
             // Gold text
-            var yieldGoldGO = CreateUIText(yieldInnerGO.transform, "YieldGoldText", "Gold: +0",
+            var yieldGoldGO = CreateUIText(yieldInnerContent, "YieldGoldText", "Gold: +0",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(20, -80), new Vector2(-40, 40), 26);
             var yieldGoldRT = yieldGoldGO.GetComponent<RectTransform>();
@@ -271,7 +259,7 @@ namespace ConquerChronicles.Editor
             yieldGoldRT.sizeDelta = new Vector2(-40, 40);
 
             // Gems text
-            var yieldGemsGO = CreateUIText(yieldInnerGO.transform, "YieldGemsText", "Gems:\n  ...",
+            var yieldGemsGO = CreateUIText(yieldInnerContent, "YieldGemsText", "Gems:\n  ...",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(20, -130), new Vector2(-40, 120), 22);
             var yieldGemsRT = yieldGemsGO.GetComponent<RectTransform>();
@@ -282,7 +270,7 @@ namespace ConquerChronicles.Editor
             yieldGemsRT.sizeDelta = new Vector2(-40, 120);
 
             // Ores text
-            var yieldOresGO = CreateUIText(yieldInnerGO.transform, "YieldOresText", "Ores:\n  ...",
+            var yieldOresGO = CreateUIText(yieldInnerContent, "YieldOresText", "Ores:\n  ...",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(20, -260), new Vector2(-40, 120), 22);
             var yieldOresRT = yieldOresGO.GetComponent<RectTransform>();
@@ -294,7 +282,7 @@ namespace ConquerChronicles.Editor
 
             // Close button
             var yieldCloseBtnGO = new GameObject("YieldCloseButton", typeof(RectTransform));
-            yieldCloseBtnGO.transform.SetParent(yieldInnerGO.transform, false);
+            yieldCloseBtnGO.transform.SetParent(yieldInnerContent, false);
             var yieldCloseBtnRT = yieldCloseBtnGO.GetComponent<RectTransform>();
             yieldCloseBtnRT.anchorMin = new Vector2(0.2f, 0);
             yieldCloseBtnRT.anchorMax = new Vector2(0.8f, 0);
@@ -302,11 +290,12 @@ namespace ConquerChronicles.Editor
             yieldCloseBtnRT.anchoredPosition = new Vector2(0, 20);
             yieldCloseBtnRT.sizeDelta = new Vector2(0, 60);
             var yieldCloseBtnImg = yieldCloseBtnGO.AddComponent<Image>();
-            yieldCloseBtnImg.color = new Color(0.2f, 0.5f, 0.2f, 1f);
             var yieldCloseBtn = yieldCloseBtnGO.AddComponent<Button>();
             yieldCloseBtn.targetGraphic = yieldCloseBtnImg;
+            UIAtlasHelper.SetSpriteSwapButton(yieldCloseBtn, yieldCloseBtnImg, "Button_Unpressed", "Button_Pressed");
+            var yieldCloseBtnContent = UIAtlasHelper.CreateButtonContent(yieldCloseBtnGO.transform, 60f);
 
-            var yieldCloseBtnTextGO = CreateUIText(yieldCloseBtnGO.transform, "CloseText", "Close",
+            var yieldCloseBtnTextGO = CreateUIText(yieldCloseBtnContent, "CloseText", "Close",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 28);
             var yieldCloseBtnTMP = yieldCloseBtnTextGO.GetComponent<TextMeshProUGUI>();
             yieldCloseBtnTMP.alignment = TextAlignmentOptions.Center;
@@ -373,12 +362,13 @@ namespace ConquerChronicles.Editor
             cardGO.transform.SetParent(parent, false);
 
             var bgImg = cardGO.AddComponent<Image>();
-            bgImg.color = new Color(0.12f, 0.12f, 0.18f, 0.9f);
+            UIAtlasHelper.SetSlicedPanel(bgImg);
+            var cardContent = UIAtlasHelper.CreatePanelContent(cardGO.transform);
             var startBtn = cardGO.AddComponent<Button>();
             startBtn.targetGraphic = bgImg;
 
             // Mine name (bold, top)
-            var nameGO = CreateStretchText(cardGO.transform, "NameText", mine.Name,
+            var nameGO = CreateStretchText(cardContent, "NameText", mine.Name,
                 15, -15, -6, 30, 22);
             var nameTMP = nameGO.GetComponent<TextMeshProUGUI>();
             nameTMP.fontStyle = FontStyles.Bold;
@@ -389,19 +379,19 @@ namespace ConquerChronicles.Editor
             int mins = (mine.DurationSeconds % 3600) / 60;
             string durationStr = hours > 0 ? $"{hours}h {mins}m" : $"{mins}m";
 
-            var levelGO = CreateStretchText(cardGO.transform, "LevelText", $"Lv.{mine.RequiredLevel}",
+            var levelGO = CreateStretchText(cardContent, "LevelText", $"Lv.{mine.RequiredLevel}",
                 15, -15, -38, 22, 16);
             var levelTMP = levelGO.GetComponent<TextMeshProUGUI>();
             levelTMP.alignment = TextAlignmentOptions.Center;
 
-            var durationGO = CreateStretchText(cardGO.transform, "DurationText", durationStr,
+            var durationGO = CreateStretchText(cardContent, "DurationText", durationStr,
                 15, -15, -58, 22, 16);
             var durationTMP = durationGO.GetComponent<TextMeshProUGUI>();
             durationTMP.alignment = TextAlignmentOptions.Center;
             durationTMP.color = new Color(0.8f, 0.8f, 0.6f, 1f);
 
             // Gold range
-            var goldGO = CreateStretchText(cardGO.transform, "GoldRange", $"{mine.MinGold}-{mine.MaxGold} Gold",
+            var goldGO = CreateStretchText(cardContent, "GoldRange", $"{mine.MinGold}-{mine.MaxGold} Gold",
                 15, -15, -80, 22, 16);
             var goldTMP = goldGO.GetComponent<TextMeshProUGUI>();
             goldTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
@@ -409,7 +399,7 @@ namespace ConquerChronicles.Editor
 
             // Hidden status text (MineCardUI uses this for "Locked"/"Mining..." display)
             var statusGO = new GameObject("StatusText", typeof(RectTransform));
-            statusGO.transform.SetParent(cardGO.transform, false);
+            statusGO.transform.SetParent(cardContent, false);
             var statusRT = statusGO.GetComponent<RectTransform>();
             statusRT.anchorMin = Vector2.zero;
             statusRT.anchorMax = Vector2.one;

@@ -30,7 +30,7 @@ namespace ConquerChronicles.Core.Inventory
     public class InventoryState
     {
         public const int EquipmentSlotCount = 7;
-        public const int BagCapacity = 50;
+        public const int BagCapacity = 42;
 
         public EquipmentInstance[] EquippedItems { get; private set; }
         public List<BagItem> Bag { get; private set; }

@@ -187,7 +187,6 @@ namespace ConquerChronicles.Gameplay.Equipment
                 switch (statName)
                 {
                     case "Vitality":  _saveData.Vitality++; break;
-                    case "Mana":      _saveData.Mana++; break;
                     case "Strength":  _saveData.Strength++; break;
                     case "Agility":   _saveData.Agility++; break;
                     case "Spirit":    _saveData.Spirit++; break;
@@ -201,6 +200,10 @@ namespace ConquerChronicles.Gameplay.Equipment
 
             // Initialize UI and refresh
             _equipmentUI.Initialize();
+
+            // Set character idle animation
+            _equipmentUI.SetCharacterPreview("Male_Base_SIdle_");
+
             RefreshAll();
         }
 
@@ -209,8 +212,8 @@ namespace ConquerChronicles.Gameplay.Equipment
             _equipmentUI.RefreshEquippedSlots(_inventory.EquippedItems);
 
             var totalStats = ComputeTotalStats();
-            _equipmentUI.RefreshStats(_playerClass, _playerLevel, _saveData.CharacterXP, totalStats,
-                _saveData.StatPointsAvailable, _saveData.Vitality, _saveData.Mana,
+            _equipmentUI.RefreshStats(_playerClass, _playerLevel, totalStats,
+                _saveData.StatPointsAvailable, _saveData.Vitality,
                 _saveData.Strength, _saveData.Agility, _saveData.Spirit);
         }
 

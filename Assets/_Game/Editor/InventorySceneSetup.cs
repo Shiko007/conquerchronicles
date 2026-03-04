@@ -9,7 +9,6 @@ namespace ConquerChronicles.Editor
 {
     public static class InventorySceneSetup
     {
-        private const float SlotSize = 130f;
         private const float HeaderHeight = 60f;
 
         [MenuItem("Conquer Chronicles/Setup Inventory Scene")]
@@ -33,22 +32,20 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 0f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
-            // Constrain the entire canvas content to the bottom half.
-            // The canvas RectTransform itself is managed by Unity for ScreenSpaceOverlay,
-            // so we use a child container anchored to the bottom 50%.
-            var bottomHalfGO = new GameObject("BottomHalfContainer", typeof(RectTransform));
+            // Full screen container
+            var bottomHalfGO = new GameObject("ContentContainer", typeof(RectTransform));
             bottomHalfGO.transform.SetParent(canvasGO.transform, false);
             var bottomHalfRT = bottomHalfGO.GetComponent<RectTransform>();
-            // Bottom edge sits above the HP orb (orb top ≈ 220px out of 1920 ≈ 0.115 anchor).
-            bottomHalfRT.anchorMin = new Vector2(0, 0.18f); // clears HP orb on 4:3 and taller
-            bottomHalfRT.anchorMax = new Vector2(1, 0.5f);
+            bottomHalfRT.anchorMin = new Vector2(0, 0.18f);
+            bottomHalfRT.anchorMax = Vector2.one;
             bottomHalfRT.offsetMin = Vector2.zero;
-            bottomHalfRT.offsetMax = Vector2.zero;
+            bottomHalfRT.offsetMax = new Vector2(0, -120); // safe area: clears dynamic island / notch
             var bottomHalfImg = bottomHalfGO.AddComponent<Image>();
-            bottomHalfImg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
+            UIAtlasHelper.SetSlicedPanel(bottomHalfImg, new Color(0.85f, 0.85f, 0.9f, 0.92f));
+            var bottomHalfContent = UIAtlasHelper.CreatePanelContent(bottomHalfGO.transform);
 
             // No SafeAreaHandler here — it overrides anchors to fill the safe area,
             // which would break our bottom-half constraint.
@@ -58,7 +55,7 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var headerGO = new GameObject("Header", typeof(RectTransform));
-            headerGO.transform.SetParent(bottomHalfGO.transform, false);
+            headerGO.transform.SetParent(bottomHalfContent, false);
             var headerRT = headerGO.GetComponent<RectTransform>();
             headerRT.anchorMin = new Vector2(0, 1);
             headerRT.anchorMax = new Vector2(1, 1);
@@ -66,124 +63,77 @@ namespace ConquerChronicles.Editor
             headerRT.anchoredPosition = Vector2.zero;
             headerRT.sizeDelta = new Vector2(0, HeaderHeight);
 
-            // Title text — centered in header
-            var titleGO = CreateUIText(headerGO.transform, "TitleText", "INVENTORY",
-                new Vector2(0, 0), new Vector2(1, 1),
-                Vector2.zero, Vector2.zero, 32);
-            var titleRT = titleGO.GetComponent<RectTransform>();
-            titleRT.anchorMin = Vector2.zero;
-            titleRT.anchorMax = Vector2.one;
-            titleRT.offsetMin = Vector2.zero;
-            titleRT.offsetMax = Vector2.zero;
+            var titleGO = CreateUIText(headerGO.transform, "TitleText", "",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 1);
             var titleTMP = titleGO.GetComponent<TextMeshProUGUI>();
-            titleTMP.alignment = TextAlignmentOptions.Center;
-            titleTMP.fontStyle = FontStyles.Bold;
-            titleTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
-            // Close button (X) — right side of header
+            // Close button (X) — top-right edge of panel
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
-            backBtnGO.transform.SetParent(headerGO.transform, false);
+            backBtnGO.transform.SetParent(bottomHalfGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
-            backBtnRT.anchorMin = new Vector2(1, 0);
+            backBtnRT.anchorMin = new Vector2(1, 1);
             backBtnRT.anchorMax = new Vector2(1, 1);
-            backBtnRT.pivot = new Vector2(1, 0.5f);
-            backBtnRT.anchoredPosition = new Vector2(-10, 0);
-            backBtnRT.sizeDelta = new Vector2(50, 0);
+            backBtnRT.pivot = new Vector2(1, 1);
+            backBtnRT.anchoredPosition = Vector2.zero;
+            backBtnRT.sizeDelta = new Vector2(50, 50);
             var backBtnImg = backBtnGO.AddComponent<Image>();
-            backBtnImg.color = new Color(0.3f, 0.15f, 0.15f, 0.9f);
             var backBtn = backBtnGO.AddComponent<Button>();
             backBtn.targetGraphic = backBtnImg;
-            var backBtnTextGO = CreateUIText(backBtnGO.transform, "BackText", "X",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 26);
-            var backBtnTMP = backBtnTextGO.GetComponent<TextMeshProUGUI>();
-            backBtnTMP.alignment = TextAlignmentOptions.Center;
-            backBtnTMP.fontStyle = FontStyles.Bold;
+            UIAtlasHelper.SetXButton(backBtn, backBtnImg);
 
-            // Gold text — right side of header, left of X button
-            var goldGO = CreateUIText(headerGO.transform, "GoldText", "0 Gold",
-                new Vector2(1, 0), new Vector2(1, 1),
-                new Vector2(-65, 0), new Vector2(160, 0), 22);
+            // Gold counter — bottom-center of panel (icon + number)
+            var goldBarGO = new GameObject("GoldBar", typeof(RectTransform));
+            goldBarGO.transform.SetParent(bottomHalfContent, false);
+            var goldBarRT = goldBarGO.GetComponent<RectTransform>();
+            goldBarRT.anchorMin = new Vector2(0.5f, 0);
+            goldBarRT.anchorMax = new Vector2(0.5f, 0);
+            goldBarRT.pivot = new Vector2(0.5f, 0);
+            goldBarRT.anchoredPosition = new Vector2(0, 4);
+            goldBarRT.sizeDelta = new Vector2(160, 32);
+            var goldBarLayout = goldBarGO.AddComponent<HorizontalLayoutGroup>();
+            goldBarLayout.childAlignment = TextAnchor.MiddleCenter;
+            goldBarLayout.spacing = 4;
+            goldBarLayout.childForceExpandWidth = false;
+            goldBarLayout.childForceExpandHeight = false;
+            goldBarLayout.childControlWidth = false;
+            goldBarLayout.childControlHeight = false;
+
+            // Gold icon
+            var goldIconGO = new GameObject("GoldIcon", typeof(RectTransform));
+            goldIconGO.transform.SetParent(goldBarGO.transform, false);
+            var goldIconRT = goldIconGO.GetComponent<RectTransform>();
+            goldIconRT.sizeDelta = new Vector2(28, 28);
+            var goldIconImg = goldIconGO.AddComponent<Image>();
+            UIAtlasHelper.SetSimpleSprite(goldIconImg, "Gold");
+            goldIconImg.raycastTarget = false;
+
+            // Gold text (number only)
+            var goldGO = CreateUIText(goldBarGO.transform, "GoldText", "0",
+                Vector2.zero, Vector2.one, Vector2.zero, new Vector2(100, 28), 22);
             var goldRT = goldGO.GetComponent<RectTransform>();
-            goldRT.anchorMin = new Vector2(1, 0);
-            goldRT.anchorMax = new Vector2(1, 1);
-            goldRT.pivot = new Vector2(1, 0.5f);
-            goldRT.anchoredPosition = new Vector2(-65, 0);
-            goldRT.sizeDelta = new Vector2(160, 0);
+            goldRT.sizeDelta = new Vector2(100, 28);
             var goldTMP = goldGO.GetComponent<TextMeshProUGUI>();
-            goldTMP.alignment = TextAlignmentOptions.Right;
+            goldTMP.alignment = TextAlignmentOptions.Left;
             goldTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
-            // Bag count text — centered below title, small sub-line
-            var bagCountGO = CreateUIText(bottomHalfGO.transform, "BagCountText", "Bag: 0/50",
-                new Vector2(0, 1), new Vector2(1, 1),
-                new Vector2(0, -HeaderHeight), new Vector2(0, 28), 20);
-            var bagCountRT = bagCountGO.GetComponent<RectTransform>();
-            bagCountRT.anchorMin = new Vector2(0, 1);
-            bagCountRT.anchorMax = new Vector2(1, 1);
-            bagCountRT.pivot = new Vector2(0.5f, 1);
-            bagCountRT.anchoredPosition = new Vector2(0, -HeaderHeight);
-            bagCountRT.sizeDelta = new Vector2(0, 28);
-            var bagCountTMP = bagCountGO.GetComponent<TextMeshProUGUI>();
-            bagCountTMP.alignment = TextAlignmentOptions.Center;
-            bagCountTMP.fontStyle = FontStyles.Bold;
-
             // ============================================================
-            // BAG GRID (vertical scrolling, 5 columns x 10 rows)
+            // BAG GRID — anchor-based, no scroll, fills available area
             // ============================================================
 
-            var bagPanelGO = CreateUIImage(bottomHalfGO.transform, "BagPanel",
-                new Vector2(0, 0), new Vector2(1, 1),
-                Vector2.zero, Vector2.zero,
-                new Color(0.1f, 0.1f, 0.15f, 0.9f));
-            var bagPanelRT = bagPanelGO.GetComponent<RectTransform>();
-            bagPanelRT.anchorMin = Vector2.zero;
-            bagPanelRT.anchorMax = Vector2.one;
-            bagPanelRT.pivot = new Vector2(0.5f, 0.5f);
-            bagPanelRT.offsetMin = new Vector2(10, 8);
-            bagPanelRT.offsetMax = new Vector2(-10, -(HeaderHeight + 28 + 4));
-
-            var bagScrollGO = new GameObject("BagScroll", typeof(RectTransform));
-            bagScrollGO.transform.SetParent(bagPanelGO.transform, false);
-            var bagScrollRT = bagScrollGO.GetComponent<RectTransform>();
-            bagScrollRT.anchorMin = Vector2.zero;
-            bagScrollRT.anchorMax = Vector2.one;
-            bagScrollRT.offsetMin = Vector2.zero;
-            bagScrollRT.offsetMax = Vector2.zero;
-            var bagScrollRect = bagScrollGO.AddComponent<ScrollRect>();
-            bagScrollRect.horizontal = false;
-            bagScrollRect.vertical = true;
-            bagScrollGO.AddComponent<RectMask2D>();
-
-            // Content anchored to top, grows downward
             var bagContentGO = new GameObject("BagContent", typeof(RectTransform));
-            bagContentGO.transform.SetParent(bagScrollGO.transform, false);
+            bagContentGO.transform.SetParent(bottomHalfContent, false);
             var bagContentRT = bagContentGO.GetComponent<RectTransform>();
-            bagContentRT.anchorMin = new Vector2(0, 1);
-            bagContentRT.anchorMax = new Vector2(1, 1);
-            bagContentRT.pivot = new Vector2(0.5f, 1);
-            bagContentRT.anchoredPosition = Vector2.zero;
-            bagContentRT.sizeDelta = new Vector2(0, 0);
-            var contentFitter = bagContentGO.AddComponent<ContentSizeFitter>();
-            contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-
-            var bagGridLayout = bagContentGO.AddComponent<GridLayoutGroup>();
-            bagGridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
-            bagGridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            bagGridLayout.constraintCount = 5;
-            bagGridLayout.cellSize = new Vector2(SlotSize, SlotSize);
-            bagGridLayout.spacing = new Vector2(8, 8);
-            bagGridLayout.padding = new RectOffset(5, 5, 5, 5);
-            bagGridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
-            bagGridLayout.childAlignment = TextAnchor.UpperCenter;
-
-            bagScrollRect.content = bagContentRT;
+            bagContentRT.anchorMin = Vector2.zero;
+            bagContentRT.anchorMax = Vector2.one;
+            bagContentRT.offsetMin = new Vector2(0, 36); // room for gold bar at bottom
+            bagContentRT.offsetMax = new Vector2(0, -HeaderHeight);
 
             // ============================================================
             // ITEM DETAIL PANEL (overlay, constrained within bottom-half)
             // ============================================================
 
             var detailPanelGO = new GameObject("DetailPanel", typeof(RectTransform));
-            detailPanelGO.transform.SetParent(bottomHalfGO.transform, false);
+            detailPanelGO.transform.SetParent(bottomHalfContent, false);
             var detailPanelRT = detailPanelGO.GetComponent<RectTransform>();
             detailPanelRT.anchorMin = Vector2.zero;
             detailPanelRT.anchorMax = Vector2.one;
@@ -198,10 +148,12 @@ namespace ConquerChronicles.Editor
             detailInnerRT.anchorMax = new Vector2(0.95f, 0.95f);
             detailInnerRT.offsetMin = Vector2.zero;
             detailInnerRT.offsetMax = Vector2.zero;
-            detailInnerGO.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.14f, 0.95f);
+            var detailInnerImg = detailInnerGO.AddComponent<Image>();
+            UIAtlasHelper.SetSlicedPanel(detailInnerImg);
+            var detailInnerContent = UIAtlasHelper.CreatePanelContent(detailInnerGO.transform);
 
             // Item name
-            var itemNameGO = CreateUIText(detailInnerGO.transform, "ItemNameText", "Item Name",
+            var itemNameGO = CreateUIText(detailInnerContent, "ItemNameText", "Item Name",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -10), new Vector2(0, 40), 28);
             var itemNameRT = itemNameGO.GetComponent<RectTransform>();
@@ -216,7 +168,7 @@ namespace ConquerChronicles.Editor
             itemNameTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
             // Item stats
-            var itemStatsGO = CreateUIText(detailInnerGO.transform, "ItemStatsText", "Stats...",
+            var itemStatsGO = CreateUIText(detailInnerContent, "ItemStatsText", "Stats...",
                 new Vector2(0, 1), new Vector2(0.5f, 1),
                 new Vector2(15, -55), new Vector2(0, 150), 18);
             var itemStatsRT = itemStatsGO.GetComponent<RectTransform>();
@@ -228,7 +180,7 @@ namespace ConquerChronicles.Editor
             itemStatsGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.TopLeft;
 
             // Item info
-            var itemInfoGO = CreateUIText(detailInnerGO.transform, "ItemInfoText", "Quality: Normal\nReq Lv: 1\nSockets: 0/0",
+            var itemInfoGO = CreateUIText(detailInnerContent, "ItemInfoText", "Quality: Normal\nReq Lv: 1\nSockets: 0/0",
                 new Vector2(0.5f, 1), new Vector2(1, 1),
                 new Vector2(10, -55), new Vector2(-15, 150), 18);
             var itemInfoRT = itemInfoGO.GetComponent<RectTransform>();
@@ -240,22 +192,26 @@ namespace ConquerChronicles.Editor
             itemInfoGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.TopLeft;
 
             // Equip button
-            var equipBtnGO = CreateButton(detailInnerGO.transform, "EquipButton",
-                new Vector2(0, 70), new Vector2(0, 45), new Color(0.2f, 0.4f, 0.75f, 1f));
+            var equipBtnGO = CreateButton(detailInnerContent, "EquipButton",
+                new Vector2(0, 70), new Vector2(0, 45), Color.white);
             var equipBtn = equipBtnGO.GetComponent<Button>();
-            var equipBtnTextGO = CreateUIText(equipBtnGO.transform, "EquipText", "Equip",
+            UIAtlasHelper.SetSpriteSwapButton(equipBtn, equipBtnGO.GetComponent<Image>(), "Button_Unpressed", "Button_Pressed");
+            var equipBtnContent = UIAtlasHelper.CreateButtonContent(equipBtnGO.transform, 45f);
+            var equipBtnTextGO = CreateUIText(equipBtnContent, "EquipText", "Equip",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 24);
             var equipBtnTMP = equipBtnTextGO.GetComponent<TextMeshProUGUI>();
             equipBtnTMP.alignment = TextAlignmentOptions.Center;
             equipBtnTMP.fontStyle = FontStyles.Bold;
 
             // Close button
-            var closeBtnGO = CreateButton(detailInnerGO.transform, "CloseDetailButton",
-                new Vector2(0, 12), new Vector2(0, 40), new Color(0.35f, 0.35f, 0.4f, 1f));
+            var closeBtnGO = CreateButton(detailInnerContent, "CloseDetailButton",
+                new Vector2(0, 12), new Vector2(0, 40), Color.white);
             closeBtnGO.GetComponent<RectTransform>().anchorMin = new Vector2(0.2f, 0);
             closeBtnGO.GetComponent<RectTransform>().anchorMax = new Vector2(0.8f, 0);
             var closeBtn = closeBtnGO.GetComponent<Button>();
-            var closeBtnTextGO = CreateUIText(closeBtnGO.transform, "CloseText", "Close",
+            UIAtlasHelper.SetSpriteSwapButton(closeBtnGO.GetComponent<Button>(), closeBtnGO.GetComponent<Image>(), "Button_Unpressed", "Button_Pressed");
+            var closeBtnContent = UIAtlasHelper.CreateButtonContent(closeBtnGO.transform, 40f);
+            var closeBtnTextGO = CreateUIText(closeBtnContent, "CloseText", "Close",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 22);
             closeBtnTextGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
 
@@ -272,7 +228,6 @@ namespace ConquerChronicles.Editor
             uiSO.FindProperty("_backButton").objectReferenceValue = backBtn;
             uiSO.FindProperty("_goldText").objectReferenceValue = goldTMP;
             uiSO.FindProperty("_bagContainer").objectReferenceValue = bagContentGO.transform;
-            uiSO.FindProperty("_bagCountText").objectReferenceValue = bagCountTMP;
             uiSO.FindProperty("_detailPanel").objectReferenceValue = detailPanelGO;
             uiSO.FindProperty("_itemNameText").objectReferenceValue = itemNameTMP;
             uiSO.FindProperty("_itemStatsText").objectReferenceValue = itemStatsGO.GetComponent<TextMeshProUGUI>();

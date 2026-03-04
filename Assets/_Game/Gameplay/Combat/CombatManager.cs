@@ -26,7 +26,7 @@ namespace ConquerChronicles.Gameplay.Combat
 
         // Event for HUD updates
         public System.Action<int> OnKillCountChanged;
-        public System.Action<int, bool> OnPlayerXPGained;
+        public System.Action<long, bool> OnPlayerXPGained;
         public System.Action<EnemyView> OnEnemyKilled;
         public System.Action<int> OnPlayerDamaged; // damage amount
 

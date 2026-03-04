@@ -25,6 +25,15 @@ namespace ConquerChronicles.Gameplay.Enemy
 
         private string _lastEnemyID;
 
+        // Death delay — corpse stays visible for this duration after dying
+        private const float DeathLingerDuration = 3f;
+        private float _deathTimer = -1f;
+        /// <summary>Set by EnemySpawner to track whether the death callback has already fired.</summary>
+        public bool DeathCallbackFired;
+
+        /// <summary>True when the enemy is dead AND the linger timer has expired.</summary>
+        public bool IsReadyForRemoval => _deathTimer == 0f;
+
         private void Awake()
         {
             if (_spriteRenderer == null)
@@ -44,6 +53,8 @@ namespace ConquerChronicles.Gameplay.Enemy
 
             transform.position = spawnPosition;
             IsActive = true;
+            _deathTimer = -1f;
+            DeathCallbackFired = false;
             gameObject.SetActive(true);
             UpdateHealthBar();
 
@@ -123,9 +134,28 @@ namespace ConquerChronicles.Gameplay.Enemy
             UpdateHealthBar();
 
             if (State.IsDead)
+            {
                 PlayDeathAnim();
+                if (_deathTimer < 0f)
+                {
+                    _deathTimer = DeathLingerDuration;
+                    if (_healthBarRoot != null) _healthBarRoot.SetActive(false);
+                }
+            }
             else
+            {
                 PlayHit();
+            }
+        }
+
+        private void Update()
+        {
+            if (_deathTimer > 0f)
+            {
+                _deathTimer -= Time.deltaTime;
+                if (_deathTimer <= 0f)
+                    _deathTimer = 0f; // signals ready for removal
+            }
         }
 
         public void Deactivate()

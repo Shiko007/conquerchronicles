@@ -4,6 +4,7 @@ using TMPro;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Gameplay.Character;
 using ConquerChronicles.Gameplay.Combat;
+using ConquerChronicles.Gameplay.Animation;
 
 namespace ConquerChronicles.Gameplay.UI.HUD
 {
@@ -13,9 +14,15 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         [SerializeField] private Image _hpFill;
         [SerializeField] private Image _mpFill;
         [SerializeField] private TextMeshProUGUI _orbText;
+        [SerializeField] private Button _orbButton;
+        [SerializeField] private GameObject _orbTextGO;
 
         [Header("XP")]
         [SerializeField] private Image _xpFill;
+        [SerializeField] private TextMeshProUGUI _xpText;
+        [SerializeField] private Button _expOrbButton;
+        [SerializeField] private GameObject _expTextGO;
+        [SerializeField] private GameObject _levelTextGO;
 
         [Header("Level & Class")]
         [SerializeField] private TextMeshProUGUI _levelText;
@@ -36,6 +43,12 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         [SerializeField] private Button _mineButton;
         [SerializeField] private Button _marketButton;
 
+        [Header("Navigation Icons")]
+        [SerializeField] private Image _equipmentIcon;
+        [SerializeField] private Image _inventoryIcon;
+        [SerializeField] private Image _mineIcon;
+        [SerializeField] private Image _marketIcon;
+
         public System.Action OnEquipmentPressed;
         public System.Action OnInventoryPressed;
         public System.Action OnMinePressed;
@@ -48,7 +61,7 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         private int _lastMaxHP = -1;
         private int _lastMP = -1;
         private int _lastMaxMP = -1;
-        private int _lastXP = -1;
+        private long _lastXP = -1;
         private int _lastLevel = -1;
 
         // RectTransforms for anchor-based fill animation
@@ -76,6 +89,11 @@ namespace ConquerChronicles.Gameplay.UI.HUD
 
             if (_combatManager != null)
                 _combatManager.OnKillCountChanged += UpdateKillCount;
+
+            if (_orbButton != null)
+                _orbButton.onClick.AddListener(ToggleOrbText);
+            if (_expOrbButton != null)
+                _expOrbButton.onClick.AddListener(ToggleExpText);
 
             if (_equipmentButton != null)
                 _equipmentButton.onClick.AddListener(() => OnEquipmentPressed?.Invoke());
@@ -179,21 +197,23 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             if (_orbText != null && (hpChanged || mpChanged))
             {
                 if (_isSplitOrb)
-                    _orbText.text = $"{hp}\n{state.CurrentMP}";
+                    _orbText.text = $"HP: {hp}\nMP: {state.CurrentMP}";
                 else
-                    _orbText.text = $"{hp}";
+                    _orbText.text = $"HP: {hp}";
             }
 
             // XP / Level
-            int xp = state.XP;
+            long xp = state.XP;
             int level = state.Level;
             if (xp != _lastXP || level != _lastLevel)
             {
                 _lastXP = xp;
                 _lastLevel = level;
                 if (_levelText != null)
-                    _levelText.text = $"{level}";
-                int required = Core.Character.LevelUpTable.GetRequiredXP(level);
+                    _levelText.text = $"Lv.{level}";
+                long required = Core.Character.LevelUpTable.GetRequiredXP(level);
+                if (_xpText != null)
+                    _xpText.text = $"{xp} / {required}";
                 _xpTarget = required > 0 ? (float)xp / required : 1f;
             }
 
@@ -226,10 +246,11 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         private void ApplyXPFill(float t)
         {
             if (_xpFillRT == null) return;
+            // Bottom-up fill inside circular EXP orb mask
             _xpFillRT.anchorMin = Vector2.zero;
-            _xpFillRT.anchorMax = new Vector2(t, 1f);
-            _xpFillRT.offsetMin = new Vector2(1, 1);
-            _xpFillRT.offsetMax = new Vector2(-1, -1);
+            _xpFillRT.anchorMax = new Vector2(1f, t);
+            _xpFillRT.offsetMin = Vector2.zero;
+            _xpFillRT.offsetMax = Vector2.zero;
         }
 
         public void ShowReviveTimer(float secondsRemaining)
@@ -255,16 +276,51 @@ namespace ConquerChronicles.Gameplay.UI.HUD
                 _reviveOverlay.SetActive(false);
         }
 
+        public void SetNavIconState(string sceneName, bool isOpen)
+        {
+            string suffix = isOpen ? "_Open" : "_Closed";
+            Image icon = null;
+            string prefix = null;
+            switch (sceneName)
+            {
+                case "Equipment": icon = _equipmentIcon; prefix = "Equipment"; break;
+                case "Inventory": icon = _inventoryIcon; prefix = "Inventory"; break;
+                case "Mining":    icon = _mineIcon;      prefix = "Mining";    break;
+                case "Market":    icon = _marketIcon;     prefix = "Market";    break;
+            }
+            if (icon == null) return;
+            var sprite = SpriteAtlasLoader.GetSprite(prefix + suffix);
+            if (sprite != null) icon.sprite = sprite;
+        }
+
         private void UpdateKillCount(int count)
         {
             if (_killCountText != null)
                 _killCountText.text = $"Kills: {count}";
         }
 
+        private void ToggleOrbText()
+        {
+            if (_orbTextGO != null)
+                _orbTextGO.SetActive(!_orbTextGO.activeSelf);
+        }
+
+        private void ToggleExpText()
+        {
+            if (_expTextGO != null)
+                _expTextGO.SetActive(!_expTextGO.activeSelf);
+            if (_levelTextGO != null)
+                _levelTextGO.SetActive(!_levelTextGO.activeSelf);
+        }
+
         private void OnDestroy()
         {
             if (_combatManager != null)
                 _combatManager.OnKillCountChanged -= UpdateKillCount;
+            if (_orbButton != null)
+                _orbButton.onClick.RemoveAllListeners();
+            if (_expOrbButton != null)
+                _expOrbButton.onClick.RemoveAllListeners();
             if (_equipmentButton != null)
                 _equipmentButton.onClick.RemoveAllListeners();
             if (_inventoryButton != null)

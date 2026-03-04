@@ -37,7 +37,7 @@ namespace ConquerChronicles.Gameplay.Map
         private bool _loggedFirstUpdate;
 
         // Revive timer — player stays dead for this many seconds before auto-reviving.
-        private const float ReviveDuration = 120f;
+        private const float ReviveDuration = 20f;
         private float _reviveTimer = -1f;
 
         public AreaState AreaState => _areaState;
@@ -76,7 +76,7 @@ namespace ConquerChronicles.Gameplay.Map
 
         public void EnterArea(MapData map, AreaData area)
         {
-            Debug.Log($"[MapManager] EnterArea: {area.Name}, MaxEnemies={area.MaxConcurrentEnemies}, SpawnInterval={area.SpawnInterval}");
+            // Debug.Log($"[MapManager] EnterArea: {area.Name}, MaxEnemies={area.MaxConcurrentEnemies}, SpawnInterval={area.SpawnInterval}");
             _currentMap = map;
             _currentArea = area;
             _areaState = new AreaState(area);
@@ -94,7 +94,7 @@ namespace ConquerChronicles.Gameplay.Map
                 _player.PlayIdle();
             }
 
-            Debug.Log($"[MapManager] AreaState.IsActive={_areaState.IsActive}, EnemyPool={area.EnemyPool?.Length ?? 0} entries");
+            // Debug.Log($"[MapManager] AreaState.IsActive={_areaState.IsActive}, EnemyPool={area.EnemyPool?.Length ?? 0} entries");
             OnAreaAnnouncement?.Invoke($"Entering: {area.Name}");
         }
 
@@ -119,7 +119,7 @@ namespace ConquerChronicles.Gameplay.Map
                     // Death animation finished — despawn all enemies and start revive countdown.
                     _enemySpawner.DespawnAll();
                     _reviveTimer = ReviveDuration;
-                    Debug.Log($"[MapManager] Death anim finished. Starting {ReviveDuration}s revive timer.");
+                    // Debug.Log($"[MapManager] Death anim finished. Starting {ReviveDuration}s revive timer.");
                 }
                 return;
             }
@@ -138,13 +138,13 @@ namespace ConquerChronicles.Gameplay.Map
 
             if (!_areaState.IsActive)
             {
-                if (!_loggedFirstUpdate) { Debug.Log("[MapManager] Update: IsActive=false, skipping"); _loggedFirstUpdate = true; }
+                if (!_loggedFirstUpdate) { _loggedFirstUpdate = true; }
                 return;
             }
 
             if (!_loggedFirstUpdate)
             {
-                Debug.Log($"[MapManager] First Update: IsActive=true, SpawnTimer={_areaState.SpawnTimer:F2}, EnemiesAlive={_areaState.EnemiesAlive}, ShouldSpawn={_areaState.ShouldSpawn}");
+                // Debug.Log($"[MapManager] First Update: IsActive=true, SpawnTimer={_areaState.SpawnTimer:F2}, EnemiesAlive={_areaState.EnemiesAlive}, ShouldSpawn={_areaState.ShouldSpawn}");
                 _loggedFirstUpdate = true;
             }
 
@@ -181,7 +181,7 @@ namespace ConquerChronicles.Gameplay.Map
             }
 
             var edge = (SpawnEdge)_spawnRng.Next(0, 4);
-            Debug.Log($"[MapManager] Spawning {enemyID} from {edge}");
+            // Debug.Log($"[MapManager] Spawning {enemyID} from {edge}");
             _enemySpawner.SpawnEnemy(enemyData, edge);
         }
 
@@ -201,9 +201,9 @@ namespace ConquerChronicles.Gameplay.Map
             if (_audioManager?.Library != null) _audioManager.PlaySFX(_audioManager.Library.GoldCollect);
 
             // Track XP with area multiplier and meta multiplier (bonus portion — base already granted by CombatManager)
-            int baseXP = enemy.State.Data.XPReward;
+            long baseXP = enemy.State.Data.XPReward;
             float totalXPMult = _areaState.Data.XPMultiplier * _metaXPMultiplier;
-            int bonusXP = (int)(baseXP * (totalXPMult - 1.0f));
+            long bonusXP = (long)(baseXP * (totalXPMult - 1.0f));
             _areaState.TotalXPEarned += baseXP + bonusXP;
             if (bonusXP > 0 && _player != null)
             {

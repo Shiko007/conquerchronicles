@@ -160,7 +160,7 @@ namespace ConquerChronicles.Gameplay.Character
                 PlayHit(false);
         }
 
-        public void GainXP(int amount)
+        public void GainXP(long amount)
         {
             State.XP += amount;
             while (LevelUpTable.TryLevelUp(State))

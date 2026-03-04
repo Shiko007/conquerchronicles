@@ -51,7 +51,7 @@ namespace ConquerChronicles.Gameplay.Enemy
 
         private void Update()
         {
-            if (!_enemyView.IsActive || _target == null) return;
+            if (!_enemyView.IsActive || _target == null || _enemyView.State.IsDead) return;
 
             // Stun check — skip all movement and attack logic
             if (_enemyView.State != null && _enemyView.State.IsStunned) return;

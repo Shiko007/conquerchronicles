@@ -29,7 +29,7 @@ namespace ConquerChronicles.Editor
             var scaler = canvasGO.AddComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0.5f;
+            scaler.matchWidthOrHeight = 0f;
             canvasGO.AddComponent<GraphicRaycaster>();
 
             // Content container (no SafeAreaHandler — it overrides anchors in sub-scenes)
@@ -41,49 +41,34 @@ namespace ConquerChronicles.Editor
             safeAreaRT.offsetMin = Vector2.zero;
             safeAreaRT.offsetMax = new Vector2(0, -120); // safe area: clears dynamic island / notch
             var contentBgImg = safeAreaGO.AddComponent<Image>();
-            contentBgImg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
+            UIAtlasHelper.SetSlicedPanel(contentBgImg, new Color(0.85f, 0.85f, 0.9f, 0.92f));
+            var safeAreaContent = UIAtlasHelper.CreatePanelContent(safeAreaGO.transform);
 
             // ============================================================
             // HEADER
             // ============================================================
 
-            // Title text - centered at top
-            var titleGO = CreateUIText(safeAreaGO.transform, "TitleText", "MARKET",
+            var titleGO = CreateUIText(safeAreaContent, "TitleText", "",
                 new Vector2(0, 1), new Vector2(1, 1),
-                new Vector2(0, -20), new Vector2(0, 70), 48);
-            var titleRT = titleGO.GetComponent<RectTransform>();
-            titleRT.anchorMin = new Vector2(0, 1);
-            titleRT.anchorMax = new Vector2(1, 1);
-            titleRT.pivot = new Vector2(0.5f, 1);
-            titleRT.anchoredPosition = new Vector2(0, -20);
-            titleRT.sizeDelta = new Vector2(0, 70);
+                Vector2.zero, new Vector2(0, 0), 1);
             var titleTMP = titleGO.GetComponent<TextMeshProUGUI>();
-            titleTMP.alignment = TextAlignmentOptions.Center;
-            titleTMP.fontStyle = FontStyles.Bold;
-            titleTMP.color = new Color(1f, 0.85f, 0.2f, 1f); // gold
 
-            // Close button (X) — top-right corner
+            // Close button (X) — top-right edge of panel
             var backBtnGO = new GameObject("BackButton", typeof(RectTransform));
             backBtnGO.transform.SetParent(safeAreaGO.transform, false);
             var backBtnRT = backBtnGO.GetComponent<RectTransform>();
             backBtnRT.anchorMin = new Vector2(1, 1);
             backBtnRT.anchorMax = new Vector2(1, 1);
             backBtnRT.pivot = new Vector2(1, 1);
-            backBtnRT.anchoredPosition = new Vector2(-10, -10);
+            backBtnRT.anchoredPosition = Vector2.zero;
             backBtnRT.sizeDelta = new Vector2(50, 50);
             var backBtnImg = backBtnGO.AddComponent<Image>();
-            backBtnImg.color = new Color(0.3f, 0.15f, 0.15f, 0.9f);
             var backBtn = backBtnGO.AddComponent<Button>();
             backBtn.targetGraphic = backBtnImg;
-
-            var backBtnTextGO = CreateUIText(backBtnGO.transform, "BackText", "X",
-                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 28);
-            var backBtnTMP = backBtnTextGO.GetComponent<TextMeshProUGUI>();
-            backBtnTMP.alignment = TextAlignmentOptions.Center;
-            backBtnTMP.fontStyle = FontStyles.Bold;
+            UIAtlasHelper.SetXButton(backBtn, backBtnImg);
 
             // Gold display — centered below tab bar, above listings
-            var goldGO = CreateUIText(safeAreaGO.transform, "GoldText", "0 Gold",
+            var goldGO = CreateUIText(safeAreaContent, "GoldText", "0 Gold",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -175), new Vector2(0, 40), 28);
             var goldRT = goldGO.GetComponent<RectTransform>();
@@ -101,7 +86,7 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var tabBarGO = new GameObject("TabBar", typeof(RectTransform));
-            tabBarGO.transform.SetParent(safeAreaGO.transform, false);
+            tabBarGO.transform.SetParent(safeAreaContent, false);
             var tabBarRT = tabBarGO.GetComponent<RectTransform>();
             tabBarRT.anchorMin = new Vector2(0, 1);
             tabBarRT.anchorMax = new Vector2(1, 1);
@@ -118,11 +103,12 @@ namespace ConquerChronicles.Editor
             buyTabRT.offsetMin = Vector2.zero;
             buyTabRT.offsetMax = Vector2.zero;
             var buyTabImg = buyTabGO.AddComponent<Image>();
-            buyTabImg.color = new Color(0.2f, 0.5f, 0.7f, 1f); // blue
             var buyTabBtn = buyTabGO.AddComponent<Button>();
             buyTabBtn.targetGraphic = buyTabImg;
+            UIAtlasHelper.SetSpriteSwapButton(buyTabBtn, buyTabImg, "Button_Unpressed", "Button_Pressed");
+            var buyTabBtnContent = UIAtlasHelper.CreateButtonContent(buyTabGO.transform, 70f);
 
-            var buyTabTextGO = CreateUIText(buyTabGO.transform, "BuyTabText", "Buy",
+            var buyTabTextGO = CreateUIText(buyTabBtnContent, "BuyTabText", "Buy",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 30);
             var buyTabTMP = buyTabTextGO.GetComponent<TextMeshProUGUI>();
             buyTabTMP.alignment = TextAlignmentOptions.Center;
@@ -137,11 +123,12 @@ namespace ConquerChronicles.Editor
             boothTabRT.offsetMin = Vector2.zero;
             boothTabRT.offsetMax = Vector2.zero;
             var boothTabImg = boothTabGO.AddComponent<Image>();
-            boothTabImg.color = new Color(0.5f, 0.35f, 0.2f, 1f); // brown
             var boothTabBtn = boothTabGO.AddComponent<Button>();
             boothTabBtn.targetGraphic = boothTabImg;
+            UIAtlasHelper.SetSpriteSwapButton(boothTabBtn, boothTabImg, "Button_Unpressed", "Button_Pressed");
+            var boothTabBtnContent = UIAtlasHelper.CreateButtonContent(boothTabGO.transform, 70f);
 
-            var boothTabTextGO = CreateUIText(boothTabGO.transform, "BoothTabText", "My Booth",
+            var boothTabTextGO = CreateUIText(boothTabBtnContent, "BoothTabText", "My Booth",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 30);
             var boothTabTMP = boothTabTextGO.GetComponent<TextMeshProUGUI>();
             boothTabTMP.alignment = TextAlignmentOptions.Center;
@@ -152,7 +139,7 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var buyPanelGO = new GameObject("BuyPanel", typeof(RectTransform));
-            buyPanelGO.transform.SetParent(safeAreaGO.transform, false);
+            buyPanelGO.transform.SetParent(safeAreaContent, false);
             var buyPanelRT = buyPanelGO.GetComponent<RectTransform>();
             buyPanelRT.anchorMin = new Vector2(0, 0);
             buyPanelRT.anchorMax = new Vector2(1, 1);
@@ -262,7 +249,7 @@ namespace ConquerChronicles.Editor
 
             // Backdrop (full-screen semi-transparent)
             var detailPanelGO = new GameObject("ListingDetailPanel", typeof(RectTransform));
-            detailPanelGO.transform.SetParent(safeAreaGO.transform, false);
+            detailPanelGO.transform.SetParent(safeAreaContent, false);
             var detailPanelRT = detailPanelGO.GetComponent<RectTransform>();
             detailPanelRT.anchorMin = Vector2.zero;
             detailPanelRT.anchorMax = Vector2.one;
@@ -280,10 +267,11 @@ namespace ConquerChronicles.Editor
             detailInnerRT.offsetMin = Vector2.zero;
             detailInnerRT.offsetMax = Vector2.zero;
             var detailInnerImg = detailInnerGO.AddComponent<Image>();
-            detailInnerImg.color = new Color(0.08f, 0.08f, 0.14f, 0.95f);
+            UIAtlasHelper.SetSlicedPanel(detailInnerImg);
+            var detailInnerContent = UIAtlasHelper.CreatePanelContent(detailInnerGO.transform);
 
             // Listing name (bold, large)
-            var listingNameGO = CreateUIText(detailInnerGO.transform, "ListingNameText", "Item Name",
+            var listingNameGO = CreateUIText(detailInnerContent, "ListingNameText", "Item Name",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -15), new Vector2(0, 60), 36);
             var listingNameRT = listingNameGO.GetComponent<RectTransform>();
@@ -297,7 +285,7 @@ namespace ConquerChronicles.Editor
             listingNameTMP.fontStyle = FontStyles.Bold;
 
             // Type text
-            var listingTypeGO = CreateUIText(detailInnerGO.transform, "ListingTypeText", "Equipment",
+            var listingTypeGO = CreateUIText(detailInnerContent, "ListingTypeText", "Equipment",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -85), new Vector2(0, 40), 26);
             var listingTypeRT = listingTypeGO.GetComponent<RectTransform>();
@@ -311,7 +299,7 @@ namespace ConquerChronicles.Editor
             listingTypeTMP.color = new Color(0.7f, 0.7f, 0.7f, 1f);
 
             // Price text (gold colored)
-            var listingPriceGO = CreateUIText(detailInnerGO.transform, "ListingPriceText", "0 Gold",
+            var listingPriceGO = CreateUIText(detailInnerContent, "ListingPriceText", "0 Gold",
                 new Vector2(0, 1), new Vector2(1, 1),
                 new Vector2(0, -135), new Vector2(0, 50), 32);
             var listingPriceRT = listingPriceGO.GetComponent<RectTransform>();
@@ -326,7 +314,7 @@ namespace ConquerChronicles.Editor
 
             // Buy button (green)
             var buyBtnGO = new GameObject("BuyButton", typeof(RectTransform));
-            buyBtnGO.transform.SetParent(detailInnerGO.transform, false);
+            buyBtnGO.transform.SetParent(detailInnerContent, false);
             var buyBtnRT = buyBtnGO.GetComponent<RectTransform>();
             buyBtnRT.anchorMin = new Vector2(0.15f, 0);
             buyBtnRT.anchorMax = new Vector2(0.55f, 0);
@@ -334,11 +322,12 @@ namespace ConquerChronicles.Editor
             buyBtnRT.anchoredPosition = new Vector2(0, 20);
             buyBtnRT.sizeDelta = new Vector2(0, 60);
             var buyBtnImg = buyBtnGO.AddComponent<Image>();
-            buyBtnImg.color = new Color(0.15f, 0.55f, 0.15f, 1f); // green
             var buyButton = buyBtnGO.AddComponent<Button>();
             buyButton.targetGraphic = buyBtnImg;
+            UIAtlasHelper.SetSpriteSwapButton(buyButton, buyBtnImg, "Button_Unpressed", "Button_Pressed");
+            var buyBtnContent = UIAtlasHelper.CreateButtonContent(buyBtnGO.transform, 60f);
 
-            var buyBtnTextGO = CreateUIText(buyBtnGO.transform, "BuyButtonText", "Buy",
+            var buyBtnTextGO = CreateUIText(buyBtnContent, "BuyButtonText", "Buy",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 28);
             var buyBtnTMP = buyBtnTextGO.GetComponent<TextMeshProUGUI>();
             buyBtnTMP.alignment = TextAlignmentOptions.Center;
@@ -346,7 +335,7 @@ namespace ConquerChronicles.Editor
 
             // Close button (gray)
             var closeBtnGO = new GameObject("CloseListingButton", typeof(RectTransform));
-            closeBtnGO.transform.SetParent(detailInnerGO.transform, false);
+            closeBtnGO.transform.SetParent(detailInnerContent, false);
             var closeBtnRT = closeBtnGO.GetComponent<RectTransform>();
             closeBtnRT.anchorMin = new Vector2(0.55f, 0);
             closeBtnRT.anchorMax = new Vector2(0.85f, 0);
@@ -354,11 +343,12 @@ namespace ConquerChronicles.Editor
             closeBtnRT.anchoredPosition = new Vector2(0, 20);
             closeBtnRT.sizeDelta = new Vector2(0, 60);
             var closeBtnImg = closeBtnGO.AddComponent<Image>();
-            closeBtnImg.color = new Color(0.3f, 0.3f, 0.35f, 1f); // gray
             var closeListingBtn = closeBtnGO.AddComponent<Button>();
             closeListingBtn.targetGraphic = closeBtnImg;
+            UIAtlasHelper.SetSpriteSwapButton(closeListingBtn, closeBtnImg, "Button_Unpressed", "Button_Pressed");
+            var closeBtnContent = UIAtlasHelper.CreateButtonContent(closeBtnGO.transform, 60f);
 
-            var closeBtnTextGO = CreateUIText(closeBtnGO.transform, "CloseText", "Close",
+            var closeBtnTextGO = CreateUIText(closeBtnContent, "CloseText", "Close",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 28);
             var closeBtnTMP = closeBtnTextGO.GetComponent<TextMeshProUGUI>();
             closeBtnTMP.alignment = TextAlignmentOptions.Center;
@@ -370,7 +360,7 @@ namespace ConquerChronicles.Editor
             // ============================================================
 
             var boothPanelGO = new GameObject("BoothPanel", typeof(RectTransform));
-            boothPanelGO.transform.SetParent(safeAreaGO.transform, false);
+            boothPanelGO.transform.SetParent(safeAreaContent, false);
             var boothPanelRT = boothPanelGO.GetComponent<RectTransform>();
             boothPanelRT.anchorMin = new Vector2(0, 0);
             boothPanelRT.anchorMax = new Vector2(1, 1);
@@ -402,11 +392,12 @@ namespace ConquerChronicles.Editor
             collectBtnRT.anchoredPosition = new Vector2(0, -70);
             collectBtnRT.sizeDelta = new Vector2(0, 60);
             var collectBtnImg = collectBtnGO.AddComponent<Image>();
-            collectBtnImg.color = new Color(0.85f, 0.7f, 0.1f, 1f); // gold
             var collectRevenueBtn = collectBtnGO.AddComponent<Button>();
             collectRevenueBtn.targetGraphic = collectBtnImg;
+            UIAtlasHelper.SetSpriteSwapButton(collectRevenueBtn, collectBtnImg, "Button_Unpressed", "Button_Pressed");
+            var collectBtnContent = UIAtlasHelper.CreateButtonContent(collectBtnGO.transform, 60f);
 
-            var collectBtnTextGO = CreateUIText(collectBtnGO.transform, "CollectText", "Collect Revenue",
+            var collectBtnTextGO = CreateUIText(collectBtnContent, "CollectText", "Collect Revenue",
                 Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 26);
             var collectBtnTMP = collectBtnTextGO.GetComponent<TextMeshProUGUI>();
             collectBtnTMP.alignment = TextAlignmentOptions.Center;

@@ -4,7 +4,7 @@ tpsheetFileNames:
 - Assets/codeandweb.com/Example/SpriteSheet/sprites.tpsheet
 - Assets/Resources/Atlases/GameAtlas.tpsheet
 textureFileNames:
-- Assets/_Game/Art/Atlases/GameAtlas.png
+- Assets/Resources/Atlases/GameAtlas.png
 - Assets/codeandweb.com/Example/SpriteSheet/sprites.png
 - Assets/Resources/Atlases/GameAtlas.png
 normalmapFileNames:

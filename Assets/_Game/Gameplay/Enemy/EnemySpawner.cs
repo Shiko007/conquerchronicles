@@ -70,17 +70,24 @@ namespace ConquerChronicles.Gameplay.Enemy
                 var enemy = _activeEnemies[i];
                 if (enemy.State.IsDead)
                 {
-                    onEnemyDead?.Invoke(enemy);
-                    int last = _activeEnemies.Count - 1;
-                    _activeEnemies[i] = _activeEnemies[last];
-                    _activeEnemies.RemoveAt(last);
-                    _pool.Return(enemy);
-                    // Don't increment i — check the swapped element
+                    // Fire death callback once (for XP, gold, drops)
+                    if (!enemy.DeathCallbackFired)
+                    {
+                        enemy.DeathCallbackFired = true;
+                        onEnemyDead?.Invoke(enemy);
+                    }
+
+                    // Only despawn after death animation + linger timer
+                    if (enemy.IsReadyForRemoval)
+                    {
+                        int last = _activeEnemies.Count - 1;
+                        _activeEnemies[i] = _activeEnemies[last];
+                        _activeEnemies.RemoveAt(last);
+                        _pool.Return(enemy);
+                        continue; // check the swapped element
+                    }
                 }
-                else
-                {
-                    i++;
-                }
+                i++;
             }
         }
     }

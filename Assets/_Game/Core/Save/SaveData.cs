@@ -16,7 +16,7 @@ namespace ConquerChronicles.Core.Save
         // --- Character ---
         public CharacterClass SelectedClass;
         public int CharacterLevel;
-        public int CharacterXP;
+        public long CharacterXP;
         public int StatPointsAvailable;
 
         // Allocated stat points

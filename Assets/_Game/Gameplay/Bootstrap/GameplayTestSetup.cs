@@ -69,6 +69,12 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         private MetaProgressionState _metaState;
         private readonly System.Collections.Generic.HashSet<string> _activeSubScenes = new();
 
+        // Incremental save tracking — delta counters reset each area session
+        private int _savedGoldFromSession;
+        private int _savedCoinsFromSession;
+        private int _savedItemCountFromSession;
+        private readonly List<string> _collectedItemsThisSession = new();
+
 
         public AudioManager AudioManager => _audioManager;
 
@@ -108,10 +114,8 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             _mapBoundsProvider.Initialize(_isometricCamera);
 
             // Enemy spawning
-            Debug.Log("[GameplaySetup] Initializing enemy spawner...");
             _enemySpawner.Initialize(_enemyPool, _mapBoundsProvider, _characterView.transform);
             _enemyPool.Warmup();
-            Debug.Log("[GameplaySetup] Enemy pool warmed up");
 
             // Combat pools
             if (_damageNumberPool != null) _damageNumberPool.Warmup();
@@ -228,11 +232,13 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 _mapManager.OnAreaSessionEnding += OnAutoCollectLoot;
             }
 
-            // Save system
+            // Save system — incremental saves on every enemy kill and item pickup
             if (_saveManager == null) _saveManager = SaveSystemBridge.GetOrCreate();
             if (_autoSave && _mapManager != null)
             {
-                _mapManager.OnAreaSessionEnd += OnAutoSave;
+                _mapManager.OnEnemyKilledInArea += OnEnemyKilledSave;
+                _mapManager.OnItemDropped += OnItemCollectedSave;
+                _mapManager.OnPlayerRevived += OnPlayerRevivedSave;
             }
 
             // Show tutorial on first run
@@ -261,6 +267,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 // Close: unload the scene
                 _activeSubScenes.Remove(sceneName);
                 SceneManager.UnloadSceneAsync(sceneName);
+                if (_playerHUD != null) _playerHUD.SetNavIconState(sceneName, false);
                 return;
             }
 
@@ -268,6 +275,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             _activeSubScenes.Add(sceneName);
             var op = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             op.completed += _ => OnSubSceneLoaded(sceneName);
+            if (_playerHUD != null) _playerHUD.SetNavIconState(sceneName, true);
         }
 
         private void OnSubSceneLoaded(string sceneName)
@@ -290,6 +298,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         private void OnSceneUnloaded(UnityEngine.SceneManagement.Scene scene)
         {
             _activeSubScenes.Remove(scene.name);
+            if (_playerHUD != null) _playerHUD.SetNavIconState(scene.name, false);
         }
 
         private void OnAutoCollectLoot()
@@ -298,72 +307,105 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 _lootVisualManager.ReturnAllDrops();
         }
 
-        private void OnAutoSave(AreaResult result)
+        private void OnEnemyKilledSave(int enemiesKilled)
         {
-            if (_saveManager == null) return;
+            IncrementalSave();
+        }
 
-            // Load existing save to preserve inventory, or create default
+        private void OnItemCollectedSave(string itemID, int quantity)
+        {
+            for (int i = 0; i < quantity; i++)
+                _collectedItemsThisSession.Add(itemID);
+            IncrementalSave();
+        }
+
+        private void IncrementalSave()
+        {
+            if (_saveManager == null || _mapManager?.AreaState == null) return;
+
             var saveData = _saveManager.LoadGame() ?? SaveData.CreateDefault();
 
-            // Update character state
+            // Character state
             saveData.Version = 2;
             saveData.SelectedClass = _testClass;
-            saveData.CharacterLevel = _characterView.State != null ? _characterView.State.Level : 1;
-            saveData.CharacterXP = _characterView.State != null ? _characterView.State.XP : 0;
-            saveData.LastAreaID = result.AreaID;
+            if (_characterView.State != null)
+            {
+                saveData.CharacterLevel = _characterView.State.Level;
+                saveData.CharacterXP = _characterView.State.XP;
+            }
 
-            // Add earned gold to existing total
-            saveData.Gold += result.GoldEarned;
+            // Gold delta
+            int currentGold = _mapManager.AreaState.TotalGoldEarned;
+            int goldDelta = currentGold - _savedGoldFromSession;
+            if (goldDelta > 0)
+            {
+                saveData.Gold += goldDelta;
+                _savedGoldFromSession = currentGold;
+            }
 
-            // Add earned Chronicle Coins
-            saveData.MetaCurrency += result.ChronicleCoinsEarned;
+            // Chronicle Coins delta
+            int currentCoins = _mapManager.AreaState.EnemiesKilled / 5;
+            int coinsDelta = currentCoins - _savedCoinsFromSession;
+            if (coinsDelta > 0)
+            {
+                saveData.MetaCurrency += coinsDelta;
+                _savedCoinsFromSession = currentCoins;
+            }
 
-            // Add collected items to bag
-            if (result.ItemsDropped != null && result.ItemsDropped.Length > 0)
+            // New items delta
+            int newItemCount = _collectedItemsThisSession.Count - _savedItemCountFromSession;
+            if (newItemCount > 0)
             {
                 var existingBag = saveData.BagItems ?? System.Array.Empty<SerializedBagItem>();
-                var newBag = new SerializedBagItem[existingBag.Length + result.ItemsDropped.Length];
+                var newBag = new SerializedBagItem[existingBag.Length + newItemCount];
                 System.Array.Copy(existingBag, newBag, existingBag.Length);
-
-                for (int i = 0; i < result.ItemsDropped.Length; i++)
+                for (int i = 0; i < newItemCount; i++)
                 {
                     newBag[existingBag.Length + i] = SerializedBagItem.FromEquipment(new SerializedEquipment
                     {
-                        DataID = result.ItemsDropped[i],
+                        DataID = _collectedItemsThisSession[_savedItemCountFromSession + i],
                         UpgradeLevel = 0,
                         Gems = System.Array.Empty<SerializedGem>()
                     });
                 }
-
                 saveData.BagItems = newBag;
-            }
-
-            // Death penalty — lose gold and items
-            if (result.PlayerDied)
-            {
-                var rng = new System.Random(System.Environment.TickCount);
-                float lossPercent = 0.15f + (float)rng.NextDouble() * 0.10f; // 15-25%
-                int goldLost = (int)(saveData.Gold * lossPercent);
-                saveData.Gold = Mathf.Max(0, saveData.Gold - goldLost);
-
-                // Lose 1-3 random bag items
-                if (saveData.BagItems != null && saveData.BagItems.Length > 0)
-                {
-                    int itemsToLose = Mathf.Min(rng.Next(1, 4), saveData.BagItems.Length);
-                    var bagList = new System.Collections.Generic.List<SerializedBagItem>(saveData.BagItems);
-                    for (int i = 0; i < itemsToLose; i++)
-                    {
-                        int removeIdx = rng.Next(0, bagList.Count);
-                        bagList.RemoveAt(removeIdx);
-                    }
-                    saveData.BagItems = bagList.ToArray();
-                }
-
-                Debug.Log($"[DeathPenalty] Lost {goldLost} gold.");
+                _savedItemCountFromSession = _collectedItemsThisSession.Count;
             }
 
             _saveManager.SaveGame(saveData);
-            Debug.Log($"[SaveSystem] Auto-saved after area session. Level={saveData.CharacterLevel}, Gold={saveData.Gold}, Bag={saveData.BagItems.Length} items");
+        }
+
+        private void OnPlayerRevivedSave()
+        {
+            if (_saveManager == null) return;
+
+            // Apply death penalty — lose 15-25% gold and 1-3 bag items
+            var saveData = _saveManager.LoadGame() ?? SaveData.CreateDefault();
+            var rng = new System.Random(System.Environment.TickCount);
+            float lossPercent = 0.15f + (float)rng.NextDouble() * 0.10f;
+            int goldLost = (int)(saveData.Gold * lossPercent);
+            saveData.Gold = Mathf.Max(0, saveData.Gold - goldLost);
+
+            if (saveData.BagItems != null && saveData.BagItems.Length > 0)
+            {
+                int itemsToLose = Mathf.Min(rng.Next(1, 4), saveData.BagItems.Length);
+                var bagList = new List<SerializedBagItem>(saveData.BagItems);
+                for (int i = 0; i < itemsToLose; i++)
+                {
+                    int removeIdx = rng.Next(0, bagList.Count);
+                    bagList.RemoveAt(removeIdx);
+                }
+                saveData.BagItems = bagList.ToArray();
+            }
+
+            _saveManager.SaveGame(saveData);
+            Debug.Log($"[DeathPenalty] Lost {goldLost} gold.");
+
+            // Reset session counters for the new area session
+            _savedGoldFromSession = 0;
+            _savedCoinsFromSession = 0;
+            _savedItemCountFromSession = 0;
+            _collectedItemsThisSession.Clear();
         }
 
         private void OnAreaContinue()
@@ -385,7 +427,11 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 if (_runSummary != null)
                     _mapManager.OnAreaSessionEnd -= _runSummary.Show;
                 if (_autoSave)
-                    _mapManager.OnAreaSessionEnd -= OnAutoSave;
+                {
+                    _mapManager.OnEnemyKilledInArea -= OnEnemyKilledSave;
+                    _mapManager.OnItemDropped -= OnItemCollectedSave;
+                    _mapManager.OnPlayerRevived -= OnPlayerRevivedSave;
+                }
                 if (_combatManager != null)
                     _combatManager.OnEnemyKilled -= _mapManager.OnEnemyDied;
                 if (_lootVisualManager != null)
