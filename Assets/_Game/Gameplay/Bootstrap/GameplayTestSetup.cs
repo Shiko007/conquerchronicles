@@ -93,15 +93,38 @@ namespace ConquerChronicles.Gameplay.Bootstrap
 
             _saveManager = SaveSystemBridge.GetOrCreate();
 
-            // Load meta progression
+            // Load saved progression
             _metaState = new MetaProgressionState();
             var existingSave = _saveManager.LoadGame();
-            if (existingSave != null && existingSave.MetaUpgradeLevels != null)
+            if (existingSave != null)
             {
-                _metaState.MetaCurrency = existingSave.MetaCurrency;
-                int count = System.Math.Min(existingSave.MetaUpgradeLevels.Length, MetaProgressionState.UpgradeTypeCount);
-                for (int i = 0; i < count; i++)
-                    _metaState.UpgradeLevels[i] = existingSave.MetaUpgradeLevels[i];
+                // Restore character level, XP, and stat allocations
+                var state = _characterView.State;
+                if (existingSave.CharacterLevel > 1)
+                {
+                    state.Level = existingSave.CharacterLevel;
+                    state.StatPointsAvailable = existingSave.StatPointsAvailable;
+                    state.Vitality = existingSave.Vitality;
+                    state.Mana = existingSave.Mana;
+                    state.Strength = existingSave.Strength;
+                    state.Agility = existingSave.Agility;
+                    state.Spirit = existingSave.Spirit;
+
+                    // Recompute stats at restored level
+                    var computed = state.ComputeStats();
+                    state.CurrentHP = computed.HP;
+                    state.CurrentMP = computed.MP;
+                }
+                state.XP = existingSave.CharacterXP;
+
+                // Restore meta progression
+                if (existingSave.MetaUpgradeLevels != null)
+                {
+                    _metaState.MetaCurrency = existingSave.MetaCurrency;
+                    int count = System.Math.Min(existingSave.MetaUpgradeLevels.Length, MetaProgressionState.UpgradeTypeCount);
+                    for (int i = 0; i < count; i++)
+                        _metaState.UpgradeLevels[i] = existingSave.MetaUpgradeLevels[i];
+                }
             }
 
             // Apply meta stat bonuses to character
@@ -332,6 +355,12 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             {
                 saveData.CharacterLevel = _characterView.State.Level;
                 saveData.CharacterXP = _characterView.State.XP;
+                saveData.StatPointsAvailable = _characterView.State.StatPointsAvailable;
+                saveData.Vitality = _characterView.State.Vitality;
+                saveData.Mana = _characterView.State.Mana;
+                saveData.Strength = _characterView.State.Strength;
+                saveData.Agility = _characterView.State.Agility;
+                saveData.Spirit = _characterView.State.Spirit;
             }
 
             // Gold delta
