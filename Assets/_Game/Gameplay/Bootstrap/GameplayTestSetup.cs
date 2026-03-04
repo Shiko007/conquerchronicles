@@ -322,6 +322,29 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         {
             _activeSubScenes.Remove(scene.name);
             if (_playerHUD != null) _playerHUD.SetNavIconState(scene.name, false);
+
+            // Reload stat allocations from save when Equipment scene closes
+            if (scene.name == "Equipment")
+                ReloadStatsFromSave();
+        }
+
+        private void ReloadStatsFromSave()
+        {
+            var save = _saveManager.LoadGame();
+            if (save == null || _characterView.State == null) return;
+
+            var state = _characterView.State;
+            state.Vitality = save.Vitality;
+            state.Mana = save.Mana;
+            state.Strength = save.Strength;
+            state.Agility = save.Agility;
+            state.Spirit = save.Spirit;
+            state.StatPointsAvailable = save.StatPointsAvailable;
+
+            // Recompute HP/MP with new stats
+            var computed = state.ComputeStats();
+            state.CurrentHP = computed.HP;
+            state.CurrentMP = computed.MP;
         }
 
         private void OnAutoCollectLoot()
@@ -355,12 +378,8 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             {
                 saveData.CharacterLevel = _characterView.State.Level;
                 saveData.CharacterXP = _characterView.State.XP;
-                saveData.StatPointsAvailable = _characterView.State.StatPointsAvailable;
-                saveData.Vitality = _characterView.State.Vitality;
-                saveData.Mana = _characterView.State.Mana;
-                saveData.Strength = _characterView.State.Strength;
-                saveData.Agility = _characterView.State.Agility;
-                saveData.Spirit = _characterView.State.Spirit;
+                // Stat allocations are saved by EquipmentController on Confirm only.
+                // Do NOT overwrite them here — Equipment may have newer values.
             }
 
             // Gold delta

@@ -148,7 +148,7 @@ TextureImporter:
       name: Button_Pressed
       rect:
         serializedVersion: 2
-        x: 218
+        x: 402
         y: 1662
         width: 124
         height: 124
@@ -170,7 +170,7 @@ TextureImporter:
       name: Button_Unpressed
       rect:
         serializedVersion: 2
-        x: 346
+        x: 530
         y: 1662
         width: 124
         height: 124
@@ -368,7 +368,7 @@ TextureImporter:
       name: Equipment_Closed
       rect:
         serializedVersion: 2
-        x: 2
+        x: 179
         y: 1814
         width: 64
         height: 64
@@ -390,7 +390,7 @@ TextureImporter:
       name: Equipment_Open
       rect:
         serializedVersion: 2
-        x: 70
+        x: 247
         y: 1814
         width: 64
         height: 64
@@ -412,7 +412,7 @@ TextureImporter:
       name: Exp_Orb
       rect:
         serializedVersion: 2
-        x: 2
+        x: 186
         y: 1686
         width: 100
         height: 100
@@ -434,7 +434,7 @@ TextureImporter:
       name: Female_Base_EAttack_01
       rect:
         serializedVersion: 2
-        x: 474
+        x: 658
         y: 1658
         width: 128
         height: 128
@@ -456,7 +456,7 @@ TextureImporter:
       name: Female_Base_EAttack_02
       rect:
         serializedVersion: 2
-        x: 606
+        x: 790
         y: 1658
         width: 128
         height: 128
@@ -478,8 +478,8 @@ TextureImporter:
       name: Female_Base_EAttack_03
       rect:
         serializedVersion: 2
-        x: 738
-        y: 1658
+        x: 2
+        y: 1526
         width: 128
         height: 128
       alignment: 0
@@ -500,8 +500,8 @@ TextureImporter:
       name: Female_Base_EAttack_04
       rect:
         serializedVersion: 2
-        x: 870
-        y: 1658
+        x: 134
+        y: 1526
         width: 128
         height: 128
       alignment: 0
@@ -522,7 +522,7 @@ TextureImporter:
       name: Female_Base_EHit_01
       rect:
         serializedVersion: 2
-        x: 2
+        x: 266
         y: 1526
         width: 128
         height: 128
@@ -544,7 +544,7 @@ TextureImporter:
       name: Female_Base_EHit_02
       rect:
         serializedVersion: 2
-        x: 134
+        x: 398
         y: 1526
         width: 128
         height: 128
@@ -566,7 +566,7 @@ TextureImporter:
       name: Female_Base_EHit_03
       rect:
         serializedVersion: 2
-        x: 266
+        x: 530
         y: 1526
         width: 128
         height: 128
@@ -588,7 +588,7 @@ TextureImporter:
       name: Female_Base_EHit_04
       rect:
         serializedVersion: 2
-        x: 398
+        x: 662
         y: 1526
         width: 128
         height: 128
@@ -610,7 +610,7 @@ TextureImporter:
       name: Female_Base_SDeath_01
       rect:
         serializedVersion: 2
-        x: 530
+        x: 794
         y: 1526
         width: 128
         height: 128
@@ -632,8 +632,8 @@ TextureImporter:
       name: Female_Base_SDeath_02
       rect:
         serializedVersion: 2
-        x: 662
-        y: 1526
+        x: 2
+        y: 1394
         width: 128
         height: 128
       alignment: 0
@@ -654,8 +654,8 @@ TextureImporter:
       name: Female_Base_SDeath_03
       rect:
         serializedVersion: 2
-        x: 794
-        y: 1526
+        x: 134
+        y: 1394
         width: 128
         height: 128
       alignment: 0
@@ -676,7 +676,7 @@ TextureImporter:
       name: Female_Base_SDeath_04
       rect:
         serializedVersion: 2
-        x: 2
+        x: 266
         y: 1394
         width: 128
         height: 128
@@ -698,7 +698,7 @@ TextureImporter:
       name: Female_Base_SIdle_01
       rect:
         serializedVersion: 2
-        x: 134
+        x: 398
         y: 1394
         width: 128
         height: 128
@@ -720,7 +720,7 @@ TextureImporter:
       name: Female_Base_SIdle_02
       rect:
         serializedVersion: 2
-        x: 266
+        x: 530
         y: 1394
         width: 128
         height: 128
@@ -742,7 +742,7 @@ TextureImporter:
       name: Female_Base_SIdle_03
       rect:
         serializedVersion: 2
-        x: 398
+        x: 662
         y: 1394
         width: 128
         height: 128
@@ -764,7 +764,7 @@ TextureImporter:
       name: Female_Base_SIdle_04
       rect:
         serializedVersion: 2
-        x: 530
+        x: 794
         y: 1394
         width: 128
         height: 128
@@ -962,7 +962,7 @@ TextureImporter:
       name: Gold
       rect:
         serializedVersion: 2
-        x: 138
+        x: 315
         y: 1814
         width: 64
         height: 64
@@ -984,7 +984,7 @@ TextureImporter:
       name: HP_MP_Orb
       rect:
         serializedVersion: 2
-        x: 106
+        x: 290
         y: 1678
         width: 108
         height: 108
@@ -1006,7 +1006,7 @@ TextureImporter:
       name: Inventory_Closed
       rect:
         serializedVersion: 2
-        x: 206
+        x: 383
         y: 1814
         width: 64
         height: 64
@@ -1028,7 +1028,7 @@ TextureImporter:
       name: Inventory_Open
       rect:
         serializedVersion: 2
-        x: 274
+        x: 451
         y: 1814
         width: 64
         height: 64
@@ -1050,8 +1050,8 @@ TextureImporter:
       name: Male_Base_EAttack_01
       rect:
         serializedVersion: 2
-        x: 662
-        y: 1394
+        x: 2
+        y: 1262
         width: 128
         height: 128
       alignment: 0
@@ -1072,8 +1072,8 @@ TextureImporter:
       name: Male_Base_EAttack_02
       rect:
         serializedVersion: 2
-        x: 794
-        y: 1394
+        x: 134
+        y: 1262
         width: 128
         height: 128
       alignment: 0
@@ -1094,7 +1094,7 @@ TextureImporter:
       name: Male_Base_EAttack_03
       rect:
         serializedVersion: 2
-        x: 2
+        x: 266
         y: 1262
         width: 128
         height: 128
@@ -1116,7 +1116,7 @@ TextureImporter:
       name: Male_Base_EAttack_04
       rect:
         serializedVersion: 2
-        x: 134
+        x: 398
         y: 1262
         width: 128
         height: 128
@@ -1138,7 +1138,7 @@ TextureImporter:
       name: Male_Base_EHit_01
       rect:
         serializedVersion: 2
-        x: 266
+        x: 530
         y: 1262
         width: 128
         height: 128
@@ -1160,7 +1160,7 @@ TextureImporter:
       name: Male_Base_EHit_02
       rect:
         serializedVersion: 2
-        x: 398
+        x: 662
         y: 1262
         width: 128
         height: 128
@@ -1182,7 +1182,7 @@ TextureImporter:
       name: Male_Base_EHit_03
       rect:
         serializedVersion: 2
-        x: 530
+        x: 794
         y: 1262
         width: 128
         height: 128
@@ -1204,8 +1204,8 @@ TextureImporter:
       name: Male_Base_EHit_04
       rect:
         serializedVersion: 2
-        x: 662
-        y: 1262
+        x: 2
+        y: 1130
         width: 128
         height: 128
       alignment: 0
@@ -1226,8 +1226,8 @@ TextureImporter:
       name: Male_Base_SDeath_01
       rect:
         serializedVersion: 2
-        x: 794
-        y: 1262
+        x: 134
+        y: 1130
         width: 128
         height: 128
       alignment: 0
@@ -1248,7 +1248,7 @@ TextureImporter:
       name: Male_Base_SDeath_02
       rect:
         serializedVersion: 2
-        x: 2
+        x: 266
         y: 1130
         width: 128
         height: 128
@@ -1270,7 +1270,7 @@ TextureImporter:
       name: Male_Base_SDeath_03
       rect:
         serializedVersion: 2
-        x: 134
+        x: 398
         y: 1130
         width: 128
         height: 128
@@ -1292,7 +1292,7 @@ TextureImporter:
       name: Male_Base_SDeath_04
       rect:
         serializedVersion: 2
-        x: 266
+        x: 530
         y: 1130
         width: 128
         height: 128
@@ -1314,7 +1314,7 @@ TextureImporter:
       name: Male_Base_SIdle_01
       rect:
         serializedVersion: 2
-        x: 398
+        x: 662
         y: 1130
         width: 128
         height: 128
@@ -1336,7 +1336,7 @@ TextureImporter:
       name: Male_Base_SIdle_02
       rect:
         serializedVersion: 2
-        x: 530
+        x: 794
         y: 1130
         width: 128
         height: 128
@@ -1358,8 +1358,8 @@ TextureImporter:
       name: Male_Base_SIdle_03
       rect:
         serializedVersion: 2
-        x: 662
-        y: 1130
+        x: 2
+        y: 998
         width: 128
         height: 128
       alignment: 0
@@ -1380,8 +1380,8 @@ TextureImporter:
       name: Male_Base_SIdle_04
       rect:
         serializedVersion: 2
-        x: 794
-        y: 1130
+        x: 134
+        y: 998
         width: 128
         height: 128
       alignment: 0
@@ -1402,8 +1402,8 @@ TextureImporter:
       name: Male_Base_SIdle_05
       rect:
         serializedVersion: 2
-        x: 662
-        y: 1130
+        x: 2
+        y: 998
         width: 128
         height: 128
       alignment: 0
@@ -1424,7 +1424,7 @@ TextureImporter:
       name: Male_Base_SIdle_06
       rect:
         serializedVersion: 2
-        x: 530
+        x: 794
         y: 1130
         width: 128
         height: 128
@@ -1446,7 +1446,7 @@ TextureImporter:
       name: Market_Closed
       rect:
         serializedVersion: 2
-        x: 342
+        x: 519
         y: 1814
         width: 64
         height: 64
@@ -1468,7 +1468,7 @@ TextureImporter:
       name: Market_Open
       rect:
         serializedVersion: 2
-        x: 410
+        x: 587
         y: 1814
         width: 64
         height: 64
@@ -1490,7 +1490,7 @@ TextureImporter:
       name: Mining_Closed
       rect:
         serializedVersion: 2
-        x: 478
+        x: 655
         y: 1814
         width: 64
         height: 64
@@ -1512,7 +1512,7 @@ TextureImporter:
       name: Mining_Open
       rect:
         serializedVersion: 2
-        x: 546
+        x: 723
         y: 1814
         width: 64
         height: 64
@@ -1534,8 +1534,8 @@ TextureImporter:
       name: Panels
       rect:
         serializedVersion: 2
-        x: 794
-        y: 686
+        x: 134
+        y: 554
         width: 176
         height: 176
       alignment: 0
@@ -1732,7 +1732,7 @@ TextureImporter:
       name: Rat_LAttack_01
       rect:
         serializedVersion: 2
-        x: 2
+        x: 266
         y: 998
         width: 128
         height: 128
@@ -1754,7 +1754,7 @@ TextureImporter:
       name: Rat_LAttack_02
       rect:
         serializedVersion: 2
-        x: 134
+        x: 398
         y: 998
         width: 128
         height: 128
@@ -1776,7 +1776,7 @@ TextureImporter:
       name: Rat_LAttack_03
       rect:
         serializedVersion: 2
-        x: 266
+        x: 530
         y: 998
         width: 128
         height: 128
@@ -1798,7 +1798,7 @@ TextureImporter:
       name: Rat_LAttack_04
       rect:
         serializedVersion: 2
-        x: 398
+        x: 662
         y: 998
         width: 128
         height: 128
@@ -1820,7 +1820,7 @@ TextureImporter:
       name: Rat_LDeath_01
       rect:
         serializedVersion: 2
-        x: 530
+        x: 794
         y: 998
         width: 128
         height: 128
@@ -1842,8 +1842,8 @@ TextureImporter:
       name: Rat_LDeath_02
       rect:
         serializedVersion: 2
-        x: 662
-        y: 998
+        x: 2
+        y: 866
         width: 128
         height: 128
       alignment: 0
@@ -1864,8 +1864,8 @@ TextureImporter:
       name: Rat_LDeath_03
       rect:
         serializedVersion: 2
-        x: 794
-        y: 998
+        x: 134
+        y: 866
         width: 128
         height: 128
       alignment: 0
@@ -1886,7 +1886,7 @@ TextureImporter:
       name: Rat_LDeath_04
       rect:
         serializedVersion: 2
-        x: 2
+        x: 266
         y: 866
         width: 128
         height: 128
@@ -1908,7 +1908,7 @@ TextureImporter:
       name: Rat_LHit_01
       rect:
         serializedVersion: 2
-        x: 134
+        x: 398
         y: 866
         width: 128
         height: 128
@@ -1930,7 +1930,7 @@ TextureImporter:
       name: Rat_LHit_02
       rect:
         serializedVersion: 2
-        x: 266
+        x: 530
         y: 866
         width: 128
         height: 128
@@ -1952,7 +1952,7 @@ TextureImporter:
       name: Rat_LHit_03
       rect:
         serializedVersion: 2
-        x: 398
+        x: 662
         y: 866
         width: 128
         height: 128
@@ -1974,7 +1974,7 @@ TextureImporter:
       name: Rat_LHit_04
       rect:
         serializedVersion: 2
-        x: 530
+        x: 794
         y: 866
         width: 128
         height: 128
@@ -1996,8 +1996,8 @@ TextureImporter:
       name: Rat_LIdle_00
       rect:
         serializedVersion: 2
-        x: 662
-        y: 866
+        x: 2
+        y: 734
         width: 128
         height: 128
       alignment: 0
@@ -2018,8 +2018,8 @@ TextureImporter:
       name: Rat_LIdle_01
       rect:
         serializedVersion: 2
-        x: 794
-        y: 866
+        x: 134
+        y: 734
         width: 128
         height: 128
       alignment: 0
@@ -2040,7 +2040,7 @@ TextureImporter:
       name: Rat_LIdle_02
       rect:
         serializedVersion: 2
-        x: 2
+        x: 266
         y: 734
         width: 128
         height: 128
@@ -2062,7 +2062,7 @@ TextureImporter:
       name: Rat_LIdle_03
       rect:
         serializedVersion: 2
-        x: 134
+        x: 398
         y: 734
         width: 128
         height: 128
@@ -2084,7 +2084,7 @@ TextureImporter:
       name: Rat_LWalk_01
       rect:
         serializedVersion: 2
-        x: 266
+        x: 530
         y: 734
         width: 128
         height: 128
@@ -2106,7 +2106,7 @@ TextureImporter:
       name: Rat_LWalk_02
       rect:
         serializedVersion: 2
-        x: 398
+        x: 662
         y: 734
         width: 128
         height: 128
@@ -2128,7 +2128,7 @@ TextureImporter:
       name: Rat_LWalk_03
       rect:
         serializedVersion: 2
-        x: 530
+        x: 794
         y: 734
         width: 128
         height: 128
@@ -2150,8 +2150,8 @@ TextureImporter:
       name: Rat_LWalk_04
       rect:
         serializedVersion: 2
-        x: 662
-        y: 734
+        x: 2
+        y: 602
         width: 128
         height: 128
       alignment: 0
@@ -2766,7 +2766,7 @@ TextureImporter:
       name: CharacterTab_Closed
       rect:
         serializedVersion: 2
-        x: 614
+        x: 791
         y: 1790
         width: 88
         height: 88
@@ -2788,7 +2788,7 @@ TextureImporter:
       name: CharacterTab_Opened
       rect:
         serializedVersion: 2
-        x: 706
+        x: 883
         y: 1790
         width: 88
         height: 88
@@ -2810,8 +2810,8 @@ TextureImporter:
       name: EquipmentTab_Closed
       rect:
         serializedVersion: 2
-        x: 798
-        y: 1790
+        x: 2
+        y: 1698
         width: 88
         height: 88
       alignment: 0
@@ -2832,8 +2832,8 @@ TextureImporter:
       name: EquipmentTab_Opened
       rect:
         serializedVersion: 2
-        x: 890
-        y: 1790
+        x: 94
+        y: 1698
         width: 88
         height: 88
       alignment: 0
@@ -2854,8 +2854,8 @@ TextureImporter:
       name: PlusButton_Disabled
       rect:
         serializedVersion: 2
-        x: 816
-        y: 1882
+        x: 2
+        y: 1822
         width: 55
         height: 56
       alignment: 0
@@ -2876,8 +2876,8 @@ TextureImporter:
       name: PlusButton_Pressed
       rect:
         serializedVersion: 2
-        x: 875
-        y: 1882
+        x: 61
+        y: 1822
         width: 55
         height: 56
       alignment: 0
@@ -2898,8 +2898,8 @@ TextureImporter:
       name: PlusButton_Unpressed
       rect:
         serializedVersion: 2
-        x: 934
-        y: 1882
+        x: 120
+        y: 1822
         width: 55
         height: 56
       alignment: 0
@@ -2912,6 +2912,72 @@ TextureImporter:
       bones: []
       spriteID: 3cbab1cf01e0949f9909026a1701fcbf
       internalID: -1185440101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MinusButton_Disabled
+      rect:
+        serializedVersion: 2
+        x: 816
+        y: 1882
+        width: 55
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1fa5cfa5f69034630803c251508b6ef6
+      internalID: -1622562777
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MinusButton_Pressed
+      rect:
+        serializedVersion: 2
+        x: 875
+        y: 1882
+        width: 55
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2181cadaf51c948acb3e85dabc14737d
+      internalID: 1939521762
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: MinusButton_Unpressed
+      rect:
+        serializedVersion: 2
+        x: 934
+        y: 1882
+        width: 55
+        height: 56
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: d3315b3820ac54bdc9521115ad4dc76f
+      internalID: -1071265603
       vertices: []
       indices: 
       edges: []
@@ -2998,6 +3064,9 @@ TextureImporter:
       Market_Open: -761203408
       Mining_Closed: -463482315
       Mining_Open: -605244605
+      MinusButton_Disabled: -1622562777
+      MinusButton_Pressed: 1939521762
+      MinusButton_Unpressed: -1071265603
       Panels: 724548641
       PlusButton_Disabled: 118097819
       PlusButton_Pressed: 815496038

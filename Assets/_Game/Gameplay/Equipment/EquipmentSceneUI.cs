@@ -62,6 +62,11 @@ namespace ConquerChronicles.Gameplay.Equipment
         [SerializeField] private Button _strengthButton;
         [SerializeField] private Button _agilityButton;
         [SerializeField] private Button _spiritButton;
+        [SerializeField] private Button _vitalityMinusButton;
+        [SerializeField] private Button _strengthMinusButton;
+        [SerializeField] private Button _agilityMinusButton;
+        [SerializeField] private Button _spiritMinusButton;
+        [SerializeField] private Button _confirmStatsButton;
 
         // Events
         public System.Action OnBackPressed;
@@ -70,6 +75,8 @@ namespace ConquerChronicles.Gameplay.Equipment
         public System.Action OnUpgradePressed;
         public System.Action OnCloseDetailPressed;
         public System.Action<string> OnAllocateStat;
+        public System.Action<string> OnDeallocateStat;
+        public System.Action OnConfirmStats;
 
         private static readonly string[] SlotLabels = { "Head", "Neck", "Armor", "L.Hand", "R.Hand", "Ring", "Boots" };
 
@@ -129,6 +136,23 @@ namespace ConquerChronicles.Gameplay.Equipment
             _strengthButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Strength"));
             _agilityButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Agility"));
             _spiritButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Spirit"));
+
+            // Wire minus buttons
+            if (_vitalityMinusButton != null)
+                _vitalityMinusButton.onClick.AddListener(() => OnDeallocateStat?.Invoke("Vitality"));
+            if (_strengthMinusButton != null)
+                _strengthMinusButton.onClick.AddListener(() => OnDeallocateStat?.Invoke("Strength"));
+            if (_agilityMinusButton != null)
+                _agilityMinusButton.onClick.AddListener(() => OnDeallocateStat?.Invoke("Agility"));
+            if (_spiritMinusButton != null)
+                _spiritMinusButton.onClick.AddListener(() => OnDeallocateStat?.Invoke("Spirit"));
+
+            // Wire confirm button
+            if (_confirmStatsButton != null)
+            {
+                _confirmStatsButton.onClick.AddListener(() => OnConfirmStats?.Invoke());
+                _confirmStatsButton.gameObject.SetActive(false);
+            }
 
             HideItemDetail();
             SwitchToTab(0);
@@ -309,6 +333,31 @@ namespace ConquerChronicles.Gameplay.Equipment
             _spiritButton.interactable = hasPoints;
         }
 
+        public void ShowMinusButtons(bool vitality, bool strength, bool agility, bool spirit)
+        {
+            if (_vitalityMinusButton != null) _vitalityMinusButton.gameObject.SetActive(vitality);
+            if (_strengthMinusButton != null) _strengthMinusButton.gameObject.SetActive(strength);
+            if (_agilityMinusButton != null) _agilityMinusButton.gameObject.SetActive(agility);
+            if (_spiritMinusButton != null) _spiritMinusButton.gameObject.SetActive(spirit);
+        }
+
+        public void HideAllMinusButtons()
+        {
+            ShowMinusButtons(false, false, false, false);
+        }
+
+        public void ShowConfirmButton()
+        {
+            if (_confirmStatsButton != null)
+                _confirmStatsButton.gameObject.SetActive(true);
+        }
+
+        public void HideConfirmButton()
+        {
+            if (_confirmStatsButton != null)
+                _confirmStatsButton.gameObject.SetActive(false);
+        }
+
         private void OnDestroy()
         {
             // Remove all listeners
@@ -333,6 +382,11 @@ namespace ConquerChronicles.Gameplay.Equipment
             if (_strengthButton != null) _strengthButton.onClick.RemoveAllListeners();
             if (_agilityButton != null) _agilityButton.onClick.RemoveAllListeners();
             if (_spiritButton != null) _spiritButton.onClick.RemoveAllListeners();
+            if (_vitalityMinusButton != null) _vitalityMinusButton.onClick.RemoveAllListeners();
+            if (_strengthMinusButton != null) _strengthMinusButton.onClick.RemoveAllListeners();
+            if (_agilityMinusButton != null) _agilityMinusButton.onClick.RemoveAllListeners();
+            if (_spiritMinusButton != null) _spiritMinusButton.onClick.RemoveAllListeners();
+            if (_confirmStatsButton != null) _confirmStatsButton.onClick.RemoveAllListeners();
         }
 
     }

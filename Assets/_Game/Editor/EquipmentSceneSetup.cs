@@ -297,20 +297,28 @@ namespace ConquerChronicles.Editor
             statPointsTMP.fontSizeMin = 18;
             statPointsTMP.fontSizeMax = 28;
 
-            // Stat entries — 2×2 grid, each: "StatName: value" text + small +Button
+            // Stat entries — 2×2 grid, each: "StatName: value" text + MinusButton + PlusButton
             string[] statDisplayNames = { "Vitality", "Agility", "Strength", "Spirit" };
             string[] statFieldNames = { "Vitality", "Agility", "Strength", "Spirit" };
             var statTexts = new TextMeshProUGUI[4];
-            var statButtons = new Button[4];
+            var statPlusButtons = new Button[4];
+            var statMinusButtons = new Button[4];
 
-            // Row 1 (Vitality, Agility) — Y: 44% to 78%
-            // Row 2 (Strength, Spirit) — Y: 04% to 38%
+            // Row 1 (Vitality, Agility) — Y: 50% to 84%
+            // Row 2 (Strength, Spirit) — Y: 16% to 50%
             float[][] cellAnchors = {
-                new[] { 0.02f, 0.44f, 0.48f, 0.78f },  // Vitality
-                new[] { 0.52f, 0.44f, 0.98f, 0.78f },  // Agility
-                new[] { 0.02f, 0.04f, 0.48f, 0.38f },  // Strength
-                new[] { 0.52f, 0.04f, 0.98f, 0.38f },  // Spirit
+                new[] { 0.02f, 0.50f, 0.48f, 0.84f },  // Vitality
+                new[] { 0.52f, 0.50f, 0.98f, 0.84f },  // Agility
+                new[] { 0.02f, 0.16f, 0.48f, 0.50f },  // Strength
+                new[] { 0.52f, 0.16f, 0.98f, 0.50f },  // Spirit
             };
+
+            var plusUnpressed = UIAtlasHelper.GetSprite("PlusButton_Unpressed");
+            var plusPressed = UIAtlasHelper.GetSprite("PlusButton_Pressed");
+            var plusDisabled = UIAtlasHelper.GetSprite("PlusButton_Disabled");
+            var minusUnpressed = UIAtlasHelper.GetSprite("MinusButton_Unpressed");
+            var minusPressed = UIAtlasHelper.GetSprite("MinusButton_Pressed");
+            var minusDisabled = UIAtlasHelper.GetSprite("MinusButton_Disabled");
 
             for (int i = 0; i < 4; i++)
             {
@@ -325,21 +333,47 @@ namespace ConquerChronicles.Editor
 
                 // Text label: "Vitality: 0" — left portion
                 var textGO = CreateUIText(cellGO.transform, "Text", $"{statDisplayNames[i]}: 0",
-                    new Vector2(0, 0), new Vector2(0.70f, 1),
+                    new Vector2(0, 0), new Vector2(0.58f, 1),
                     Vector2.zero, Vector2.zero, 26);
                 var textRT = textGO.GetComponent<RectTransform>();
                 textRT.anchorMin = Vector2.zero;
-                textRT.anchorMax = new Vector2(0.70f, 1);
+                textRT.anchorMax = new Vector2(0.58f, 1);
                 textRT.offsetMin = new Vector2(5, 0);
                 textRT.offsetMax = Vector2.zero;
                 var textTMP = textGO.GetComponent<TextMeshProUGUI>();
                 textTMP.alignment = TextAlignmentOptions.Left;
                 textTMP.enableAutoSizing = true;
-                textTMP.fontSizeMin = 14;
-                textTMP.fontSizeMax = 26;
+                textTMP.fontSizeMin = 20;
+                textTMP.fontSizeMax = 34;
                 statTexts[i] = textTMP;
 
-                // +Button — right side, square, preserveAspect
+                // MinusButton — hidden by default, shown when pending
+                var minusBtnGO = new GameObject($"{statFieldNames[i]}MinusBtn", typeof(RectTransform));
+                minusBtnGO.transform.SetParent(cellGO.transform, false);
+                var minusBtnRT = minusBtnGO.GetComponent<RectTransform>();
+                minusBtnRT.anchorMin = new Vector2(0.58f, 0.15f);
+                minusBtnRT.anchorMax = new Vector2(0.78f, 0.85f);
+                minusBtnRT.offsetMin = Vector2.zero;
+                minusBtnRT.offsetMax = Vector2.zero;
+                var minusBtnImg = minusBtnGO.AddComponent<Image>();
+                minusBtnImg.preserveAspect = true;
+                if (minusUnpressed != null)
+                {
+                    minusBtnImg.sprite = minusUnpressed;
+                    minusBtnImg.type = Image.Type.Simple;
+                }
+                minusBtnImg.color = Color.white;
+                var minusBtn = minusBtnGO.AddComponent<Button>();
+                minusBtn.transition = Selectable.Transition.SpriteSwap;
+                minusBtn.targetGraphic = minusBtnImg;
+                var minusSpriteState = new SpriteState();
+                minusSpriteState.pressedSprite = minusPressed;
+                minusSpriteState.disabledSprite = minusDisabled;
+                minusBtn.spriteState = minusSpriteState;
+                minusBtnGO.SetActive(false);
+                statMinusButtons[i] = minusBtn;
+
+                // +Button — right side
                 var btnGO = new GameObject($"{statFieldNames[i]}Btn", typeof(RectTransform));
                 btnGO.transform.SetParent(cellGO.transform, false);
                 var btnRT = btnGO.GetComponent<RectTransform>();
@@ -349,12 +383,9 @@ namespace ConquerChronicles.Editor
                 btnRT.offsetMax = Vector2.zero;
                 var btnImg = btnGO.AddComponent<Image>();
                 btnImg.preserveAspect = true;
-                var unpressed = UIAtlasHelper.GetSprite("PlusButton_Unpressed");
-                var pressed = UIAtlasHelper.GetSprite("PlusButton_Pressed");
-                var disabled = UIAtlasHelper.GetSprite("PlusButton_Disabled");
-                if (unpressed != null)
+                if (plusUnpressed != null)
                 {
-                    btnImg.sprite = unpressed;
+                    btnImg.sprite = plusUnpressed;
                     btnImg.type = Image.Type.Simple;
                 }
                 btnImg.color = Color.white;
@@ -362,11 +393,47 @@ namespace ConquerChronicles.Editor
                 btn.transition = Selectable.Transition.SpriteSwap;
                 btn.targetGraphic = btnImg;
                 var spriteState = new SpriteState();
-                spriteState.pressedSprite = pressed;
-                spriteState.disabledSprite = disabled;
+                spriteState.pressedSprite = plusPressed;
+                spriteState.disabledSprite = plusDisabled;
                 btn.spriteState = spriteState;
-                statButtons[i] = btn;
+                statPlusButtons[i] = btn;
             }
+
+            // Confirm button — below the 2×2 grid, hidden by default
+            var confirmGO = new GameObject("ConfirmStatsBtn", typeof(RectTransform));
+            confirmGO.transform.SetParent(statsAllocContent, false);
+            var confirmRT = confirmGO.GetComponent<RectTransform>();
+            confirmRT.anchorMin = new Vector2(0.20f, 0.01f);
+            confirmRT.anchorMax = new Vector2(0.80f, 0.14f);
+            confirmRT.offsetMin = Vector2.zero;
+            confirmRT.offsetMax = Vector2.zero;
+            var confirmImg = confirmGO.AddComponent<Image>();
+            var confirmUnpressed = UIAtlasHelper.GetSprite("Button_Unpressed");
+            var confirmPressed = UIAtlasHelper.GetSprite("Button_Pressed");
+            if (confirmUnpressed != null)
+            {
+                confirmImg.sprite = confirmUnpressed;
+                confirmImg.type = Image.Type.Sliced;
+            }
+            confirmImg.color = Color.white;
+            var confirmBtn = confirmGO.AddComponent<Button>();
+            confirmBtn.transition = Selectable.Transition.SpriteSwap;
+            confirmBtn.targetGraphic = confirmImg;
+            var confirmSpriteState = new SpriteState();
+            confirmSpriteState.pressedSprite = confirmPressed;
+            confirmBtn.spriteState = confirmSpriteState;
+
+            // "Confirm" label
+            var confirmTextGO = CreateUIText(confirmGO.transform, "Label", "Confirm",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 24);
+            var confirmTextTMP = confirmTextGO.GetComponent<TextMeshProUGUI>();
+            confirmTextTMP.alignment = TextAlignmentOptions.Center;
+            confirmTextTMP.color = Color.white;
+            confirmTextTMP.fontStyle = FontStyles.Bold;
+            confirmTextTMP.enableAutoSizing = true;
+            confirmTextTMP.fontSizeMin = 16;
+            confirmTextTMP.fontSizeMax = 24;
+            confirmGO.SetActive(false);
 
             statsContentGO.SetActive(false);
 
@@ -578,10 +645,15 @@ namespace ConquerChronicles.Editor
             uiSO.FindProperty("_strengthText").objectReferenceValue = statTexts[2];
             uiSO.FindProperty("_agilityText").objectReferenceValue = statTexts[1];
             uiSO.FindProperty("_spiritText").objectReferenceValue = statTexts[3];
-            uiSO.FindProperty("_vitalityButton").objectReferenceValue = statButtons[0];
-            uiSO.FindProperty("_strengthButton").objectReferenceValue = statButtons[2];
-            uiSO.FindProperty("_agilityButton").objectReferenceValue = statButtons[1];
-            uiSO.FindProperty("_spiritButton").objectReferenceValue = statButtons[3];
+            uiSO.FindProperty("_vitalityButton").objectReferenceValue = statPlusButtons[0];
+            uiSO.FindProperty("_strengthButton").objectReferenceValue = statPlusButtons[2];
+            uiSO.FindProperty("_agilityButton").objectReferenceValue = statPlusButtons[1];
+            uiSO.FindProperty("_spiritButton").objectReferenceValue = statPlusButtons[3];
+            uiSO.FindProperty("_vitalityMinusButton").objectReferenceValue = statMinusButtons[0];
+            uiSO.FindProperty("_strengthMinusButton").objectReferenceValue = statMinusButtons[2];
+            uiSO.FindProperty("_agilityMinusButton").objectReferenceValue = statMinusButtons[1];
+            uiSO.FindProperty("_spiritMinusButton").objectReferenceValue = statMinusButtons[3];
+            uiSO.FindProperty("_confirmStatsButton").objectReferenceValue = confirmBtn;
 
             uiSO.ApplyModifiedPropertiesWithoutUndo();
 

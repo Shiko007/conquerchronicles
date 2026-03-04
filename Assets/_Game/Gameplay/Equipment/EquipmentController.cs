@@ -27,6 +27,11 @@ namespace ConquerChronicles.Gameplay.Equipment
         private CharacterStats _baseStats;
         private CharacterStats _growth;
 
+        // Pending stat allocation (not yet confirmed)
+        private bool _hasPendingStats;
+        private int _pendingVitality, _pendingStrength, _pendingAgility, _pendingSpirit;
+        private int _pendingStatPoints;
+
         public void SetAudioManager(AudioManager audioManager) { _audioManager = audioManager; }
 
         private void Start()
@@ -182,19 +187,85 @@ namespace ConquerChronicles.Gameplay.Equipment
 
             _equipmentUI.OnAllocateStat = (statName) =>
             {
-                if (_saveData.StatPointsAvailable <= 0) return;
+                // Initialize pending from saved values on first press
+                if (!_hasPendingStats)
+                {
+                    _pendingVitality = _saveData.Vitality;
+                    _pendingStrength = _saveData.Strength;
+                    _pendingAgility = _saveData.Agility;
+                    _pendingSpirit = _saveData.Spirit;
+                    _pendingStatPoints = _saveData.StatPointsAvailable;
+                }
+
+                if (_pendingStatPoints <= 0) return;
 
                 switch (statName)
                 {
-                    case "Vitality":  _saveData.Vitality++; break;
-                    case "Strength":  _saveData.Strength++; break;
-                    case "Agility":   _saveData.Agility++; break;
-                    case "Spirit":    _saveData.Spirit++; break;
+                    case "Vitality":  _pendingVitality++; break;
+                    case "Strength":  _pendingStrength++; break;
+                    case "Agility":   _pendingAgility++; break;
+                    case "Spirit":    _pendingSpirit++; break;
                     default: return;
                 }
 
-                _saveData.StatPointsAvailable--;
+                _pendingStatPoints--;
+                _hasPendingStats = true;
+                _equipmentUI.ShowConfirmButton();
+                RefreshAll();
+            };
+
+            _equipmentUI.OnDeallocateStat = (statName) =>
+            {
+                if (!_hasPendingStats) return;
+
+                // Only allow reverting points added this session (not saved ones)
+                switch (statName)
+                {
+                    case "Vitality":
+                        if (_pendingVitality <= _saveData.Vitality) return;
+                        _pendingVitality--; break;
+                    case "Strength":
+                        if (_pendingStrength <= _saveData.Strength) return;
+                        _pendingStrength--; break;
+                    case "Agility":
+                        if (_pendingAgility <= _saveData.Agility) return;
+                        _pendingAgility--; break;
+                    case "Spirit":
+                        if (_pendingSpirit <= _saveData.Spirit) return;
+                        _pendingSpirit--; break;
+                    default: return;
+                }
+
+                _pendingStatPoints++;
+
+                // If all pending values match saved, no longer pending
+                if (_pendingVitality == _saveData.Vitality &&
+                    _pendingStrength == _saveData.Strength &&
+                    _pendingAgility == _saveData.Agility &&
+                    _pendingSpirit == _saveData.Spirit)
+                {
+                    _hasPendingStats = false;
+                    _equipmentUI.HideConfirmButton();
+                    _equipmentUI.HideAllMinusButtons();
+                }
+
+                RefreshAll();
+            };
+
+            _equipmentUI.OnConfirmStats = () =>
+            {
+                if (!_hasPendingStats) return;
+
+                _saveData.Vitality = _pendingVitality;
+                _saveData.Strength = _pendingStrength;
+                _saveData.Agility = _pendingAgility;
+                _saveData.Spirit = _pendingSpirit;
+                _saveData.StatPointsAvailable = _pendingStatPoints;
                 _saveManager.SaveGame(_saveData);
+
+                _hasPendingStats = false;
+                _equipmentUI.HideConfirmButton();
+                _equipmentUI.HideAllMinusButtons();
                 RefreshAll();
             };
 
@@ -211,23 +282,38 @@ namespace ConquerChronicles.Gameplay.Equipment
         {
             _equipmentUI.RefreshEquippedSlots(_inventory.EquippedItems);
 
-            var totalStats = ComputeTotalStats();
+            int vit = _hasPendingStats ? _pendingVitality : _saveData.Vitality;
+            int str = _hasPendingStats ? _pendingStrength : _saveData.Strength;
+            int agi = _hasPendingStats ? _pendingAgility : _saveData.Agility;
+            int spi = _hasPendingStats ? _pendingSpirit : _saveData.Spirit;
+            int pts = _hasPendingStats ? _pendingStatPoints : _saveData.StatPointsAvailable;
+
+            var totalStats = ComputeTotalStats(vit, str, agi, spi);
             _equipmentUI.RefreshStats(_playerClass, _playerLevel, totalStats,
-                _saveData.StatPointsAvailable, _saveData.Vitality,
-                _saveData.Strength, _saveData.Agility, _saveData.Spirit);
+                pts, vit, str, agi, spi);
+
+            // Show minus buttons only for stats that have pending increases
+            if (_hasPendingStats)
+            {
+                _equipmentUI.ShowMinusButtons(
+                    _pendingVitality > _saveData.Vitality,
+                    _pendingStrength > _saveData.Strength,
+                    _pendingAgility > _saveData.Agility,
+                    _pendingSpirit > _saveData.Spirit);
+            }
         }
 
-        private CharacterStats ComputeTotalStats()
+        private CharacterStats ComputeTotalStats(int vitality, int strength, int agility, int spirit)
         {
             var stats = _baseStats + _growth * (_playerLevel - 1);
 
             // Allocated stat points
-            stats.HP += _saveData.Vitality * 10;
+            stats.HP += vitality * 10;
             stats.MP += _saveData.Mana * 8;
-            stats.ATK += _saveData.Strength * 3;
-            stats.AGI += _saveData.Agility * 2;
-            stats.CritRate += _saveData.Agility * 0.002f;
-            stats.MATK += _saveData.Spirit * 3;
+            stats.ATK += strength * 3;
+            stats.AGI += agility * 2;
+            stats.CritRate += agility * 0.002f;
+            stats.MATK += spirit * 3;
 
             // Equipment bonuses
             for (int i = 0; i < InventoryState.EquipmentSlotCount; i++)
