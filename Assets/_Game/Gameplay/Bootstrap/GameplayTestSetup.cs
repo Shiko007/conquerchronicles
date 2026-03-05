@@ -378,8 +378,9 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             {
                 saveData.CharacterLevel = _characterView.State.Level;
                 saveData.CharacterXP = _characterView.State.XP;
-                // Stat allocations are saved by EquipmentController on Confirm only.
-                // Do NOT overwrite them here — Equipment may have newer values.
+                // Save stat points earned from level-ups during combat.
+                // Stat allocations (Vitality, etc.) are saved by EquipmentController only.
+                saveData.StatPointsAvailable = _characterView.State.StatPointsAvailable;
             }
 
             // Gold delta
