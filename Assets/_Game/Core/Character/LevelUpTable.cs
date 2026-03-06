@@ -7,12 +7,15 @@ namespace ConquerChronicles.Core.Character
         public const int MaxLevel = 130;
         public const int StatPointsPerLevel = 3;
 
+        private const long BaseXP = 100;
+        private const double Multiplier = 1.15;
+
         public static long GetRequiredXP(int level)
         {
             if (level < 1 || level >= MaxLevel) return long.MaxValue;
-            // Quadratic growth: 50 * level^2
-            // Lv1=50, Lv5=1250, Lv10=5000, Lv50=125000, Lv100=500000
-            return 50L * level * level;
+            // Exponential growth: base + multiplier^level
+            // Lv1=101, Lv10=504, Lv25=3,292, Lv50=108,466, Lv100=117M
+            return BaseXP + (long)Math.Pow(Multiplier, level);
         }
 
         public static bool TryLevelUp(CharacterState state)
