@@ -21,6 +21,33 @@ namespace ConquerChronicles.Gameplay.Inventory
         private Dictionary<string, EquipmentData> _equipmentCatalog;
         private BagItem _selectedBagItem;
         private int _selectedBagIndex = -1;
+        private int _lastKnownBagCount;
+        private int _lastKnownGold;
+
+        private void Update()
+        {
+            var latestSave = _saveManager.LoadGame();
+            if (latestSave == null) return;
+
+            int currentBagCount = latestSave.BagItems != null ? latestSave.BagItems.Length : 0;
+            int currentGold = latestSave.Gold;
+
+            if (currentBagCount != _lastKnownBagCount || currentGold != _lastKnownGold)
+            {
+                // Reload inventory from save
+                _saveData = latestSave;
+                _inventory = new InventoryState();
+                _inventory.Gold = _saveData.Gold;
+
+                RestoreEquippedItems();
+                RestoreBagItems();
+
+                _lastKnownBagCount = currentBagCount;
+                _lastKnownGold = currentGold;
+
+                RefreshAll();
+            }
+        }
 
         private void Start()
         {
@@ -42,68 +69,11 @@ namespace ConquerChronicles.Gameplay.Inventory
             _inventory = new InventoryState();
             _inventory.Gold = _saveData.Gold;
 
-            // Restore equipped items (needed for equip/unequip from bag)
-            if (_saveData.EquippedItems != null)
-            {
-                for (int i = 0; i < _saveData.EquippedItems.Length && i < InventoryState.EquipmentSlotCount; i++)
-                {
-                    var serialized = _saveData.EquippedItems[i];
-                    if (serialized.IsEmpty) continue;
+            RestoreEquippedItems();
+            RestoreBagItems();
 
-                    if (_equipmentCatalog.TryGetValue(serialized.DataID, out var data))
-                    {
-                        var instance = new EquipmentInstance(data);
-                        instance.UpgradeLevel = serialized.UpgradeLevel;
-
-                        if (serialized.Gems != null)
-                        {
-                            for (int g = 0; g < serialized.Gems.Length && g < instance.SocketedGems.Length; g++)
-                            {
-                                if (serialized.Gems[g].Tier > 0)
-                                    instance.Socket(g, new GemData((GemType)serialized.Gems[g].Type, serialized.Gems[g].Tier));
-                            }
-                        }
-
-                        _inventory.EquippedItems[i] = instance;
-                    }
-                }
-            }
-
-            // Restore bag items
-            if (_saveData.BagItems != null)
-            {
-                for (int i = 0; i < _saveData.BagItems.Length; i++)
-                {
-                    var bagItem = _saveData.BagItems[i];
-                    if (bagItem.ItemType == 0) // Equipment
-                    {
-                        var serialized = bagItem.Equipment;
-                        if (serialized.IsEmpty) continue;
-
-                        if (_equipmentCatalog.TryGetValue(serialized.DataID, out var data))
-                        {
-                            var instance = new EquipmentInstance(data);
-                            instance.UpgradeLevel = serialized.UpgradeLevel;
-
-                            if (serialized.Gems != null)
-                            {
-                                for (int g = 0; g < serialized.Gems.Length && g < instance.SocketedGems.Length; g++)
-                                {
-                                    if (serialized.Gems[g].Tier > 0)
-                                        instance.Socket(g, new GemData((GemType)serialized.Gems[g].Type, serialized.Gems[g].Tier));
-                                }
-                            }
-
-                            _inventory.AddToBag(instance);
-                        }
-                    }
-                    else if (bagItem.ItemType == 1) // Gem
-                    {
-                        if (bagItem.Gem.Tier > 0)
-                            _inventory.AddGem(new GemData((GemType)bagItem.Gem.Type, bagItem.Gem.Tier));
-                    }
-                }
-            }
+            _lastKnownBagCount = _saveData.BagItems != null ? _saveData.BagItems.Length : 0;
+            _lastKnownGold = _saveData.Gold;
 
             // Wire UI
             _inventoryUI.Initialize();
@@ -153,6 +123,69 @@ namespace ConquerChronicles.Gameplay.Inventory
             };
 
             RefreshAll();
+        }
+
+        private void RestoreEquippedItems()
+        {
+            if (_saveData.EquippedItems == null) return;
+            for (int i = 0; i < _saveData.EquippedItems.Length && i < InventoryState.EquipmentSlotCount; i++)
+            {
+                var serialized = _saveData.EquippedItems[i];
+                if (serialized.IsEmpty) continue;
+
+                if (_equipmentCatalog.TryGetValue(serialized.DataID, out var data))
+                {
+                    var instance = new EquipmentInstance(data);
+                    instance.UpgradeLevel = serialized.UpgradeLevel;
+
+                    if (serialized.Gems != null)
+                    {
+                        for (int g = 0; g < serialized.Gems.Length && g < instance.SocketedGems.Length; g++)
+                        {
+                            if (serialized.Gems[g].Tier > 0)
+                                instance.Socket(g, new GemData((GemType)serialized.Gems[g].Type, serialized.Gems[g].Tier));
+                        }
+                    }
+
+                    _inventory.EquippedItems[i] = instance;
+                }
+            }
+        }
+
+        private void RestoreBagItems()
+        {
+            if (_saveData.BagItems == null) return;
+            for (int i = 0; i < _saveData.BagItems.Length; i++)
+            {
+                var bagItem = _saveData.BagItems[i];
+                if (bagItem.ItemType == 0)
+                {
+                    var serialized = bagItem.Equipment;
+                    if (serialized.IsEmpty) continue;
+
+                    if (_equipmentCatalog.TryGetValue(serialized.DataID, out var data))
+                    {
+                        var instance = new EquipmentInstance(data);
+                        instance.UpgradeLevel = serialized.UpgradeLevel;
+
+                        if (serialized.Gems != null)
+                        {
+                            for (int g = 0; g < serialized.Gems.Length && g < instance.SocketedGems.Length; g++)
+                            {
+                                if (serialized.Gems[g].Tier > 0)
+                                    instance.Socket(g, new GemData((GemType)serialized.Gems[g].Type, serialized.Gems[g].Tier));
+                            }
+                        }
+
+                        _inventory.AddToBag(instance);
+                    }
+                }
+                else if (bagItem.ItemType == 1)
+                {
+                    if (bagItem.Gem.Tier > 0)
+                        _inventory.AddGem(new GemData((GemType)bagItem.Gem.Type, bagItem.Gem.Tier));
+                }
+            }
         }
 
         private void RefreshAll()

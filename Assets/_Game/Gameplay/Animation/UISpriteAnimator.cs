@@ -24,6 +24,9 @@ namespace ConquerChronicles.Gameplay.Animation
 
         public void Play(string prefix, float fps = 8f)
         {
+            if (_image == null)
+                _image = GetComponent<Image>();
+
             _spritePrefix = prefix;
             _fps = fps;
             _frames = SpriteAtlasLoader.GetFrames(prefix);

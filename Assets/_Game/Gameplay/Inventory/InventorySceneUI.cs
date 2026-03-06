@@ -133,30 +133,69 @@ namespace ConquerChronicles.Gameplay.Inventory
                 if (hasItem)
                 {
                     var bagItem = bag[i];
-                    img.color = GetSlotColor(bagItem);
 
                     var btn = slotGO.AddComponent<Button>();
                     btn.targetGraphic = img;
                     btn.onClick.AddListener(() => OnBagItemPressed?.Invoke(index));
 
-                    var textGO = new GameObject("Label", typeof(RectTransform));
-                    textGO.transform.SetParent(slotGO.transform, false);
-                    var textRT = textGO.GetComponent<RectTransform>();
-                    textRT.anchorMin = Vector2.zero;
-                    textRT.anchorMax = Vector2.one;
-                    textRT.offsetMin = new Vector2(2, 2);
-                    textRT.offsetMax = new Vector2(-2, -2);
+                    if (bagItem.Type == BagItemType.Gem)
+                    {
+                        // Show animated gem sprite
+                        img.color = Color.clear; // hide blank slot background
+                        var gemImgGO = new GameObject("GemAnim", typeof(RectTransform));
+                        gemImgGO.transform.SetParent(slotGO.transform, false);
+                        var gemRT = gemImgGO.GetComponent<RectTransform>();
+                        gemRT.anchorMin = Vector2.zero;
+                        gemRT.anchorMax = Vector2.one;
+                        gemRT.offsetMin = Vector2.zero;
+                        gemRT.offsetMax = Vector2.zero;
+                        var gemImg = gemImgGO.AddComponent<Image>();
+                        gemImg.preserveAspect = true;
+                        var anim = gemImgGO.AddComponent<UISpriteAnimator>();
+                        anim.Play("Gem_Slot_", 8f);
 
-                    var tmp = textGO.AddComponent<TextMeshProUGUI>();
-                    tmp.text = GetSlotLabel(bagItem);
-                    tmp.fontSize = 18;
-                    tmp.color = Color.white;
-                    tmp.alignment = TextAlignmentOptions.Center;
-                    tmp.enableAutoSizing = true;
-                    tmp.fontSizeMin = 8;
-                    tmp.fontSizeMax = 18;
-                    tmp.textWrappingMode = TextWrappingModes.NoWrap;
-                    tmp.overflowMode = TextOverflowModes.Truncate;
+                        // Tier label in bottom-right corner
+                        var tierGO = new GameObject("Tier", typeof(RectTransform));
+                        tierGO.transform.SetParent(slotGO.transform, false);
+                        var tierRT = tierGO.GetComponent<RectTransform>();
+                        tierRT.anchorMin = new Vector2(0.5f, 0f);
+                        tierRT.anchorMax = new Vector2(1f, 0.4f);
+                        tierRT.offsetMin = Vector2.zero;
+                        tierRT.offsetMax = Vector2.zero;
+                        var tierTmp = tierGO.AddComponent<TextMeshProUGUI>();
+                        tierTmp.text = $"T{bagItem.Gem.Tier}";
+                        tierTmp.fontSize = 16;
+                        tierTmp.color = Color.white;
+                        tierTmp.alignment = TextAlignmentOptions.BottomRight;
+                        tierTmp.enableAutoSizing = true;
+                        tierTmp.fontSizeMin = 8;
+                        tierTmp.fontSizeMax = 16;
+                        tierTmp.outlineWidth = 0.3f;
+                        tierTmp.outlineColor = Color.black;
+                    }
+                    else
+                    {
+                        img.color = GetSlotColor(bagItem);
+
+                        var textGO = new GameObject("Label", typeof(RectTransform));
+                        textGO.transform.SetParent(slotGO.transform, false);
+                        var textRT = textGO.GetComponent<RectTransform>();
+                        textRT.anchorMin = Vector2.zero;
+                        textRT.anchorMax = Vector2.one;
+                        textRT.offsetMin = new Vector2(2, 2);
+                        textRT.offsetMax = new Vector2(-2, -2);
+
+                        var tmp = textGO.AddComponent<TextMeshProUGUI>();
+                        tmp.text = GetSlotLabel(bagItem);
+                        tmp.fontSize = 18;
+                        tmp.color = Color.white;
+                        tmp.alignment = TextAlignmentOptions.Center;
+                        tmp.enableAutoSizing = true;
+                        tmp.fontSizeMin = 8;
+                        tmp.fontSizeMax = 18;
+                        tmp.textWrappingMode = TextWrappingModes.NoWrap;
+                        tmp.overflowMode = TextOverflowModes.Truncate;
+                    }
                 }
                 else
                 {
