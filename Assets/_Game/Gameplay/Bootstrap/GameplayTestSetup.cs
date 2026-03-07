@@ -177,6 +177,9 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 _playerHUD.OnInventoryPressed = () => ToggleSubScene("Inventory");
                 _playerHUD.OnMinePressed = () => ToggleSubScene("Mining");
                 _playerHUD.OnMarketPressed = () => ToggleSubScene("Market");
+
+                if (_combatManager != null)
+                    _combatManager.OnPlayerXPGained += (xp, _) => _playerHUD.ShowXPGain(xp);
             }
 
             // Build enemy catalog from TestMaps

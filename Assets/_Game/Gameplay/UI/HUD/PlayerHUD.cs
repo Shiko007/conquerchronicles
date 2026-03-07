@@ -24,6 +24,9 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         [SerializeField] private GameObject _expTextGO;
         [SerializeField] private GameObject _levelTextGO;
 
+        [Header("XP Gain Popup")]
+        [SerializeField] private RectTransform _xpGainAnchor;
+
         [Header("Level & Class")]
         [SerializeField] private TextMeshProUGUI _levelText;
 
@@ -81,6 +84,20 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         private float _hpMaxX = 0.5f;
 
         private const float FillSpeed = 2f;
+
+        // XP gain popup pool
+        private const float PopupDuration = 1.2f;
+        private const float PopupRiseDistance = 60f;
+        private readonly System.Collections.Generic.List<XPPopup> _xpPopups = new();
+
+        private struct XPPopup
+        {
+            public GameObject GO;
+            public RectTransform RT;
+            public CanvasGroup CG;
+            public float StartY;
+            public float Timer;
+        }
 
         public void Initialize(CharacterView player, CombatManager combatManager)
         {
@@ -213,7 +230,10 @@ namespace ConquerChronicles.Gameplay.UI.HUD
                     _levelText.text = $"Lv.{level}";
                 long required = Core.Character.LevelUpTable.GetRequiredXP(level);
                 if (_xpText != null)
-                    _xpText.text = $"{xp} / {required}";
+                {
+                    float xpPercent = required > 0 ? (float)xp / required * 100f : 100f;
+                    _xpText.text = $"{xpPercent:F6}%";
+                }
                 _xpTarget = required > 0 ? (float)xp / required : 1f;
             }
 
@@ -221,6 +241,73 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             {
                 _xpCurrent = Mathf.MoveTowards(_xpCurrent, _xpTarget, dt * FillSpeed);
                 ApplyXPFill(_xpCurrent);
+            }
+
+            // Animate XP gain popups
+            UpdateXPPopups(dt);
+        }
+
+        public void ShowXPGain(long xpAmount)
+        {
+            if (_xpGainAnchor == null) return;
+            if (_player == null || _player.State == null) return;
+
+            long required = Core.Character.LevelUpTable.GetRequiredXP(_player.State.Level);
+            if (required <= 0) return;
+
+            float percent = (float)xpAmount / required * 100f;
+
+            var go = new GameObject("XPGain", typeof(RectTransform), typeof(CanvasGroup));
+            go.transform.SetParent(_xpGainAnchor, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.5f, 1f);
+            rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.sizeDelta = new Vector2(200f, 30f);
+            rt.anchoredPosition = Vector2.zero;
+
+            var cg = go.GetComponent<CanvasGroup>();
+
+            var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.text = $"+{percent:F6}%";
+            tmp.fontSize = 22;
+            tmp.color = new Color(0.4f, 1f, 0.4f);
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.enableAutoSizing = true;
+            tmp.fontSizeMin = 12;
+            tmp.fontSizeMax = 22;
+            tmp.outlineWidth = 0.3f;
+            tmp.outlineColor = Color.black;
+            tmp.raycastTarget = false;
+
+            _xpPopups.Add(new XPPopup
+            {
+                GO = go,
+                RT = rt,
+                CG = cg,
+                StartY = 0f,
+                Timer = 0f
+            });
+        }
+
+        private void UpdateXPPopups(float dt)
+        {
+            for (int i = _xpPopups.Count - 1; i >= 0; i--)
+            {
+                var p = _xpPopups[i];
+                p.Timer += dt;
+
+                float t = p.Timer / PopupDuration;
+                p.RT.anchoredPosition = new Vector2(0, p.StartY + PopupRiseDistance * t);
+                p.CG.alpha = 1f - t;
+
+                _xpPopups[i] = p;
+
+                if (p.Timer >= PopupDuration)
+                {
+                    Destroy(p.GO);
+                    _xpPopups.RemoveAt(i);
+                }
             }
         }
 

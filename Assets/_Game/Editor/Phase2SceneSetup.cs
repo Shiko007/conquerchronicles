@@ -881,6 +881,16 @@ namespace ConquerChronicles.Editor
             expLvTMP.alignment = TextAlignmentOptions.Center;
             expLvBadge.SetActive(false);
 
+            // XP gain popup anchor — sits above level badge
+            var xpGainAnchor = new GameObject("XP_Gain_Anchor", typeof(RectTransform));
+            xpGainAnchor.transform.SetParent(expOrbContainer.transform, false);
+            var xpGainAnchorRT = xpGainAnchor.GetComponent<RectTransform>();
+            xpGainAnchorRT.anchorMin = new Vector2(0.5f, 1f);
+            xpGainAnchorRT.anchorMax = new Vector2(0.5f, 1f);
+            xpGainAnchorRT.pivot = new Vector2(0.5f, 0f);
+            xpGainAnchorRT.anchoredPosition = new Vector2(0, 64);
+            xpGainAnchorRT.sizeDelta = new Vector2(200, 30);
+
             // =============================================
             // Revive Overlay — centered banner rectangle, hidden by default
             // =============================================
@@ -935,6 +945,7 @@ namespace ConquerChronicles.Editor
             hudSO.FindProperty("_orbTextGO").objectReferenceValue = orbTextGO;
             hudSO.FindProperty("_expTextGO").objectReferenceValue = expXpTextGO;
             hudSO.FindProperty("_levelTextGO").objectReferenceValue = expLvBadge;
+            hudSO.FindProperty("_xpGainAnchor").objectReferenceValue = xpGainAnchorRT;
             hudSO.FindProperty("_equipmentButton").objectReferenceValue = navBtns[0];
             hudSO.FindProperty("_inventoryButton").objectReferenceValue = navBtns[1];
             hudSO.FindProperty("_mineButton").objectReferenceValue = navBtns[2];

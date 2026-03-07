@@ -168,6 +168,12 @@ namespace ConquerChronicles.Editor
                     Debug.Log("[Debug] Bag cleared.");
                 }
             }
+            EditorGUILayout.Space(5);
+            if (GUILayout.Button("Reset Character (Delete Save)"))
+            {
+                saveManager.DeleteSave();
+                Debug.Log("[Debug] Save file deleted. Restart play mode to start fresh.");
+            }
             GUI.backgroundColor = Color.white;
 
             EditorGUILayout.EndScrollView();
