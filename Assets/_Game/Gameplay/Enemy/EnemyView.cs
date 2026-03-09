@@ -10,6 +10,7 @@ namespace ConquerChronicles.Gameplay.Enemy
         [SerializeField] private SpriteRenderer _spriteRenderer;
         [SerializeField] private Transform _healthBarFill;
         [SerializeField] private GameObject _healthBarRoot;
+        [SerializeField] private TextMesh _nameLabel;
 
         public EnemyState State { get; private set; }
         public bool IsActive { get; private set; }
@@ -44,7 +45,7 @@ namespace ConquerChronicles.Gameplay.Enemy
                 Animator = gameObject.AddComponent<SpriteAnimator>();
         }
 
-        public void Initialize(EnemyData data, Vector3 spawnPosition)
+        public void Initialize(EnemyData data, Vector3 spawnPosition, int playerLevel = 0, int areaLevel = 0)
         {
             if (State == null)
                 State = new EnemyState(data);
@@ -57,10 +58,29 @@ namespace ConquerChronicles.Gameplay.Enemy
             DeathCallbackFired = false;
             gameObject.SetActive(true);
             UpdateHealthBar();
+            UpdateNameLabel(data.Name, playerLevel, areaLevel);
 
             // Load sprites for this enemy type (cache if same type)
             LoadSprites(data.ID);
             PlayWalk();
+        }
+
+        private void UpdateNameLabel(string enemyName, int playerLevel, int areaLevel)
+        {
+            if (_nameLabel == null) return;
+            _nameLabel.text = enemyName;
+            _nameLabel.gameObject.SetActive(true);
+
+            // Color based on level difference (player vs area)
+            int diff = playerLevel - areaLevel;
+            if (diff >= 10)
+                _nameLabel.color = Color.green;       // much stronger than enemies
+            else if (diff >= -5)
+                _nameLabel.color = Color.white;       // around same level
+            else if (diff >= -15)
+                _nameLabel.color = Color.red;         // enemies are stronger
+            else
+                _nameLabel.color = Color.black;       // extremely dangerous
         }
 
         private void LoadSprites(string enemyID)
@@ -140,6 +160,7 @@ namespace ConquerChronicles.Gameplay.Enemy
                 {
                     _deathTimer = DeathLingerDuration;
                     if (_healthBarRoot != null) _healthBarRoot.SetActive(false);
+                    if (_nameLabel != null) _nameLabel.gameObject.SetActive(false);
                 }
             }
             else

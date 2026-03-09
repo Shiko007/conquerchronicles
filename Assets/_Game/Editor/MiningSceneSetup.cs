@@ -303,6 +303,25 @@ namespace ConquerChronicles.Editor
             yieldPanelGO.SetActive(false);
 
             // ============================================================
+            // NOTIFICATION TEXT (centered, red, hidden by default)
+            // ============================================================
+
+            var notifGO = CreateUIText(safeAreaContent, "NotificationText", "Inventory is full",
+                new Vector2(0, 1), new Vector2(1, 1),
+                new Vector2(0, -92), new Vector2(-40, 50), 30);
+            var notifRT = notifGO.GetComponent<RectTransform>();
+            notifRT.anchorMin = new Vector2(0, 1);
+            notifRT.anchorMax = new Vector2(1, 1);
+            notifRT.pivot = new Vector2(0.5f, 1);
+            notifRT.anchoredPosition = new Vector2(0, -92);
+            notifRT.sizeDelta = new Vector2(-40, 50);
+            var notifTMP = notifGO.GetComponent<TextMeshProUGUI>();
+            notifTMP.alignment = TextAlignmentOptions.Center;
+            notifTMP.color = new Color(1f, 0.3f, 0.3f, 1f);
+            notifTMP.fontStyle = FontStyles.Bold;
+            notifGO.SetActive(false);
+
+            // ============================================================
             // WIRE COMPONENTS
             // ============================================================
 
@@ -336,6 +355,9 @@ namespace ConquerChronicles.Editor
             uiSO.FindProperty("_yieldGemsText").objectReferenceValue = yieldGemsGO.GetComponent<TextMeshProUGUI>();
             uiSO.FindProperty("_yieldOresText").objectReferenceValue = yieldOresGO.GetComponent<TextMeshProUGUI>();
             uiSO.FindProperty("_yieldCloseButton").objectReferenceValue = yieldCloseBtn;
+
+            // Notification
+            uiSO.FindProperty("_notificationText").objectReferenceValue = notifTMP;
 
             uiSO.ApplyModifiedPropertiesWithoutUndo();
 

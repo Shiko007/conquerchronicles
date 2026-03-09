@@ -148,7 +148,14 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             if (_goldCoinPool != null) _goldCoinPool.Warmup();
             if (_equipmentDropPool != null) _equipmentDropPool.Warmup();
             if (_lootVisualManager != null)
+            {
                 _lootVisualManager.Initialize(_goldCoinPool, _equipmentDropPool, _damageNumberPool, _characterView.transform);
+                _lootVisualManager.SetBagFullChecker(() =>
+                {
+                    var sd = _saveManager?.LoadGame();
+                    return sd != null && (sd.BagItems?.Length ?? 0) >= ConquerChronicles.Core.Inventory.InventoryState.BagCapacity;
+                });
+            }
 
             // Set up class skills
             var skills = new List<SkillState>();
@@ -404,11 +411,14 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 _savedCoinsFromSession = currentCoins;
             }
 
-            // New items delta
+            // New items delta (clamped to available bag space)
             int newItemCount = _collectedItemsThisSession.Count - _savedItemCountFromSession;
             if (newItemCount > 0)
             {
                 var existingBag = saveData.BagItems ?? System.Array.Empty<SerializedBagItem>();
+                int space = ConquerChronicles.Core.Inventory.InventoryState.BagCapacity - existingBag.Length;
+                newItemCount = Mathf.Min(newItemCount, space);
+                if (newItemCount <= 0) { _saveManager.SaveGame(saveData); return; }
                 var newBag = new SerializedBagItem[existingBag.Length + newItemCount];
                 System.Array.Copy(existingBag, newBag, existingBag.Length);
                 for (int i = 0; i < newItemCount; i++)

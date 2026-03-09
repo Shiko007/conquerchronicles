@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using ConquerChronicles.Core.Market;
+using ConquerChronicles.Core.Inventory;
 using ConquerChronicles.Core.Save;
 using ConquerChronicles.Gameplay.Save;
 
@@ -126,6 +127,16 @@ namespace ConquerChronicles.Gameplay.Market
 
                 // Validate gold
                 if (_saveData.Gold < listing.Price) return;
+
+                // Validate bag capacity
+                int currentBagCount = _saveData.BagItems?.Length ?? 0;
+                int itemsToAdd = listing.Type == MarketListingType.Gem ? listing.Quantity : 1;
+                if (listing.Type != MarketListingType.UpgradeMaterial &&
+                    currentBagCount + itemsToAdd > InventoryState.BagCapacity)
+                {
+                    _marketUI.ShowNotification("Inventory is full");
+                    return;
+                }
 
                 // Deduct gold
                 _saveData.Gold -= listing.Price;

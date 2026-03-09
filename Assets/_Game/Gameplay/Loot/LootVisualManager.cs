@@ -18,6 +18,9 @@ namespace ConquerChronicles.Gameplay.Loot
         private UnityEngine.Camera _mainCamera;
 
         private static readonly Color GoldTextColor = new(1f, 0.85f, 0.2f, 1f);
+        private static readonly Color FullTextColor = new(1f, 0.3f, 0.3f, 1f);
+
+        private Func<bool> _isBagFull;
 
         public event Action<string, int> OnEquipmentCollected;
 
@@ -30,6 +33,8 @@ namespace ConquerChronicles.Gameplay.Loot
             _playerTransform = playerTransform;
             _mainCamera = UnityEngine.Camera.main;
         }
+
+        public void SetBagFullChecker(Func<bool> checker) => _isBagFull = checker;
 
         private void Update()
         {
@@ -77,6 +82,14 @@ namespace ConquerChronicles.Gameplay.Loot
             textView.PlayText($"+{amount}", 5f, GoldTextColor, playerPos);
         }
 
+        private void ShowInventoryFullText()
+        {
+            if (_damageNumberPool == null) return;
+            var playerPos = _playerTransform != null ? _playerTransform.position : Vector3.zero;
+            var textView = _damageNumberPool.Get();
+            textView.PlayText("Inventory is full", 4f, FullTextColor, playerPos);
+        }
+
         public void SpawnEquipmentDrop(LootDropInfo info)
         {
             var drop = _equipmentDropPool.Get();
@@ -92,6 +105,12 @@ namespace ConquerChronicles.Gameplay.Loot
 
         private void CollectDrop(EquipmentDropView drop)
         {
+            if (_isBagFull != null && _isBagFull())
+            {
+                ShowInventoryFullText();
+                return;
+            }
+
             var playerPos = _playerTransform != null ? _playerTransform.position : drop.transform.position;
             var itemID = drop.ItemID;
             var qty = drop.Quantity;
@@ -112,6 +131,11 @@ namespace ConquerChronicles.Gameplay.Loot
             for (int i = _activeDrops.Count - 1; i >= 0; i--)
             {
                 var drop = _activeDrops[i];
+                if (_isBagFull != null && _isBagFull())
+                {
+                    _equipmentDropPool.Return(drop);
+                    continue;
+                }
                 OnEquipmentCollected?.Invoke(drop.ItemID, drop.Quantity);
                 _equipmentDropPool.Return(drop);
             }

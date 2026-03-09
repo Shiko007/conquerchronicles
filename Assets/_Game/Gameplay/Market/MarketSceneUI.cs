@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -36,6 +37,9 @@ namespace ConquerChronicles.Gameplay.Market
         [SerializeField] private Button _collectRevenueButton;
         [SerializeField] private TextMeshProUGUI _boothItemsText;
         [SerializeField] private TextMeshProUGUI _boothCountText;
+
+        [Header("Notification")]
+        [SerializeField] private TextMeshProUGUI _notificationText;
 
         // Events
         public System.Action OnBackPressed;
@@ -260,6 +264,22 @@ namespace ConquerChronicles.Gameplay.Market
 
             if (_boothCountText != null)
                 _boothCountText.text = $"{booth.ListedItems.Count}/{PlayerBoothState.MaxListedItems} items listed";
+        }
+
+        public void ShowNotification(string message)
+        {
+            if (_notificationText == null) return;
+            _notificationText.text = message;
+            _notificationText.gameObject.SetActive(true);
+            StopCoroutine(nameof(HideNotificationAfterDelay));
+            StartCoroutine(HideNotificationAfterDelay());
+        }
+
+        private IEnumerator HideNotificationAfterDelay()
+        {
+            yield return new WaitForSeconds(2f);
+            if (_notificationText != null)
+                _notificationText.gameObject.SetActive(false);
         }
 
         private void OnDestroy()

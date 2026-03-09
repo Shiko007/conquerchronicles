@@ -76,6 +76,8 @@ namespace ConquerChronicles.Gameplay.Mining
                 saveData.ActiveMineID = string.Empty;
                 saveData.MiningStartTimestamp = 0;
                 saveData.Gold += yield.Gold;
+                // TODO: When gems/ores are persisted to bag, add bag-full check here
+                // and call _miningUI.ShowNotification("Inventory is full") if needed.
                 _saveManager.SaveGame(saveData);
 
                 _miningUI.ShowYield(yield);

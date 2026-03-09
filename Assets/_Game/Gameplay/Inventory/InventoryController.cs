@@ -115,6 +115,47 @@ namespace ConquerChronicles.Gameplay.Inventory
                 SaveInventory();
             };
 
+            _inventoryUI.OnDropPressed = () =>
+            {
+                if (_selectedBagItem == null || _selectedBagIndex < 0) return;
+                if (_selectedBagIndex < _inventory.Bag.Count)
+                    _inventory.Bag.RemoveAt(_selectedBagIndex);
+                _inventoryUI.HideItemDetail();
+                _selectedBagItem = null;
+                _selectedBagIndex = -1;
+                RefreshAll();
+                SaveInventory();
+            };
+
+            _inventoryUI.OnBagItemLongPressed = (index) =>
+            {
+                if (index < 0 || index >= _inventory.Bag.Count) return;
+                _inventoryUI.HideItemDetail();
+                _selectedBagItem = null;
+                _selectedBagIndex = -1;
+                _inventoryUI.EnterSelectMode(index);
+            };
+
+            _inventoryUI.OnDropSelectedPressed = () =>
+            {
+                var indices = _inventoryUI.GetSelectedIndices();
+                indices.Sort((a, b) => b.CompareTo(a)); // descending to preserve indices
+                foreach (int idx in indices)
+                {
+                    if (idx >= 0 && idx < _inventory.Bag.Count)
+                        _inventory.Bag.RemoveAt(idx);
+                }
+                _inventoryUI.ExitSelectMode();
+                RefreshAll();
+                SaveInventory();
+            };
+
+            _inventoryUI.OnCancelSelectPressed = () =>
+            {
+                _inventoryUI.ExitSelectMode();
+                RefreshAll();
+            };
+
             _inventoryUI.OnCloseDetailPressed = () =>
             {
                 _inventoryUI.HideItemDetail();

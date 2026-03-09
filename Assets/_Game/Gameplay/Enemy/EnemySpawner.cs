@@ -23,11 +23,20 @@ namespace ConquerChronicles.Gameplay.Enemy
             _playerTarget = playerTarget;
         }
 
+        private int _playerLevel;
+        private int _areaLevel;
+
+        public void SetLevelContext(int playerLevel, int areaLevel)
+        {
+            _playerLevel = playerLevel;
+            _areaLevel = areaLevel;
+        }
+
         public EnemyView SpawnEnemy(EnemyData data, SpawnEdge edge)
         {
             var spawnPos = _mapBounds.GetSpawnPosition(edge);
             var enemy = _pool.Get();
-            enemy.Initialize(data, spawnPos);
+            enemy.Initialize(data, spawnPos, _playerLevel, _areaLevel);
 
             var movement = enemy.Movement ?? enemy.GetComponent<EnemyMovement>();
             if (movement != null)

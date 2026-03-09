@@ -409,6 +409,21 @@ namespace ConquerChronicles.Editor
             go.AddComponent<SpriteAnimator>();
             go.AddComponent<IsometricYSort>();
 
+            // --- Name Label (above health bar) ---
+            var nameLabelGO = new GameObject("NameLabel");
+            nameLabelGO.transform.SetParent(go.transform, false);
+            nameLabelGO.transform.localPosition = new Vector3(0f, 1.0f, 0f);
+            var nameLabel = nameLabelGO.AddComponent<TextMesh>();
+            nameLabel.text = "";
+            nameLabel.fontSize = 32;
+            nameLabel.characterSize = 0.06f;
+            nameLabel.anchor = TextAnchor.LowerCenter;
+            nameLabel.alignment = TextAlignment.Center;
+            nameLabel.color = Color.white;
+            var nameLabelRenderer = nameLabelGO.GetComponent<MeshRenderer>();
+            nameLabelRenderer.sortingLayerName = "Default";
+            nameLabelRenderer.sortingOrder = 12;
+
             // --- Health Bar ---
             var healthBarRoot = new GameObject("HealthBar");
             healthBarRoot.transform.SetParent(go.transform, false);
@@ -435,6 +450,7 @@ namespace ConquerChronicles.Editor
             so = new SerializedObject(view);
             so.FindProperty("_healthBarRoot").objectReferenceValue = healthBarRoot;
             so.FindProperty("_healthBarFill").objectReferenceValue = fillGo.transform;
+            so.FindProperty("_nameLabel").objectReferenceValue = nameLabel;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/_Game/Data/Prefabs/Enemy_Slime.prefab");

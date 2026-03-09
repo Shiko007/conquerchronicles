@@ -191,9 +191,9 @@ namespace ConquerChronicles.Editor
             itemInfoRT.sizeDelta = new Vector2(-15, 150);
             itemInfoGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.TopLeft;
 
-            // Equip button
+            // Equip button (shifted up to make room for Drop)
             var equipBtnGO = CreateButton(detailInnerContent, "EquipButton",
-                new Vector2(0, 70), new Vector2(0, 45), Color.white);
+                new Vector2(0, 120), new Vector2(0, 45), Color.white);
             var equipBtn = equipBtnGO.GetComponent<Button>();
             UIAtlasHelper.SetSpriteSwapButton(equipBtn, equipBtnGO.GetComponent<Image>(), "Button_Unpressed", "Button_Pressed");
             var equipBtnContent = UIAtlasHelper.CreateButtonContent(equipBtnGO.transform, 45f);
@@ -202,6 +202,19 @@ namespace ConquerChronicles.Editor
             var equipBtnTMP = equipBtnTextGO.GetComponent<TextMeshProUGUI>();
             equipBtnTMP.alignment = TextAlignmentOptions.Center;
             equipBtnTMP.fontStyle = FontStyles.Bold;
+
+            // Drop button
+            var dropBtnGO = CreateButton(detailInnerContent, "DropButton",
+                new Vector2(0, 65), new Vector2(0, 45), Color.white);
+            var dropBtn = dropBtnGO.GetComponent<Button>();
+            UIAtlasHelper.SetSpriteSwapButton(dropBtn, dropBtnGO.GetComponent<Image>(), "Button_Unpressed", "Button_Pressed");
+            var dropBtnContent = UIAtlasHelper.CreateButtonContent(dropBtnGO.transform, 45f);
+            var dropBtnTextGO = CreateUIText(dropBtnContent, "DropText", "Drop",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 24);
+            var dropBtnTMP = dropBtnTextGO.GetComponent<TextMeshProUGUI>();
+            dropBtnTMP.alignment = TextAlignmentOptions.Center;
+            dropBtnTMP.fontStyle = FontStyles.Bold;
+            dropBtnTMP.color = new Color(1f, 0.3f, 0.3f, 1f);
 
             // Close button
             var closeBtnGO = CreateButton(detailInnerContent, "CloseDetailButton",
@@ -216,6 +229,58 @@ namespace ConquerChronicles.Editor
             closeBtnTextGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.Center;
 
             detailPanelGO.SetActive(false);
+
+            // ============================================================
+            // SELECTION BAR (top of panel, hidden by default)
+            // ============================================================
+
+            var selectionBarGO = new GameObject("SelectionBar", typeof(RectTransform));
+            selectionBarGO.transform.SetParent(bottomHalfContent, false);
+            var selectionBarRT = selectionBarGO.GetComponent<RectTransform>();
+            selectionBarRT.anchorMin = new Vector2(0, 1);
+            selectionBarRT.anchorMax = new Vector2(1, 1);
+            selectionBarRT.pivot = new Vector2(0.5f, 1);
+            selectionBarRT.anchoredPosition = Vector2.zero;
+            selectionBarRT.sizeDelta = new Vector2(0, HeaderHeight);
+
+            var selBarLayout = selectionBarGO.AddComponent<HorizontalLayoutGroup>();
+            selBarLayout.childAlignment = TextAnchor.MiddleCenter;
+            selBarLayout.spacing = 10;
+            selBarLayout.padding = new RectOffset(10, 10, 5, 5);
+            selBarLayout.childForceExpandWidth = true;
+            selBarLayout.childForceExpandHeight = true;
+            selBarLayout.childControlWidth = true;
+            selBarLayout.childControlHeight = true;
+
+            // Drop Selected button
+            var dropSelBtnGO = new GameObject("DropSelectedButton", typeof(RectTransform));
+            dropSelBtnGO.transform.SetParent(selectionBarGO.transform, false);
+            var dropSelBtnImg = dropSelBtnGO.AddComponent<Image>();
+            var dropSelBtn = dropSelBtnGO.AddComponent<Button>();
+            dropSelBtn.targetGraphic = dropSelBtnImg;
+            UIAtlasHelper.SetSpriteSwapButton(dropSelBtn, dropSelBtnImg, "Button_Unpressed", "Button_Pressed");
+            var dropSelBtnContent = UIAtlasHelper.CreateButtonContent(dropSelBtnGO.transform, 50f);
+            var dropSelTextGO = CreateUIText(dropSelBtnContent, "DropSelectedText", "Drop Selected (0)",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 22);
+            var dropSelTMP = dropSelTextGO.GetComponent<TextMeshProUGUI>();
+            dropSelTMP.alignment = TextAlignmentOptions.Center;
+            dropSelTMP.color = new Color(1f, 0.3f, 0.3f, 1f);
+            dropSelTMP.fontStyle = FontStyles.Bold;
+
+            // Cancel button
+            var cancelSelBtnGO = new GameObject("CancelSelectButton", typeof(RectTransform));
+            cancelSelBtnGO.transform.SetParent(selectionBarGO.transform, false);
+            var cancelSelBtnImg = cancelSelBtnGO.AddComponent<Image>();
+            var cancelSelBtn = cancelSelBtnGO.AddComponent<Button>();
+            cancelSelBtn.targetGraphic = cancelSelBtnImg;
+            UIAtlasHelper.SetSpriteSwapButton(cancelSelBtn, cancelSelBtnImg, "Button_Unpressed", "Button_Pressed");
+            var cancelSelBtnContent = UIAtlasHelper.CreateButtonContent(cancelSelBtnGO.transform, 50f);
+            var cancelSelTextGO = CreateUIText(cancelSelBtnContent, "CancelText", "Cancel",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 22);
+            var cancelSelTMP = cancelSelTextGO.GetComponent<TextMeshProUGUI>();
+            cancelSelTMP.alignment = TextAlignmentOptions.Center;
+
+            selectionBarGO.SetActive(false);
 
             // ============================================================
             // WIRE COMPONENTS
@@ -234,7 +299,15 @@ namespace ConquerChronicles.Editor
             uiSO.FindProperty("_itemInfoText").objectReferenceValue = itemInfoGO.GetComponent<TextMeshProUGUI>();
             uiSO.FindProperty("_equipButton").objectReferenceValue = equipBtn;
             uiSO.FindProperty("_equipButtonText").objectReferenceValue = equipBtnTMP;
+            uiSO.FindProperty("_dropButton").objectReferenceValue = dropBtn;
+            uiSO.FindProperty("_dropButtonText").objectReferenceValue = dropBtnTMP;
             uiSO.FindProperty("_closeDetailButton").objectReferenceValue = closeBtn;
+
+            // Selection bar
+            uiSO.FindProperty("_selectionBar").objectReferenceValue = selectionBarGO;
+            uiSO.FindProperty("_dropSelectedButton").objectReferenceValue = dropSelBtn;
+            uiSO.FindProperty("_dropSelectedText").objectReferenceValue = dropSelTMP;
+            uiSO.FindProperty("_cancelSelectButton").objectReferenceValue = cancelSelBtn;
 
             uiSO.ApplyModifiedPropertiesWithoutUndo();
 

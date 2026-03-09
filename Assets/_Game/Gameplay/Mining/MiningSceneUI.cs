@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -30,6 +31,9 @@ namespace ConquerChronicles.Gameplay.Mining
         [SerializeField] private TextMeshProUGUI _yieldGemsText;
         [SerializeField] private TextMeshProUGUI _yieldOresText;
         [SerializeField] private Button _yieldCloseButton;
+
+        [Header("Notification")]
+        [SerializeField] private TextMeshProUGUI _notificationText;
 
         public System.Action OnBackPressed;
         public System.Action<string> OnStartMining;
@@ -154,6 +158,22 @@ namespace ConquerChronicles.Gameplay.Mining
                 }
                 _yieldOresText.text = sb.ToString();
             }
+        }
+
+        public void ShowNotification(string message)
+        {
+            if (_notificationText == null) return;
+            _notificationText.text = message;
+            _notificationText.gameObject.SetActive(true);
+            StopCoroutine(nameof(HideNotificationAfterDelay));
+            StartCoroutine(HideNotificationAfterDelay());
+        }
+
+        private IEnumerator HideNotificationAfterDelay()
+        {
+            yield return new WaitForSeconds(2f);
+            if (_notificationText != null)
+                _notificationText.gameObject.SetActive(false);
         }
 
         private void OnDestroy()

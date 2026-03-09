@@ -6,6 +6,7 @@ using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Equipment;
 using ConquerChronicles.Core.Inventory;
 using ConquerChronicles.Gameplay.Animation;
+using ConquerChronicles.Gameplay.UI;
 
 namespace ConquerChronicles.Gameplay.Inventory
 {
@@ -26,15 +27,32 @@ namespace ConquerChronicles.Gameplay.Inventory
         [SerializeField] private TextMeshProUGUI _itemInfoText;
         [SerializeField] private Button _equipButton;
         [SerializeField] private TextMeshProUGUI _equipButtonText;
+        [SerializeField] private Button _dropButton;
+        [SerializeField] private TextMeshProUGUI _dropButtonText;
         [SerializeField] private Button _closeDetailButton;
+
+        [Header("Selection Bar")]
+        [SerializeField] private GameObject _selectionBar;
+        [SerializeField] private Button _dropSelectedButton;
+        [SerializeField] private TextMeshProUGUI _dropSelectedText;
+        [SerializeField] private Button _cancelSelectButton;
 
         // Events
         public System.Action OnBackPressed;
         public System.Action<int> OnBagItemPressed;
+        public System.Action<int> OnBagItemLongPressed;
         public System.Action OnEquipPressed;
+        public System.Action OnDropPressed;
         public System.Action OnCloseDetailPressed;
+        public System.Action OnDropSelectedPressed;
+        public System.Action OnCancelSelectPressed;
 
         private readonly List<GameObject> _bagSlotObjects = new List<GameObject>();
+        private readonly HashSet<int> _selectedIndices = new();
+        private bool _isSelectMode;
+        public bool IsSelectMode => _isSelectMode;
+
+        private static readonly Color SelectionOverlayColor = new Color(1f, 0.2f, 0.2f, 0.35f);
 
         private static readonly Dictionary<EquipmentQuality, Color> QualityColors = new()
         {
@@ -58,7 +76,16 @@ namespace ConquerChronicles.Gameplay.Inventory
         };
 
         private static readonly Color EmptySlotColor = new Color(0.12f, 0.12f, 0.18f, 0.6f);
-        private static readonly Color GemSmokeColor = new Color(1f, 0.9f, 0.2f, 0.2f); // yellow tint, 50% opacity
+        private static readonly Color GemSmokeColor = new Color(1f, 0.9f, 0.2f, 0.2f); // yellow tint
+
+        private static readonly Dictionary<EquipmentQuality, Color> QualitySmokeColors = new()
+        {
+            { EquipmentQuality.Normal,  new Color(1f, 1f, 1f, 0.2f) },           // white (rare items like Meteors/Dragonballs)
+            { EquipmentQuality.Refined, new Color(0.5f, 0.7f, 1f, 0.2f) },       // light blue
+            { EquipmentQuality.Unique,  new Color(0.2f, 0.3f, 0.8f, 0.2f) },     // dark blue
+            { EquipmentQuality.Elite,   new Color(1f, 0.4f, 0.7f, 0.2f) },       // pink
+            { EquipmentQuality.Super,   new Color(1f, 0.2f, 0.2f, 0.2f) },       // red
+        };
 
         private static Sprite[] _smokeFrames;
 
@@ -82,9 +109,16 @@ namespace ConquerChronicles.Gameplay.Inventory
         {
             _backButton.onClick.AddListener(() => OnBackPressed?.Invoke());
             _equipButton.onClick.AddListener(() => OnEquipPressed?.Invoke());
+            if (_dropButton != null)
+                _dropButton.onClick.AddListener(() => OnDropPressed?.Invoke());
             _closeDetailButton.onClick.AddListener(() => OnCloseDetailPressed?.Invoke());
+            if (_dropSelectedButton != null)
+                _dropSelectedButton.onClick.AddListener(() => OnDropSelectedPressed?.Invoke());
+            if (_cancelSelectButton != null)
+                _cancelSelectButton.onClick.AddListener(() => OnCancelSelectPressed?.Invoke());
 
             HideItemDetail();
+            if (_selectionBar != null) _selectionBar.SetActive(false);
         }
 
         public void RefreshBag(List<BagItem> bag)
@@ -153,9 +187,15 @@ namespace ConquerChronicles.Gameplay.Inventory
                 {
                     var bagItem = bag[i];
 
-                    var btn = slotGO.AddComponent<Button>();
-                    btn.targetGraphic = img;
-                    btn.onClick.AddListener(() => OnBagItemPressed?.Invoke(index));
+                    var lpBtn = slotGO.AddComponent<LongPressButton>();
+                    lpBtn.OnClick = () =>
+                    {
+                        if (_isSelectMode)
+                            ToggleSelection(index);
+                        else
+                            OnBagItemPressed?.Invoke(index);
+                    };
+                    lpBtn.OnLongPress = () => OnBagItemLongPressed?.Invoke(index);
 
                     if (bagItem.Type == BagItemType.Gem)
                     {
@@ -193,7 +233,22 @@ namespace ConquerChronicles.Gameplay.Inventory
                     }
                     else
                     {
-                        img.color = GetSlotColor(bagItem);
+                        // Smoke effect for equipment based on quality
+                        var quality = bagItem.Equipment.Data.Quality;
+                        if (QualitySmokeColors.TryGetValue(quality, out var smokeColor))
+                        {
+                            var eqSmokeGO = new GameObject("Smoke", typeof(RectTransform));
+                            eqSmokeGO.transform.SetParent(slotGO.transform, false);
+                            var eqSmokeRT = eqSmokeGO.GetComponent<RectTransform>();
+                            eqSmokeRT.anchorMin = Vector2.zero;
+                            eqSmokeRT.anchorMax = Vector2.one;
+                            float eqInset = slotSize * 0.15f;
+                            eqSmokeRT.offsetMin = new Vector2(eqInset, eqInset);
+                            eqSmokeRT.offsetMax = new Vector2(-eqInset, -eqInset);
+                            var eqSmokeImg = eqSmokeGO.AddComponent<Image>();
+                            var eqAnim = eqSmokeGO.AddComponent<UISpriteAnimator>();
+                            eqAnim.Play(GetSmokeFrames(), 6f, smokeColor);
+                        }
 
                         var textGO = new GameObject("Label", typeof(RectTransform));
                         textGO.transform.SetParent(slotGO.transform, false);
@@ -213,6 +268,21 @@ namespace ConquerChronicles.Gameplay.Inventory
                         tmp.fontSizeMax = 18;
                         tmp.textWrappingMode = TextWrappingModes.NoWrap;
                         tmp.overflowMode = TextOverflowModes.Truncate;
+                    }
+
+                    // Selection overlay (visible only in multi-select mode)
+                    if (_isSelectMode && _selectedIndices.Contains(index))
+                    {
+                        var overlayGO = new GameObject("SelectOverlay", typeof(RectTransform));
+                        overlayGO.transform.SetParent(slotGO.transform, false);
+                        var overlayRT = overlayGO.GetComponent<RectTransform>();
+                        overlayRT.anchorMin = Vector2.zero;
+                        overlayRT.anchorMax = Vector2.one;
+                        overlayRT.offsetMin = Vector2.zero;
+                        overlayRT.offsetMax = Vector2.zero;
+                        var overlayImg = overlayGO.AddComponent<Image>();
+                        overlayImg.color = SelectionOverlayColor;
+                        overlayImg.raycastTarget = false;
                     }
                 }
                 else
@@ -274,6 +344,8 @@ namespace ConquerChronicles.Gameplay.Inventory
                 _itemInfoText.text = $"Type: {gem.Type}\nTier: {gem.Tier}/9";
                 _equipButton.gameObject.SetActive(false);
             }
+
+            if (_dropButton != null) _dropButton.gameObject.SetActive(true);
         }
 
         public void HideItemDetail()
@@ -328,11 +400,87 @@ namespace ConquerChronicles.Gameplay.Inventory
             return sb.ToString().TrimEnd();
         }
 
+        public void EnterSelectMode(int firstIndex)
+        {
+            _isSelectMode = true;
+            _selectedIndices.Clear();
+            _selectedIndices.Add(firstIndex);
+            if (_selectionBar != null) _selectionBar.SetActive(true);
+            UpdateDropSelectedCount();
+            AddSelectionOverlay(firstIndex);
+        }
+
+        public void ExitSelectMode()
+        {
+            _isSelectMode = false;
+            _selectedIndices.Clear();
+            if (_selectionBar != null) _selectionBar.SetActive(false);
+        }
+
+        public void ToggleSelection(int index)
+        {
+            if (_selectedIndices.Contains(index))
+                _selectedIndices.Remove(index);
+            else
+                _selectedIndices.Add(index);
+
+            UpdateDropSelectedCount();
+
+            // Update overlay on this specific slot
+            if (index >= 0 && index < _bagSlotObjects.Count)
+            {
+                if (_selectedIndices.Contains(index))
+                    AddSelectionOverlay(index);
+                else
+                    RemoveSelectionOverlay(index);
+            }
+        }
+
+        private void AddSelectionOverlay(int index)
+        {
+            if (index < 0 || index >= _bagSlotObjects.Count) return;
+            var slotGO = _bagSlotObjects[index];
+            if (slotGO.transform.Find("SelectOverlay") != null) return;
+
+            var overlayGO = new GameObject("SelectOverlay", typeof(RectTransform));
+            overlayGO.transform.SetParent(slotGO.transform, false);
+            var overlayRT = overlayGO.GetComponent<RectTransform>();
+            overlayRT.anchorMin = Vector2.zero;
+            overlayRT.anchorMax = Vector2.one;
+            overlayRT.offsetMin = Vector2.zero;
+            overlayRT.offsetMax = Vector2.zero;
+            var overlayImg = overlayGO.AddComponent<Image>();
+            overlayImg.color = SelectionOverlayColor;
+            overlayImg.raycastTarget = false;
+        }
+
+        private void RemoveSelectionOverlay(int index)
+        {
+            if (index < 0 || index >= _bagSlotObjects.Count) return;
+            var existing = _bagSlotObjects[index].transform.Find("SelectOverlay");
+            if (existing != null) Destroy(existing.gameObject);
+        }
+
+        public List<int> GetSelectedIndices()
+        {
+            var list = new List<int>(_selectedIndices);
+            return list;
+        }
+
+        private void UpdateDropSelectedCount()
+        {
+            if (_dropSelectedText != null)
+                _dropSelectedText.text = $"Drop Selected ({_selectedIndices.Count})";
+        }
+
         private void OnDestroy()
         {
             if (_backButton != null) _backButton.onClick.RemoveAllListeners();
             if (_equipButton != null) _equipButton.onClick.RemoveAllListeners();
+            if (_dropButton != null) _dropButton.onClick.RemoveAllListeners();
             if (_closeDetailButton != null) _closeDetailButton.onClick.RemoveAllListeners();
+            if (_dropSelectedButton != null) _dropSelectedButton.onClick.RemoveAllListeners();
+            if (_cancelSelectButton != null) _cancelSelectButton.onClick.RemoveAllListeners();
         }
     }
 }

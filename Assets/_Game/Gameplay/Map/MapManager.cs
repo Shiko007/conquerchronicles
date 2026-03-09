@@ -95,6 +95,9 @@ namespace ConquerChronicles.Gameplay.Map
             }
 
             // Debug.Log($"[MapManager] AreaState.IsActive={_areaState.IsActive}, EnemyPool={area.EnemyPool?.Length ?? 0} entries");
+            int playerLevel = _player != null && _player.State != null ? _player.State.Level : 1;
+            _enemySpawner.SetLevelContext(playerLevel, area.MinLevel);
+
             OnAreaAnnouncement?.Invoke($"Entering: {area.Name}");
         }
 
