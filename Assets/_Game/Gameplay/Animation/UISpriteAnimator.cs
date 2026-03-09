@@ -40,6 +40,23 @@ namespace ConquerChronicles.Gameplay.Animation
             }
         }
 
+        public void Play(Sprite[] frames, float fps, Color tint)
+        {
+            if (_image == null)
+                _image = GetComponent<Image>();
+
+            _frames = frames;
+            _fps = fps;
+            _currentFrame = 0;
+            _timer = 0f;
+
+            if (_image != null && _frames != null && _frames.Length > 0)
+            {
+                _image.sprite = _frames[0];
+                _image.color = tint;
+            }
+        }
+
         private void Update()
         {
             if (_frames == null || _frames.Length <= 1) return;

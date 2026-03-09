@@ -58,6 +58,25 @@ namespace ConquerChronicles.Gameplay.Inventory
         };
 
         private static readonly Color EmptySlotColor = new Color(0.12f, 0.12f, 0.18f, 0.6f);
+        private static readonly Color GemSmokeColor = new Color(1f, 0.9f, 0.2f, 0.2f); // yellow tint, 50% opacity
+
+        private static Sprite[] _smokeFrames;
+
+        private static Sprite[] GetSmokeFrames()
+        {
+            if (_smokeFrames != null) return _smokeFrames;
+            _smokeFrames = Resources.LoadAll<Sprite>("Smoke");
+            if (_smokeFrames == null || _smokeFrames.Length == 0)
+            {
+                Debug.LogWarning("[InventorySceneUI] No smoke sprites found in Resources/Smoke");
+                _smokeFrames = System.Array.Empty<Sprite>();
+            }
+            else
+            {
+                System.Array.Sort(_smokeFrames, (a, b) => string.CompareOrdinal(a.name, b.name));
+            }
+            return _smokeFrames;
+        }
 
         public void Initialize()
         {
@@ -140,19 +159,18 @@ namespace ConquerChronicles.Gameplay.Inventory
 
                     if (bagItem.Type == BagItemType.Gem)
                     {
-                        // Show animated gem sprite
-                        img.color = Color.clear; // hide blank slot background
-                        var gemImgGO = new GameObject("GemAnim", typeof(RectTransform));
-                        gemImgGO.transform.SetParent(slotGO.transform, false);
-                        var gemRT = gemImgGO.GetComponent<RectTransform>();
-                        gemRT.anchorMin = Vector2.zero;
-                        gemRT.anchorMax = Vector2.one;
-                        gemRT.offsetMin = Vector2.zero;
-                        gemRT.offsetMax = Vector2.zero;
-                        var gemImg = gemImgGO.AddComponent<Image>();
-                        gemImg.preserveAspect = true;
-                        var anim = gemImgGO.AddComponent<UISpriteAnimator>();
-                        anim.Play("Gem_Slot_", 8f);
+                        // Smoke effect inside blank slot with yellow tint
+                        var smokeGO = new GameObject("Smoke", typeof(RectTransform));
+                        smokeGO.transform.SetParent(slotGO.transform, false);
+                        var smokeRT = smokeGO.GetComponent<RectTransform>();
+                        smokeRT.anchorMin = Vector2.zero;
+                        smokeRT.anchorMax = Vector2.one;
+                        float inset = slotSize * 0.15f;
+                        smokeRT.offsetMin = new Vector2(inset, inset);
+                        smokeRT.offsetMax = new Vector2(-inset, -inset);
+                        var smokeImg = smokeGO.AddComponent<Image>();
+                        var anim = smokeGO.AddComponent<UISpriteAnimator>();
+                        anim.Play(GetSmokeFrames(), 6f, GemSmokeColor);
 
                         // Tier label in bottom-right corner
                         var tierGO = new GameObject("Tier", typeof(RectTransform));

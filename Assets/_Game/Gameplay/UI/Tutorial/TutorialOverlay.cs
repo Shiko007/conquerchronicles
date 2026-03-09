@@ -37,11 +37,11 @@ namespace ConquerChronicles.Gameplay.UI.Tutorial
             Time.timeScale = 1f;
         }
 
-        private void Start()
+        private void Awake()
         {
             if (_dismissButton != null)
                 _dismissButton.onClick.AddListener(OnDismiss);
-            if (_overlayRoot != null)
+            if (_overlayRoot != null && _steps == null)
                 _overlayRoot.SetActive(false);
         }
 
