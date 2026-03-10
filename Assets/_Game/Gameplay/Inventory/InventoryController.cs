@@ -118,13 +118,15 @@ namespace ConquerChronicles.Gameplay.Inventory
             _inventoryUI.OnDropPressed = () =>
             {
                 if (_selectedBagItem == null || _selectedBagIndex < 0) return;
-                if (_selectedBagIndex < _inventory.Bag.Count)
-                    _inventory.Bag.RemoveAt(_selectedBagIndex);
-                _inventoryUI.HideItemDetail();
-                _selectedBagItem = null;
-                _selectedBagIndex = -1;
-                RefreshAll();
-                SaveInventory();
+                if (IsValuableItem(_selectedBagItem))
+                {
+                    _inventoryUI.ShowConfirmDialog($"Drop {GetItemDisplayName(_selectedBagItem)}?", () =>
+                    {
+                        DropSingleItem();
+                    });
+                    return;
+                }
+                DropSingleItem();
             };
 
             _inventoryUI.OnBagItemLongPressed = (index) =>
@@ -139,15 +141,25 @@ namespace ConquerChronicles.Gameplay.Inventory
             _inventoryUI.OnDropSelectedPressed = () =>
             {
                 var indices = _inventoryUI.GetSelectedIndices();
-                indices.Sort((a, b) => b.CompareTo(a)); // descending to preserve indices
+                bool hasValuable = false;
                 foreach (int idx in indices)
                 {
-                    if (idx >= 0 && idx < _inventory.Bag.Count)
-                        _inventory.Bag.RemoveAt(idx);
+                    if (idx >= 0 && idx < _inventory.Bag.Count && IsValuableItem(_inventory.Bag[idx]))
+                    {
+                        hasValuable = true;
+                        break;
+                    }
                 }
-                _inventoryUI.ExitSelectMode();
-                RefreshAll();
-                SaveInventory();
+
+                if (hasValuable)
+                {
+                    _inventoryUI.ShowConfirmDialog($"Drop {indices.Count} items including rare/elite items?", () =>
+                    {
+                        DropSelectedItems(indices);
+                    });
+                    return;
+                }
+                DropSelectedItems(indices);
             };
 
             _inventoryUI.OnCancelSelectPressed = () =>
@@ -226,6 +238,11 @@ namespace ConquerChronicles.Gameplay.Inventory
                     if (bagItem.Gem.Tier > 0)
                         _inventory.AddGem(new GemData((GemType)bagItem.Gem.Type, bagItem.Gem.Tier));
                 }
+                else if (bagItem.ItemType == 2)
+                {
+                    if (!string.IsNullOrEmpty(bagItem.MaterialID))
+                        _inventory.AddMaterial(bagItem.MaterialID, bagItem.MaterialName);
+                }
             }
         }
 
@@ -252,8 +269,10 @@ namespace ConquerChronicles.Gameplay.Inventory
                 var bagItem = _inventory.Bag[i];
                 if (bagItem.Type == BagItemType.Equipment)
                     _saveData.BagItems[i] = SerializedBagItem.FromEquipment(SerializeEquipment(bagItem.Equipment));
-                else
+                else if (bagItem.Type == BagItemType.Gem)
                     _saveData.BagItems[i] = SerializedBagItem.FromGem(new SerializedGem { Type = (int)bagItem.Gem.Type, Tier = bagItem.Gem.Tier });
+                else if (bagItem.Type == BagItemType.Material)
+                    _saveData.BagItems[i] = SerializedBagItem.FromMaterial(bagItem.MaterialID, bagItem.MaterialName);
             }
 
             _saveData.Gold = _inventory.Gold;
@@ -279,6 +298,54 @@ namespace ConquerChronicles.Gameplay.Inventory
             }
 
             return serialized;
+        }
+
+        private void DropSingleItem()
+        {
+            if (_selectedBagIndex >= 0 && _selectedBagIndex < _inventory.Bag.Count)
+                _inventory.Bag.RemoveAt(_selectedBagIndex);
+            _inventoryUI.HideItemDetail();
+            _selectedBagItem = null;
+            _selectedBagIndex = -1;
+            RefreshAll();
+            SaveInventory();
+        }
+
+        private void DropSelectedItems(List<int> indices)
+        {
+            indices.Sort((a, b) => b.CompareTo(a)); // descending to preserve indices
+            foreach (int idx in indices)
+            {
+                if (idx >= 0 && idx < _inventory.Bag.Count)
+                    _inventory.Bag.RemoveAt(idx);
+            }
+            _inventoryUI.ExitSelectMode();
+            RefreshAll();
+            SaveInventory();
+        }
+
+        private bool IsValuableItem(BagItem item)
+        {
+            if (item.Type == BagItemType.Material) return true;
+            if (item.Type == BagItemType.Gem) return true;
+            if (item.Type == BagItemType.Equipment)
+            {
+                var q = item.Equipment.Data.Quality;
+                return q == EquipmentQuality.Elite || q == EquipmentQuality.Super;
+            }
+            return false;
+        }
+
+        private string GetItemDisplayName(BagItem item)
+        {
+            if (item.Type == BagItemType.Equipment)
+            {
+                var eq = item.Equipment;
+                return eq.UpgradeLevel > 0 ? $"{eq.Data.Name} +{eq.UpgradeLevel}" : eq.Data.Name;
+            }
+            if (item.Type == BagItemType.Material)
+                return item.MaterialName;
+            return item.Gem.Type.ToString() + " Gem";
         }
     }
 }

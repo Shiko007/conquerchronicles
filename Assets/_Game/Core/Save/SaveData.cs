@@ -112,9 +112,11 @@ namespace ConquerChronicles.Core.Save
     [System.Serializable]
     public struct SerializedBagItem
     {
-        public int ItemType; // 0 = Equipment, 1 = Gem
+        public int ItemType; // 0 = Equipment, 1 = Gem, 2 = Material
         public SerializedEquipment Equipment;
         public SerializedGem Gem;
+        public string MaterialID;
+        public string MaterialName;
 
         public static SerializedBagItem FromEquipment(SerializedEquipment equipment)
         {
@@ -124,6 +126,11 @@ namespace ConquerChronicles.Core.Save
         public static SerializedBagItem FromGem(SerializedGem gem)
         {
             return new SerializedBagItem { ItemType = 1, Gem = gem };
+        }
+
+        public static SerializedBagItem FromMaterial(string id, string name)
+        {
+            return new SerializedBagItem { ItemType = 2, MaterialID = id, MaterialName = name };
         }
     }
 

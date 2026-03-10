@@ -155,6 +155,17 @@ namespace ConquerChronicles.Editor
 
             EditorGUILayout.Space(10);
 
+            // === Add Materials ===
+            EditorGUILayout.LabelField("Add Materials to Bag", EditorStyles.boldLabel);
+
+            if (GUILayout.Button("+ Meteor"))
+                AddMaterialToSave(saveManager, "mat_meteor", "Meteor");
+
+            if (GUILayout.Button("+ DragonBall"))
+                AddMaterialToSave(saveManager, "mat_dragonball", "DragonBall");
+
+            EditorGUILayout.Space(10);
+
             // === Clear Bag ===
             EditorGUILayout.LabelField("Danger Zone", EditorStyles.boldLabel);
             GUI.backgroundColor = new Color(1f, 0.4f, 0.4f);
@@ -230,6 +241,28 @@ namespace ConquerChronicles.Editor
 
             saveManager.SaveGame(save);
             Debug.Log($"[Debug] Added {type} Gem (Tier {tier}) to bag.");
+        }
+
+        private static void AddMaterialToSave(SaveManager saveManager, string id, string name)
+        {
+            var save = saveManager.LoadGame();
+            if (save == null) return;
+
+            int currentCount = save.BagItems != null ? save.BagItems.Length : 0;
+            if (currentCount >= InventoryState.BagCapacity)
+            {
+                Debug.LogWarning("[Debug] Bag is full!");
+                return;
+            }
+
+            var newBag = new SerializedBagItem[currentCount + 1];
+            if (save.BagItems != null)
+                System.Array.Copy(save.BagItems, newBag, currentCount);
+            newBag[currentCount] = SerializedBagItem.FromMaterial(id, name);
+            save.BagItems = newBag;
+
+            saveManager.SaveGame(save);
+            Debug.Log($"[Debug] Added {name} to bag.");
         }
     }
 }

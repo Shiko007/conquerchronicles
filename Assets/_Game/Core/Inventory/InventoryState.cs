@@ -7,7 +7,8 @@ namespace ConquerChronicles.Core.Inventory
     public enum BagItemType
     {
         Equipment = 0,
-        Gem = 1
+        Gem = 1,
+        Material = 2
     }
 
     public class BagItem
@@ -15,6 +16,8 @@ namespace ConquerChronicles.Core.Inventory
         public BagItemType Type;
         public EquipmentInstance Equipment;
         public GemData Gem;
+        public string MaterialID;
+        public string MaterialName;
 
         public static BagItem FromEquipment(EquipmentInstance equipment)
         {
@@ -24,6 +27,11 @@ namespace ConquerChronicles.Core.Inventory
         public static BagItem FromGem(GemData gem)
         {
             return new BagItem { Type = BagItemType.Gem, Gem = gem };
+        }
+
+        public static BagItem FromMaterial(string id, string name)
+        {
+            return new BagItem { Type = BagItemType.Material, MaterialID = id, MaterialName = name };
         }
     }
 
@@ -161,6 +169,15 @@ namespace ConquerChronicles.Core.Inventory
                 }
             }
             return false;
+        }
+
+        public bool AddMaterial(string id, string name)
+        {
+            if (Bag.Count >= BagCapacity)
+                return false;
+
+            Bag.Add(BagItem.FromMaterial(id, name));
+            return true;
         }
 
         public bool RemoveGem(GemData gem)

@@ -17,6 +17,12 @@ namespace ConquerChronicles.Editor
         [MenuItem("Conquer Chronicles/Setup All Scenes (Create + Build Settings)")]
         public static void SetupAll()
         {
+            if (Application.isPlaying)
+            {
+                Debug.LogWarning("[Conquer Chronicles] Exit play mode before setting up scenes.");
+                return;
+            }
+
             // Ensure Scenes folder exists
             if (!AssetDatabase.IsValidFolder(ScenesFolder))
                 AssetDatabase.CreateFolder("Assets", "Scenes");

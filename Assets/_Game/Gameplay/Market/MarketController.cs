@@ -130,9 +130,9 @@ namespace ConquerChronicles.Gameplay.Market
 
                 // Validate bag capacity
                 int currentBagCount = _saveData.BagItems?.Length ?? 0;
-                int itemsToAdd = listing.Type == MarketListingType.Gem ? listing.Quantity : 1;
-                if (listing.Type != MarketListingType.UpgradeMaterial &&
-                    currentBagCount + itemsToAdd > InventoryState.BagCapacity)
+                int itemsToAdd = listing.Type == MarketListingType.Gem ? listing.Quantity :
+                                 listing.Type == MarketListingType.UpgradeMaterial ? listing.Quantity : 1;
+                if (currentBagCount + itemsToAdd > InventoryState.BagCapacity)
                 {
                     _marketUI.ShowNotification("Inventory is full");
                     return;
@@ -154,7 +154,7 @@ namespace ConquerChronicles.Gameplay.Market
                         AddEquipmentToSave(listing.ItemID);
                         break;
                     case MarketListingType.UpgradeMaterial:
-                        Debug.Log($"[Market] Purchased upgrade material: {listing.ItemName} x{listing.Quantity}");
+                        AddMaterialToSave(listing.ItemID, listing.ItemName, listing.Quantity);
                         break;
                 }
 
@@ -272,6 +272,20 @@ namespace ConquerChronicles.Gameplay.Market
 
             _saveData.BagItems = newBag;
             Debug.Log($"[Market] Added equipment to bag: {itemID}");
+        }
+
+        private void AddMaterialToSave(string materialID, string materialName, int quantity)
+        {
+            var currentBag = _saveData.BagItems ?? System.Array.Empty<SerializedBagItem>();
+            var newBag = new SerializedBagItem[currentBag.Length + quantity];
+            System.Array.Copy(currentBag, newBag, currentBag.Length);
+
+            for (int i = 0; i < quantity; i++)
+            {
+                newBag[currentBag.Length + i] = SerializedBagItem.FromMaterial(materialID, materialName);
+            }
+
+            _saveData.BagItems = newBag;
         }
     }
 }

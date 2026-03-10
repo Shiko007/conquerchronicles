@@ -167,28 +167,28 @@ namespace ConquerChronicles.Editor
             itemNameTMP.fontStyle = FontStyles.Bold;
             itemNameTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
-            // Item stats
+            // Item stats (full width, below name)
             var itemStatsGO = CreateUIText(detailInnerContent, "ItemStatsText", "Stats...",
-                new Vector2(0, 1), new Vector2(0.5f, 1),
-                new Vector2(15, -55), new Vector2(0, 150), 18);
+                new Vector2(0, 1), new Vector2(1, 1),
+                new Vector2(15, -55), new Vector2(-30, 80), 18);
             var itemStatsRT = itemStatsGO.GetComponent<RectTransform>();
             itemStatsRT.anchorMin = new Vector2(0, 1);
-            itemStatsRT.anchorMax = new Vector2(0.5f, 1);
+            itemStatsRT.anchorMax = new Vector2(1, 1);
             itemStatsRT.pivot = new Vector2(0, 1);
             itemStatsRT.anchoredPosition = new Vector2(15, -55);
-            itemStatsRT.sizeDelta = new Vector2(0, 150);
+            itemStatsRT.sizeDelta = new Vector2(-30, 80);
             itemStatsGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.TopLeft;
 
-            // Item info
+            // Item info (full width, below stats)
             var itemInfoGO = CreateUIText(detailInnerContent, "ItemInfoText", "Quality: Normal\nReq Lv: 1\nSockets: 0/0",
-                new Vector2(0.5f, 1), new Vector2(1, 1),
-                new Vector2(10, -55), new Vector2(-15, 150), 18);
+                new Vector2(0, 1), new Vector2(1, 1),
+                new Vector2(15, -140), new Vector2(-30, 70), 18);
             var itemInfoRT = itemInfoGO.GetComponent<RectTransform>();
-            itemInfoRT.anchorMin = new Vector2(0.5f, 1);
+            itemInfoRT.anchorMin = new Vector2(0, 1);
             itemInfoRT.anchorMax = new Vector2(1, 1);
             itemInfoRT.pivot = new Vector2(0, 1);
-            itemInfoRT.anchoredPosition = new Vector2(10, -55);
-            itemInfoRT.sizeDelta = new Vector2(-15, 150);
+            itemInfoRT.anchoredPosition = new Vector2(15, -140);
+            itemInfoRT.sizeDelta = new Vector2(-30, 70);
             itemInfoGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.TopLeft;
 
             // Equip button (shifted up to make room for Drop)
@@ -283,6 +283,91 @@ namespace ConquerChronicles.Editor
             selectionBarGO.SetActive(false);
 
             // ============================================================
+            // CONFIRM DIALOG (overlay, higher z-order than detail panel)
+            // ============================================================
+
+            var confirmDialogGO = new GameObject("ConfirmDialog", typeof(RectTransform));
+            confirmDialogGO.transform.SetParent(bottomHalfContent, false);
+            var confirmDialogRT = confirmDialogGO.GetComponent<RectTransform>();
+            confirmDialogRT.anchorMin = Vector2.zero;
+            confirmDialogRT.anchorMax = Vector2.one;
+            confirmDialogRT.offsetMin = Vector2.zero;
+            confirmDialogRT.offsetMax = Vector2.zero;
+            confirmDialogGO.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.8f);
+
+            var confirmInnerGO = new GameObject("ConfirmInner", typeof(RectTransform));
+            confirmInnerGO.transform.SetParent(confirmDialogGO.transform, false);
+            var confirmInnerRT = confirmInnerGO.GetComponent<RectTransform>();
+            confirmInnerRT.anchorMin = new Vector2(0.1f, 0.35f);
+            confirmInnerRT.anchorMax = new Vector2(0.9f, 0.65f);
+            confirmInnerRT.offsetMin = Vector2.zero;
+            confirmInnerRT.offsetMax = Vector2.zero;
+            var confirmInnerImg = confirmInnerGO.AddComponent<Image>();
+            UIAtlasHelper.SetSlicedPanel(confirmInnerImg);
+            var confirmInnerContent = UIAtlasHelper.CreatePanelContent(confirmInnerGO.transform);
+
+            // Confirm message text
+            var confirmTextGO = CreateUIText(confirmInnerContent, "ConfirmText", "Are you sure?",
+                new Vector2(0, 0.5f), new Vector2(1, 1),
+                new Vector2(0, -10), new Vector2(-20, 0), 22);
+            var confirmTextRT = confirmTextGO.GetComponent<RectTransform>();
+            confirmTextRT.anchorMin = new Vector2(0, 0.5f);
+            confirmTextRT.anchorMax = new Vector2(1, 1);
+            confirmTextRT.pivot = new Vector2(0.5f, 1);
+            confirmTextRT.anchoredPosition = new Vector2(0, -10);
+            confirmTextRT.sizeDelta = new Vector2(-20, 0);
+            var confirmTMP = confirmTextGO.GetComponent<TextMeshProUGUI>();
+            confirmTMP.alignment = TextAlignmentOptions.Center;
+            confirmTMP.fontStyle = FontStyles.Bold;
+
+            // Button container (horizontal layout)
+            var confirmBtnBar = new GameObject("ConfirmButtons", typeof(RectTransform));
+            confirmBtnBar.transform.SetParent(confirmInnerContent, false);
+            var confirmBtnBarRT = confirmBtnBar.GetComponent<RectTransform>();
+            confirmBtnBarRT.anchorMin = new Vector2(0, 0);
+            confirmBtnBarRT.anchorMax = new Vector2(1, 0.5f);
+            confirmBtnBarRT.offsetMin = new Vector2(10, 10);
+            confirmBtnBarRT.offsetMax = new Vector2(-10, -5);
+            var confirmBtnLayout = confirmBtnBar.AddComponent<HorizontalLayoutGroup>();
+            confirmBtnLayout.childAlignment = TextAnchor.MiddleCenter;
+            confirmBtnLayout.spacing = 20;
+            confirmBtnLayout.childForceExpandWidth = true;
+            confirmBtnLayout.childForceExpandHeight = true;
+            confirmBtnLayout.childControlWidth = true;
+            confirmBtnLayout.childControlHeight = true;
+
+            // Yes button
+            var confirmYesBtnGO = new GameObject("ConfirmYesButton", typeof(RectTransform));
+            confirmYesBtnGO.transform.SetParent(confirmBtnBar.transform, false);
+            var confirmYesBtnImg = confirmYesBtnGO.AddComponent<Image>();
+            var confirmYesBtn = confirmYesBtnGO.AddComponent<Button>();
+            confirmYesBtn.targetGraphic = confirmYesBtnImg;
+            UIAtlasHelper.SetSpriteSwapButton(confirmYesBtn, confirmYesBtnImg, "Button_Unpressed", "Button_Pressed");
+            var confirmYesBtnContent = UIAtlasHelper.CreateButtonContent(confirmYesBtnGO.transform, 50f);
+            var confirmYesTextGO = CreateUIText(confirmYesBtnContent, "YesText", "Yes",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 22);
+            var confirmYesTMP = confirmYesTextGO.GetComponent<TextMeshProUGUI>();
+            confirmYesTMP.alignment = TextAlignmentOptions.Center;
+            confirmYesTMP.fontStyle = FontStyles.Bold;
+            confirmYesTMP.color = new Color(1f, 0.3f, 0.3f, 1f);
+
+            // No button
+            var confirmNoBtnGO = new GameObject("ConfirmNoButton", typeof(RectTransform));
+            confirmNoBtnGO.transform.SetParent(confirmBtnBar.transform, false);
+            var confirmNoBtnImg = confirmNoBtnGO.AddComponent<Image>();
+            var confirmNoBtn = confirmNoBtnGO.AddComponent<Button>();
+            confirmNoBtn.targetGraphic = confirmNoBtnImg;
+            UIAtlasHelper.SetSpriteSwapButton(confirmNoBtn, confirmNoBtnImg, "Button_Unpressed", "Button_Pressed");
+            var confirmNoBtnContent = UIAtlasHelper.CreateButtonContent(confirmNoBtnGO.transform, 50f);
+            var confirmNoTextGO = CreateUIText(confirmNoBtnContent, "NoText", "No",
+                Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero, 22);
+            var confirmNoTMP = confirmNoTextGO.GetComponent<TextMeshProUGUI>();
+            confirmNoTMP.alignment = TextAlignmentOptions.Center;
+            confirmNoTMP.fontStyle = FontStyles.Bold;
+
+            confirmDialogGO.SetActive(false);
+
+            // ============================================================
             // WIRE COMPONENTS
             // ============================================================
 
@@ -308,6 +393,12 @@ namespace ConquerChronicles.Editor
             uiSO.FindProperty("_dropSelectedButton").objectReferenceValue = dropSelBtn;
             uiSO.FindProperty("_dropSelectedText").objectReferenceValue = dropSelTMP;
             uiSO.FindProperty("_cancelSelectButton").objectReferenceValue = cancelSelBtn;
+
+            // Confirm dialog
+            uiSO.FindProperty("_confirmDialog").objectReferenceValue = confirmDialogGO;
+            uiSO.FindProperty("_confirmText").objectReferenceValue = confirmTMP;
+            uiSO.FindProperty("_confirmYesButton").objectReferenceValue = confirmYesBtn;
+            uiSO.FindProperty("_confirmNoButton").objectReferenceValue = confirmNoBtn;
 
             uiSO.ApplyModifiedPropertiesWithoutUndo();
 

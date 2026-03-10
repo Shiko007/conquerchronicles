@@ -37,6 +37,12 @@ namespace ConquerChronicles.Gameplay.Inventory
         [SerializeField] private TextMeshProUGUI _dropSelectedText;
         [SerializeField] private Button _cancelSelectButton;
 
+        [Header("Confirm Dialog")]
+        [SerializeField] private GameObject _confirmDialog;
+        [SerializeField] private TextMeshProUGUI _confirmText;
+        [SerializeField] private Button _confirmYesButton;
+        [SerializeField] private Button _confirmNoButton;
+
         // Events
         public System.Action OnBackPressed;
         public System.Action<int> OnBagItemPressed;
@@ -56,12 +62,15 @@ namespace ConquerChronicles.Gameplay.Inventory
 
         private static readonly Dictionary<EquipmentQuality, Color> QualityColors = new()
         {
-            { EquipmentQuality.Normal,  new Color(0.5f, 0.5f, 0.5f) },
-            { EquipmentQuality.Refined, new Color(0.3f, 0.7f, 0.3f) },
-            { EquipmentQuality.Unique,  new Color(0.3f, 0.5f, 0.9f) },
-            { EquipmentQuality.Elite,   new Color(0.6f, 0.3f, 0.8f) },
-            { EquipmentQuality.Super,   new Color(1.0f, 0.85f, 0.2f) },
+            { EquipmentQuality.Normal,  Color.white },
+            { EquipmentQuality.Refined, new Color(0.5f, 0.7f, 1f) },      // light blue
+            { EquipmentQuality.Unique,  new Color(0.2f, 0.3f, 0.8f) },    // dark blue
+            { EquipmentQuality.Elite,   new Color(1f, 0.4f, 0.7f) },      // pink
+            { EquipmentQuality.Super,   new Color(1f, 0.2f, 0.2f) },      // red
         };
+
+        private static readonly Color GemNameColor = new Color(1f, 0.9f, 0.2f, 1f); // yellow
+        private static readonly Color MaterialNameColor2 = new Color(0.7f, 0.3f, 0.9f, 1f); // purple
 
         private static readonly Dictionary<GemType, Color> GemColors = new()
         {
@@ -77,6 +86,8 @@ namespace ConquerChronicles.Gameplay.Inventory
 
         private static readonly Color EmptySlotColor = new Color(0.12f, 0.12f, 0.18f, 0.6f);
         private static readonly Color GemSmokeColor = new Color(1f, 0.9f, 0.2f, 0.2f); // yellow tint
+        private static readonly Color MaterialSmokeColor = new Color(1f, 1f, 1f, 0.2f); // white
+        private static readonly Color MaterialNameColor = new Color(1f, 0.85f, 0.2f, 1f); // gold
 
         private static readonly Dictionary<EquipmentQuality, Color> QualitySmokeColors = new()
         {
@@ -119,6 +130,7 @@ namespace ConquerChronicles.Gameplay.Inventory
 
             HideItemDetail();
             if (_selectionBar != null) _selectionBar.SetActive(false);
+            if (_confirmDialog != null) _confirmDialog.SetActive(false);
         }
 
         public void RefreshBag(List<BagItem> bag)
@@ -231,11 +243,45 @@ namespace ConquerChronicles.Gameplay.Inventory
                         tierTmp.outlineWidth = 0.3f;
                         tierTmp.outlineColor = Color.black;
                     }
+                    else if (bagItem.Type == BagItemType.Material)
+                    {
+                        // White smoke for materials
+                        var matSmokeGO = new GameObject("Smoke", typeof(RectTransform));
+                        matSmokeGO.transform.SetParent(slotGO.transform, false);
+                        var matSmokeRT = matSmokeGO.GetComponent<RectTransform>();
+                        matSmokeRT.anchorMin = Vector2.zero;
+                        matSmokeRT.anchorMax = Vector2.one;
+                        float matInset = slotSize * 0.15f;
+                        matSmokeRT.offsetMin = new Vector2(matInset, matInset);
+                        matSmokeRT.offsetMax = new Vector2(-matInset, -matInset);
+                        var matSmokeImg = matSmokeGO.AddComponent<Image>();
+                        var matAnim = matSmokeGO.AddComponent<UISpriteAnimator>();
+                        matAnim.Play(GetSmokeFrames(), 6f, MaterialSmokeColor);
+
+                        // Name label
+                        var matTextGO = new GameObject("Label", typeof(RectTransform));
+                        matTextGO.transform.SetParent(slotGO.transform, false);
+                        var matTextRT = matTextGO.GetComponent<RectTransform>();
+                        matTextRT.anchorMin = Vector2.zero;
+                        matTextRT.anchorMax = Vector2.one;
+                        matTextRT.offsetMin = new Vector2(2, 2);
+                        matTextRT.offsetMax = new Vector2(-2, -2);
+                        var matTmp = matTextGO.AddComponent<TextMeshProUGUI>();
+                        matTmp.text = GetSlotLabel(bagItem);
+                        matTmp.fontSize = 18;
+                        matTmp.color = Color.white;
+                        matTmp.alignment = TextAlignmentOptions.Center;
+                        matTmp.enableAutoSizing = true;
+                        matTmp.fontSizeMin = 8;
+                        matTmp.fontSizeMax = 18;
+                        matTmp.textWrappingMode = TextWrappingModes.NoWrap;
+                        matTmp.overflowMode = TextOverflowModes.Truncate;
+                    }
                     else
                     {
-                        // Smoke effect for equipment based on quality
+                        // Smoke effect for equipment based on quality (skip Normal)
                         var quality = bagItem.Equipment.Data.Quality;
-                        if (QualitySmokeColors.TryGetValue(quality, out var smokeColor))
+                        if (quality != EquipmentQuality.Normal && QualitySmokeColors.TryGetValue(quality, out var smokeColor))
                         {
                             var eqSmokeGO = new GameObject("Smoke", typeof(RectTransform));
                             eqSmokeGO.transform.SetParent(slotGO.transform, false);
@@ -327,11 +373,11 @@ namespace ConquerChronicles.Gameplay.Inventory
                 _equipButtonText.text = "Equip";
                 _equipButton.interactable = canEquip;
             }
-            else
+            else if (bagItem.Type == BagItemType.Gem)
             {
                 var gem = bagItem.Gem;
                 _itemNameText.text = $"{gem.Type} Gem";
-                _itemNameText.color = GetGemTypeColor(gem.Type);
+                _itemNameText.color = GemNameColor;
 
                 var bonus = gem.GetBonus();
                 var sb = new System.Text.StringBuilder();
@@ -342,6 +388,14 @@ namespace ConquerChronicles.Gameplay.Inventory
                 _itemStatsText.text = sb.ToString().TrimEnd();
 
                 _itemInfoText.text = $"Type: {gem.Type}\nTier: {gem.Tier}/9";
+                _equipButton.gameObject.SetActive(false);
+            }
+            else if (bagItem.Type == BagItemType.Material)
+            {
+                _itemNameText.text = bagItem.MaterialName;
+                _itemNameText.color = MaterialNameColor2;
+                _itemStatsText.text = "Upgrade Material";
+                _itemInfoText.text = "Used to upgrade\nequipment beyond +3";
                 _equipButton.gameObject.SetActive(false);
             }
 
@@ -357,6 +411,8 @@ namespace ConquerChronicles.Gameplay.Inventory
         {
             if (item.Type == BagItemType.Equipment)
                 return GetEquipmentQualityColor(item.Equipment.Data.Quality);
+            if (item.Type == BagItemType.Material)
+                return MaterialNameColor;
             return GetGemTypeColor(item.Gem.Type);
         }
 
@@ -378,6 +434,11 @@ namespace ConquerChronicles.Gameplay.Inventory
                 string name = eq.Data.Name.Length > 4 ? eq.Data.Name.Substring(0, 4) : eq.Data.Name;
                 string upgrade = eq.UpgradeLevel > 0 ? $"\n+{eq.UpgradeLevel}" : "";
                 return $"{name}{upgrade}";
+            }
+            else if (item.Type == BagItemType.Material)
+            {
+                string name = item.MaterialName ?? "";
+                return name.Length > 4 ? name.Substring(0, 4) : name;
             }
             else
             {
@@ -473,6 +534,21 @@ namespace ConquerChronicles.Gameplay.Inventory
                 _dropSelectedText.text = $"Drop Selected ({_selectedIndices.Count})";
         }
 
+        public void ShowConfirmDialog(string message, System.Action onConfirm)
+        {
+            if (_confirmDialog == null) return;
+            _confirmDialog.SetActive(true);
+            _confirmText.text = message;
+            _confirmYesButton.onClick.RemoveAllListeners();
+            _confirmYesButton.onClick.AddListener(() =>
+            {
+                _confirmDialog.SetActive(false);
+                onConfirm?.Invoke();
+            });
+            _confirmNoButton.onClick.RemoveAllListeners();
+            _confirmNoButton.onClick.AddListener(() => _confirmDialog.SetActive(false));
+        }
+
         private void OnDestroy()
         {
             if (_backButton != null) _backButton.onClick.RemoveAllListeners();
@@ -481,6 +557,8 @@ namespace ConquerChronicles.Gameplay.Inventory
             if (_closeDetailButton != null) _closeDetailButton.onClick.RemoveAllListeners();
             if (_dropSelectedButton != null) _dropSelectedButton.onClick.RemoveAllListeners();
             if (_cancelSelectButton != null) _cancelSelectButton.onClick.RemoveAllListeners();
+            if (_confirmYesButton != null) _confirmYesButton.onClick.RemoveAllListeners();
+            if (_confirmNoButton != null) _confirmNoButton.onClick.RemoveAllListeners();
         }
     }
 }
