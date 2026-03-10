@@ -23,7 +23,7 @@ namespace ConquerChronicles.Gameplay.UI.Tutorial
             "Equip gear to boost your stats.",
             "Upgrade equipment up to +12 — but beware of failure!",
             "Socket gems for extra stat bonuses.",
-            "A DragonBall protects gear from destruction at +10 and above."
+            "A Bolide protects gear from destruction at +10 and above."
         };
 
         public static readonly string[] Mining = new[]

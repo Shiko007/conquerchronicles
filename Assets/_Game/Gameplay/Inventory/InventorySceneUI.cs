@@ -23,6 +23,7 @@ namespace ConquerChronicles.Gameplay.Inventory
         [Header("Item Detail")]
         [SerializeField] private GameObject _detailPanel;
         [SerializeField] private TextMeshProUGUI _itemNameText;
+        [SerializeField] private Image _itemIcon;
         [SerializeField] private TextMeshProUGUI _itemStatsText;
         [SerializeField] private TextMeshProUGUI _itemInfoText;
         [SerializeField] private Button _equipButton;
@@ -99,6 +100,16 @@ namespace ConquerChronicles.Gameplay.Inventory
         };
 
         private static Sprite[] _smokeFrames;
+        private static readonly Dictionary<string, Sprite> _materialSpriteCache = new();
+
+        private static Sprite GetMaterialSprite(string materialName)
+        {
+            if (string.IsNullOrEmpty(materialName)) return null;
+            if (_materialSpriteCache.TryGetValue(materialName, out var cached)) return cached;
+            var sprite = Resources.Load<Sprite>($"Items/{materialName}");
+            _materialSpriteCache[materialName] = sprite;
+            return sprite;
+        }
 
         private static Sprite[] GetSmokeFrames()
         {
@@ -258,24 +269,22 @@ namespace ConquerChronicles.Gameplay.Inventory
                         var matAnim = matSmokeGO.AddComponent<UISpriteAnimator>();
                         matAnim.Play(GetSmokeFrames(), 6f, MaterialSmokeColor);
 
-                        // Name label
-                        var matTextGO = new GameObject("Label", typeof(RectTransform));
-                        matTextGO.transform.SetParent(slotGO.transform, false);
-                        var matTextRT = matTextGO.GetComponent<RectTransform>();
-                        matTextRT.anchorMin = Vector2.zero;
-                        matTextRT.anchorMax = Vector2.one;
-                        matTextRT.offsetMin = new Vector2(2, 2);
-                        matTextRT.offsetMax = new Vector2(-2, -2);
-                        var matTmp = matTextGO.AddComponent<TextMeshProUGUI>();
-                        matTmp.text = GetSlotLabel(bagItem);
-                        matTmp.fontSize = 18;
-                        matTmp.color = Color.white;
-                        matTmp.alignment = TextAlignmentOptions.Center;
-                        matTmp.enableAutoSizing = true;
-                        matTmp.fontSizeMin = 8;
-                        matTmp.fontSizeMax = 18;
-                        matTmp.textWrappingMode = TextWrappingModes.NoWrap;
-                        matTmp.overflowMode = TextOverflowModes.Truncate;
+                        // Material sprite
+                        var matSprite = GetMaterialSprite(bagItem.MaterialName);
+                        if (matSprite != null)
+                        {
+                            var matIconGO = new GameObject("Icon", typeof(RectTransform));
+                            matIconGO.transform.SetParent(slotGO.transform, false);
+                            var matIconRT = matIconGO.GetComponent<RectTransform>();
+                            matIconRT.anchorMin = new Vector2(0.25f, 0.25f);
+                            matIconRT.anchorMax = new Vector2(0.75f, 0.75f);
+                            matIconRT.offsetMin = Vector2.zero;
+                            matIconRT.offsetMax = Vector2.zero;
+                            var matIconImg = matIconGO.AddComponent<Image>();
+                            matIconImg.sprite = matSprite;
+                            matIconImg.preserveAspect = true;
+                            matIconImg.raycastTarget = false;
+                        }
                     }
                     else
                     {
@@ -349,6 +358,10 @@ namespace ConquerChronicles.Gameplay.Inventory
         {
             _detailPanel.SetActive(true);
 
+            // Hide icon by default
+            if (_itemIcon != null)
+                _itemIcon.gameObject.SetActive(false);
+
             if (bagItem.Type == BagItemType.Equipment)
             {
                 var item = bagItem.Equipment;
@@ -397,6 +410,16 @@ namespace ConquerChronicles.Gameplay.Inventory
                 _itemStatsText.text = "Upgrade Material";
                 _itemInfoText.text = "Used to upgrade\nequipment beyond +3";
                 _equipButton.gameObject.SetActive(false);
+
+                if (_itemIcon != null)
+                {
+                    var sprite = GetMaterialSprite(bagItem.MaterialName);
+                    if (sprite != null)
+                    {
+                        _itemIcon.sprite = sprite;
+                        _itemIcon.gameObject.SetActive(true);
+                    }
+                }
             }
 
             if (_dropButton != null) _dropButton.gameObject.SetActive(true);

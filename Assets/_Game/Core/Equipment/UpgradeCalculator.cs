@@ -40,9 +40,9 @@ namespace ConquerChronicles.Core.Equipment
         /// <summary>
         /// Attempts to upgrade the equipment using a seeded random number generator.
         /// On failure: +1/+2 safe, +3-+6 downgrade by 1, +7-+9 reset to +0, +10-+12 destroyed.
-        /// DragonBall protection prevents destruction at +10-+12, resetting to +0 instead.
+        /// Bolide protection prevents destruction at +10-+12, resetting to +0 instead.
         /// </summary>
-        public static UpgradeResult TryUpgrade(EquipmentInstance equipment, int seed, bool useDragonBall = false)
+        public static UpgradeResult TryUpgrade(EquipmentInstance equipment, int seed, bool useBolide = false)
         {
             int currentLevel = equipment.UpgradeLevel;
 
@@ -108,8 +108,8 @@ namespace ConquerChronicles.Core.Equipment
                 };
             }
 
-            // +10 to +12: destroyed (unless DragonBall protection is active)
-            if (useDragonBall)
+            // +10 to +12: destroyed (unless Bolide protection is active)
+            if (useBolide)
             {
                 equipment.UpgradeLevel = 0;
                 return new UpgradeResult

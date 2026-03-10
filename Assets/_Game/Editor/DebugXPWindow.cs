@@ -161,8 +161,8 @@ namespace ConquerChronicles.Editor
             if (GUILayout.Button("+ Meteor"))
                 AddMaterialToSave(saveManager, "mat_meteor", "Meteor");
 
-            if (GUILayout.Button("+ DragonBall"))
-                AddMaterialToSave(saveManager, "mat_dragonball", "DragonBall");
+            if (GUILayout.Button("+ Bolide"))
+                AddMaterialToSave(saveManager, "mat_bolide", "Bolide");
 
             EditorGUILayout.Space(10);
 

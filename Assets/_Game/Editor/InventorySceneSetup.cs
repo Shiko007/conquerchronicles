@@ -167,27 +167,41 @@ namespace ConquerChronicles.Editor
             itemNameTMP.fontStyle = FontStyles.Bold;
             itemNameTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
-            // Item stats (full width, below name)
+            // Item icon (centered, below name)
+            var itemIconGO = new GameObject("ItemIcon", typeof(RectTransform));
+            itemIconGO.transform.SetParent(detailInnerContent, false);
+            var itemIconRT = itemIconGO.GetComponent<RectTransform>();
+            itemIconRT.anchorMin = new Vector2(0.5f, 1);
+            itemIconRT.anchorMax = new Vector2(0.5f, 1);
+            itemIconRT.pivot = new Vector2(0.5f, 1);
+            itemIconRT.anchoredPosition = new Vector2(0, -55);
+            itemIconRT.sizeDelta = new Vector2(80, 80);
+            var itemIconImg = itemIconGO.AddComponent<Image>();
+            itemIconImg.preserveAspect = true;
+            itemIconImg.color = Color.white;
+            itemIconGO.SetActive(false);
+
+            // Item stats (full width, below icon)
             var itemStatsGO = CreateUIText(detailInnerContent, "ItemStatsText", "Stats...",
                 new Vector2(0, 1), new Vector2(1, 1),
-                new Vector2(15, -55), new Vector2(-30, 80), 18);
+                new Vector2(15, -140), new Vector2(-30, 80), 18);
             var itemStatsRT = itemStatsGO.GetComponent<RectTransform>();
             itemStatsRT.anchorMin = new Vector2(0, 1);
             itemStatsRT.anchorMax = new Vector2(1, 1);
             itemStatsRT.pivot = new Vector2(0, 1);
-            itemStatsRT.anchoredPosition = new Vector2(15, -55);
+            itemStatsRT.anchoredPosition = new Vector2(15, -140);
             itemStatsRT.sizeDelta = new Vector2(-30, 80);
             itemStatsGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.TopLeft;
 
             // Item info (full width, below stats)
             var itemInfoGO = CreateUIText(detailInnerContent, "ItemInfoText", "Quality: Normal\nReq Lv: 1\nSockets: 0/0",
                 new Vector2(0, 1), new Vector2(1, 1),
-                new Vector2(15, -140), new Vector2(-30, 70), 18);
+                new Vector2(15, -225), new Vector2(-30, 70), 18);
             var itemInfoRT = itemInfoGO.GetComponent<RectTransform>();
             itemInfoRT.anchorMin = new Vector2(0, 1);
             itemInfoRT.anchorMax = new Vector2(1, 1);
             itemInfoRT.pivot = new Vector2(0, 1);
-            itemInfoRT.anchoredPosition = new Vector2(15, -140);
+            itemInfoRT.anchoredPosition = new Vector2(15, -225);
             itemInfoRT.sizeDelta = new Vector2(-30, 70);
             itemInfoGO.GetComponent<TextMeshProUGUI>().alignment = TextAlignmentOptions.TopLeft;
 
@@ -380,6 +394,7 @@ namespace ConquerChronicles.Editor
             uiSO.FindProperty("_bagContainer").objectReferenceValue = bagContentGO.transform;
             uiSO.FindProperty("_detailPanel").objectReferenceValue = detailPanelGO;
             uiSO.FindProperty("_itemNameText").objectReferenceValue = itemNameTMP;
+            uiSO.FindProperty("_itemIcon").objectReferenceValue = itemIconImg;
             uiSO.FindProperty("_itemStatsText").objectReferenceValue = itemStatsGO.GetComponent<TextMeshProUGUI>();
             uiSO.FindProperty("_itemInfoText").objectReferenceValue = itemInfoGO.GetComponent<TextMeshProUGUI>();
             uiSO.FindProperty("_equipButton").objectReferenceValue = equipBtn;

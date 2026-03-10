@@ -6,7 +6,7 @@ namespace ConquerChronicles.Core.Market
 {
     public static class MarketResolver
     {
-        private static readonly string[] UpgradeMaterialNames = { "Meteor", "DragonBall" };
+        private static readonly string[] UpgradeMaterialNames = { "Meteor", "Bolide" };
         private static readonly int[] UpgradeMaterialPrices = { 1500, 5000 };
 
         public static List<MarketListing> GenerateListings(int count, int seed)

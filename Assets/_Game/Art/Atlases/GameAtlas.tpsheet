@@ -4,7 +4,7 @@
 # To import these sprites into your Unity project, download "TexturePackerImporter":
 # https://www.codeandweb.com/texturepacker/unity
 #
-# $TexturePacker:SmartUpdate:ccca43fa4963be5367cfda14b8881755:7b41c94da1f819d889ad7bf3322b2cb7:3e25f32a744ea8f94345629fe42dda27$
+# $TexturePacker:SmartUpdate:dd72a8d902e89dbef02f9b732436af9f:e38fc5938277265061e9734b7b81435e:3e25f32a744ea8f94345629fe42dda27$
 #
 :format=40300
 :texture=../../../Resources/Atlases/GameAtlas.png
@@ -14,10 +14,11 @@
 :alphahandling=ClearTransparentPixels
 
 Blank_Slot;22;1996;50;50; 0.5;0.5; 0;0;0;0
-Button_Pressed;402;1662;124;124; 0.5;0.5; 0;0;0;0
-Button_Unpressed;530;1662;124;124; 0.5;0.5; 0;0;0;0
-CharacterTab_Closed;791;1790;88;88; 0.5;0.5; 0;0;0;0
-CharacterTab_Opened;883;1790;88;88; 0.5;0.5; 0;0;0;0
+Bolide;179;1814;64;64; 0.5;0.5; 0;0;0;0
+Button_Pressed;494;1662;124;124; 0.5;0.5; 0;0;0;0
+Button_Unpressed;622;1662;124;124; 0.5;0.5; 0;0;0;0
+CharacterTab_Closed;927;1790;88;88; 0.5;0.5; 0;0;0;0
+CharacterTab_Opened;2;1698;88;88; 0.5;0.5; 0;0;0;0
 Elite_Slot_00;76;1996;50;50; 0.5;0.5; 0;0;0;0
 Elite_Slot_01;130;1996;50;50; 0.5;0.5; 0;0;0;0
 Elite_Slot_02;184;1996;50;50; 0.5;0.5; 0;0;0;0
@@ -26,13 +27,13 @@ Elite_Slot_04;292;1996;50;50; 0.5;0.5; 0;0;0;0
 Elite_Slot_05;346;1996;50;50; 0.5;0.5; 0;0;0;0
 Elite_Slot_06;400;1996;50;50; 0.5;0.5; 0;0;0;0
 Elite_Slot_07;454;1996;50;50; 0.5;0.5; 0;0;0;0
-Equipment_Closed;179;1814;64;64; 0.5;0.5; 0;0;0;0
-Equipment_Open;247;1814;64;64; 0.5;0.5; 0;0;0;0
-EquipmentTab_Closed;2;1698;88;88; 0.5;0.5; 0;0;0;0
-EquipmentTab_Opened;94;1698;88;88; 0.5;0.5; 0;0;0;0
-Exp_Orb;186;1686;100;100; 0.5;0.5; 0;0;0;0
-Female_Base_EAttack_01;658;1658;128;128; 0.5;0.5; 0;0;0;0
-Female_Base_EAttack_02;790;1658;128;128; 0.5;0.5; 0;0;0;0
+Equipment_Closed;247;1814;64;64; 0.5;0.5; 0;0;0;0
+Equipment_Open;315;1814;64;64; 0.5;0.5; 0;0;0;0
+EquipmentTab_Closed;94;1698;88;88; 0.5;0.5; 0;0;0;0
+EquipmentTab_Opened;186;1698;88;88; 0.5;0.5; 0;0;0;0
+Exp_Orb;278;1686;100;100; 0.5;0.5; 0;0;0;0
+Female_Base_EAttack_01;750;1658;128;128; 0.5;0.5; 0;0;0;0
+Female_Base_EAttack_02;882;1658;128;128; 0.5;0.5; 0;0;0;0
 Female_Base_EAttack_03;2;1526;128;128; 0.5;0.5; 0;0;0;0
 Female_Base_EAttack_04;134;1526;128;128; 0.5;0.5; 0;0;0;0
 Female_Base_EHit_01;266;1526;128;128; 0.5;0.5; 0;0;0;0
@@ -55,10 +56,10 @@ Gem_Slot_04;724;1996;50;50; 0.5;0.5; 0;0;0;0
 Gem_Slot_05;778;1996;50;50; 0.5;0.5; 0;0;0;0
 Gem_Slot_06;832;1996;50;50; 0.5;0.5; 0;0;0;0
 Gem_Slot_07;886;1996;50;50; 0.5;0.5; 0;0;0;0
-Gold;315;1814;64;64; 0.5;0.5; 0;0;0;0
-HP_MP_Orb;290;1678;108;108; 0.5;0.5; 0;0;0;0
-Inventory_Closed;383;1814;64;64; 0.5;0.5; 0;0;0;0
-Inventory_Open;451;1814;64;64; 0.5;0.5; 0;0;0;0
+Gold;383;1814;64;64; 0.5;0.5; 0;0;0;0
+HP_MP_Orb;382;1678;108;108; 0.5;0.5; 0;0;0;0
+Inventory_Closed;451;1814;64;64; 0.5;0.5; 0;0;0;0
+Inventory_Open;519;1814;64;64; 0.5;0.5; 0;0;0;0
 Male_Base_EAttack_01;2;1262;128;128; 0.5;0.5; 0;0;0;0
 Male_Base_EAttack_02;134;1262;128;128; 0.5;0.5; 0;0;0;0
 Male_Base_EAttack_03;266;1262;128;128; 0.5;0.5; 0;0;0;0
@@ -77,10 +78,11 @@ Male_Base_SIdle_03;2;998;128;128; 0.5;0.5; 0;0;0;0
 Male_Base_SIdle_04;134;998;128;128; 0.5;0.5; 0;0;0;0
 Male_Base_SIdle_05;2;998;128;128; 0.5;0.5; 0;0;0;0
 Male_Base_SIdle_06;794;1130;128;128; 0.5;0.5; 0;0;0;0
-Market_Closed;519;1814;64;64; 0.5;0.5; 0;0;0;0
-Market_Open;587;1814;64;64; 0.5;0.5; 0;0;0;0
-Mining_Closed;655;1814;64;64; 0.5;0.5; 0;0;0;0
-Mining_Open;723;1814;64;64; 0.5;0.5; 0;0;0;0
+Market_Closed;587;1814;64;64; 0.5;0.5; 0;0;0;0
+Market_Open;655;1814;64;64; 0.5;0.5; 0;0;0;0
+Meteor;723;1814;64;64; 0.5;0.5; 0;0;0;0
+Mining_Closed;791;1814;64;64; 0.5;0.5; 0;0;0;0
+Mining_Open;859;1814;64;64; 0.5;0.5; 0;0;0;0
 MinusButton_Disabled;816;1882;55;56; 0.5;0.5; 0;0;0;0
 MinusButton_Pressed;875;1882;55;56; 0.5;0.5; 0;0;0;0
 MinusButton_Unpressed;934;1882;55;56; 0.5;0.5; 0;0;0;0
