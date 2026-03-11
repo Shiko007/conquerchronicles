@@ -18,6 +18,7 @@ namespace ConquerChronicles.Gameplay.Inventory
         private SaveData _saveData;
         private int _playerLevel;
         private CharacterClass _playerClass;
+        private int[] _unlockedClasses;
         private Dictionary<string, EquipmentData> _equipmentCatalog;
         private BagItem _selectedBagItem;
         private int _selectedBagIndex = -1;
@@ -58,6 +59,7 @@ namespace ConquerChronicles.Gameplay.Inventory
 
             _playerLevel = _saveData.CharacterLevel;
             _playerClass = _saveData.SelectedClass;
+            _unlockedClasses = _saveData.UnlockedRebirthClasses ?? new[] { (int)CharacterClass.Trojan };
 
             // Build equipment catalog
             _equipmentCatalog = new Dictionary<string, EquipmentData>();
@@ -94,7 +96,7 @@ namespace ConquerChronicles.Gameplay.Inventory
 
                 bool canEquip = false;
                 if (bagItem.Type == BagItemType.Equipment)
-                    canEquip = _inventory.CanEquip(bagItem.Equipment, _playerLevel, _playerClass);
+                    canEquip = _inventory.CanEquip(bagItem.Equipment, _playerLevel, _unlockedClasses);
 
                 _inventoryUI.ShowItemDetail(bagItem, canEquip);
             };
@@ -104,7 +106,7 @@ namespace ConquerChronicles.Gameplay.Inventory
                 if (_selectedBagItem == null || _selectedBagItem.Type != BagItemType.Equipment) return;
 
                 var item = _selectedBagItem.Equipment;
-                if (!_inventory.CanEquip(item, _playerLevel, _playerClass)) return;
+                if (!_inventory.CanEquip(item, _playerLevel, _unlockedClasses)) return;
 
                 _inventory.Equip(item, item.Data.Slot);
                 _inventoryUI.HideItemDetail();

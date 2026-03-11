@@ -48,6 +48,13 @@ namespace ConquerChronicles.Gameplay.Combat
             _killCount = 0;
         }
 
+        public void RefreshSkills(SkillData[] newSkills)
+        {
+            _activeSkills = new List<SkillState>();
+            for (int i = 0; i < newSkills.Length; i++)
+                _activeSkills.Add(new SkillState(newSkills[i]));
+        }
+
         private void Update()
         {
             if (_player == null || _player.State == null || _player.State.IsDead) return;

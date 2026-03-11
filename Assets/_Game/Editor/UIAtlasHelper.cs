@@ -22,6 +22,12 @@ namespace ConquerChronicles.Editor
             }
         }
 
+        public static void ClearAndReload()
+        {
+            _spriteCache = null;
+            EnsureLoaded();
+        }
+
         public static Sprite GetSprite(string name)
         {
             EnsureLoaded();
@@ -110,17 +116,17 @@ namespace ConquerChronicles.Editor
             img.color = tint == default ? Color.white : tint;
         }
 
-        // Panel 9-slice border values (sprite pixels at 100 PPU = UI units)
-        public const float PanelPadL = 67f;
-        public const float PanelPadR = 67f;
-        public const float PanelPadT = 69f;
-        public const float PanelPadB = 69f;
+        // Panel 9-slice border values (from Aseprite slices via TexturePacker)
+        public const float PanelPadL = 65f;
+        public const float PanelPadR = 63f;
+        public const float PanelPadT = 61f;
+        public const float PanelPadB = 64f;
 
-        // Button 9-slice border values
-        public const float ButtonPadL = 49f;
-        public const float ButtonPadR = 55f;
-        public const float ButtonPadT = 51f;
-        public const float ButtonPadB = 51f;
+        // Button 9-slice border values (using Unpressed values)
+        public const float ButtonPadL = 50f;
+        public const float ButtonPadR = 49f;
+        public const float ButtonPadT = 53f;
+        public const float ButtonPadB = 52f;
 
         /// <summary>
         /// Creates an inset content area child inside a panel or button.
@@ -138,6 +144,29 @@ namespace ConquerChronicles.Editor
             return rt;
         }
 
+        /// <summary>
+        /// Adds a tiled UI_tile background inside a panel, behind content.
+        /// Call this BEFORE CreatePanelContent so it renders behind.
+        /// </summary>
+        public static void AddTiledBackground(Transform parent, Color tint = default)
+        {
+            var sprite = GetSprite("UI_tile");
+            if (sprite == null) return;
+
+            var go = new GameObject("TiledBg", typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = go.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(PanelPadL, PanelPadB);
+            rt.offsetMax = new Vector2(-PanelPadR, -PanelPadT);
+            var img = go.AddComponent<Image>();
+            img.sprite = sprite;
+            img.type = Image.Type.Tiled;
+            img.color = tint == default ? new Color(1f, 1f, 1f, 0.08f) : tint;
+            img.raycastTarget = false;
+        }
+
         /// <summary>Creates a content area with full panel padding.</summary>
         public static RectTransform CreatePanelContent(Transform parent)
         {
@@ -153,4 +182,5 @@ namespace ConquerChronicles.Editor
             return CreateContentArea(parent, ButtonPadL, ButtonPadR, vPad, vPad);
         }
     }
+
 }

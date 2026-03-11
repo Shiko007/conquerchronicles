@@ -51,6 +51,10 @@ namespace ConquerChronicles.Core.Save
         public int[] PlayerBoothPrices; // parallel array
         public int BoothRevenue;
 
+        // --- Rebirth ---
+        public int RebirthCount;
+        public int[] UnlockedRebirthClasses; // CharacterClass int values, always includes Trojan(1)
+
         // --- Tutorial ---
         public bool TutorialComplete;
 
@@ -83,6 +87,8 @@ namespace ConquerChronicles.Core.Save
                 PlayerBoothItemIDs = System.Array.Empty<string>(),
                 PlayerBoothPrices = System.Array.Empty<int>(),
                 BoothRevenue = 0,
+                RebirthCount = 0,
+                UnlockedRebirthClasses = new[] { (int)CharacterClass.Trojan },
                 TutorialComplete = false
             };
         }

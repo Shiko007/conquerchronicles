@@ -21,6 +21,7 @@ namespace ConquerChronicles.Gameplay.Loot
         private static readonly Color FullTextColor = new(1f, 0.3f, 0.3f, 1f);
 
         private Func<bool> _isBagFull;
+        private Func<bool> _isPlayerDead;
 
         public event Action<string, int> OnEquipmentCollected;
 
@@ -35,6 +36,7 @@ namespace ConquerChronicles.Gameplay.Loot
         }
 
         public void SetBagFullChecker(Func<bool> checker) => _isBagFull = checker;
+        public void SetDeadChecker(Func<bool> checker) => _isPlayerDead = checker;
 
         private void Update()
         {
@@ -90,6 +92,14 @@ namespace ConquerChronicles.Gameplay.Loot
             textView.PlayText("Inventory is full", 4f, FullTextColor, playerPos);
         }
 
+        private void ShowDeadText()
+        {
+            if (_damageNumberPool == null) return;
+            var playerPos = _playerTransform != null ? _playerTransform.position : Vector3.zero;
+            var textView = _damageNumberPool.Get();
+            textView.PlayText("Can't loot while dead", 4f, FullTextColor, playerPos);
+        }
+
         public void SpawnEquipmentDrop(LootDropInfo info)
         {
             var drop = _equipmentDropPool.Get();
@@ -105,6 +115,11 @@ namespace ConquerChronicles.Gameplay.Loot
 
         private void CollectDrop(EquipmentDropView drop)
         {
+            if (_isPlayerDead != null && _isPlayerDead())
+            {
+                ShowDeadText();
+                return;
+            }
             if (_isBagFull != null && _isBagFull())
             {
                 ShowInventoryFullText();
@@ -126,19 +141,11 @@ namespace ConquerChronicles.Gameplay.Loot
             drop.Collect(playerPos);
         }
 
-        public void ReturnAllDrops()
+        /// <summary>Discards all active drops without collecting them.</summary>
+        public void DiscardAllDrops()
         {
             for (int i = _activeDrops.Count - 1; i >= 0; i--)
-            {
-                var drop = _activeDrops[i];
-                if (_isBagFull != null && _isBagFull())
-                {
-                    _equipmentDropPool.Return(drop);
-                    continue;
-                }
-                OnEquipmentCollected?.Invoke(drop.ItemID, drop.Quantity);
-                _equipmentDropPool.Return(drop);
-            }
+                _equipmentDropPool.Return(_activeDrops[i]);
             _activeDrops.Clear();
         }
     }

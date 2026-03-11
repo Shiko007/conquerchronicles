@@ -35,6 +35,7 @@ namespace ConquerChronicles.Gameplay.Map
         private const float DeathAnimDuration = 1.5f;
         private float _deathAnimDelay = -1f;
         private bool _loggedFirstUpdate;
+        private int _lastPlayerLevel;
 
         // Revive timer — player stays dead for this many seconds before auto-reviving.
         private const float ReviveDuration = 20f;
@@ -43,12 +44,10 @@ namespace ConquerChronicles.Gameplay.Map
         public AreaState AreaState => _areaState;
 
         public event Action<string> OnAreaAnnouncement;
-        public event Action<AreaResult> OnAreaSessionEnd;
         public event Action<string, int> OnItemDropped;
         public event Action<int> OnEnemyKilledInArea;
         public event Action<GoldDropInfo> OnGoldDropped;
         public event Action<LootDropInfo> OnEquipmentDropped;
-        public event Action OnAreaSessionEnding;
         public event Action<float> OnReviveTimerTick;
         public event Action OnPlayerRevived;
 
@@ -85,18 +84,19 @@ namespace ConquerChronicles.Gameplay.Map
             _droppedItems.Clear();
             _enemySpawner.DespawnAll();
 
-            // Reset player HP to full for new session
+            // Reset player HP to full for new area
             if (_player != null && _player.State != null)
             {
                 var stats = _player.GetComputedStats();
                 _player.State.CurrentHP = stats.HP;
                 _player.State.CurrentMP = stats.MP;
+                _player.ResetActionState();
                 _player.PlayIdle();
             }
 
             // Debug.Log($"[MapManager] AreaState.IsActive={_areaState.IsActive}, EnemyPool={area.EnemyPool?.Length ?? 0} entries");
-            int playerLevel = _player != null && _player.State != null ? _player.State.Level : 1;
-            _enemySpawner.SetLevelContext(playerLevel, area.MinLevel);
+            _lastPlayerLevel = _player != null && _player.State != null ? _player.State.Level : 1;
+            _enemySpawner.SetLevelContext(_lastPlayerLevel, area.MinLevel);
 
             OnAreaAnnouncement?.Invoke($"Entering: {area.Name}");
         }
@@ -105,7 +105,13 @@ namespace ConquerChronicles.Gameplay.Map
         {
             if (_areaState == null) return;
             _areaState.PlayerLeft = true;
-            EndSession();
+
+            // Reset death state and re-enable combat for the next area.
+            _deathAnimDelay = -1f;
+            _reviveTimer = -1f;
+            if (_combatManager != null) _combatManager.enabled = true;
+
+            _enemySpawner.DespawnAll();
         }
 
         private void Update()
@@ -160,6 +166,17 @@ namespace ConquerChronicles.Gameplay.Map
                 _deathAnimDelay = DeathAnimDuration;
                 _combatManager.enabled = false;
                 return;
+            }
+
+            // Update spawner's player level when the player levels up
+            if (_player != null && _player.State != null)
+            {
+                int currentLevel = _player.State.Level;
+                if (currentLevel != _lastPlayerLevel)
+                {
+                    _lastPlayerLevel = currentLevel;
+                    _enemySpawner.SetLevelContext(currentLevel, _areaState.Data.MinLevel);
+                }
             }
 
             // Update alive count
@@ -270,19 +287,5 @@ namespace ConquerChronicles.Gameplay.Map
             OnPlayerRevived?.Invoke();
         }
 
-        private void EndSession()
-        {
-            // Reset death delay and re-enable combat for the next session.
-            _deathAnimDelay = -1f;
-            if (_combatManager != null) _combatManager.enabled = true;
-
-            OnAreaSessionEnding?.Invoke();
-            var result = AreaResult.Calculate(_areaState, _currentMap.ID, _droppedItems.ToArray());
-            OnAreaSessionEnd?.Invoke(result);
-            _enemySpawner.DespawnAll();
-#if UNITY_EDITOR
-            Debug.Log($"[MapManager] Session ended: {result.EnemiesKilled} kills, {result.GoldEarned} gold, {result.XPEarned} XP, {result.ItemsDropped.Length} items");
-#endif
-        }
     }
 }

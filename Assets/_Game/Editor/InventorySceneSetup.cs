@@ -45,6 +45,7 @@ namespace ConquerChronicles.Editor
             bottomHalfRT.offsetMax = new Vector2(0, -120); // safe area: clears dynamic island / notch
             var bottomHalfImg = bottomHalfGO.AddComponent<Image>();
             UIAtlasHelper.SetSlicedPanel(bottomHalfImg, new Color(0.85f, 0.85f, 0.9f, 0.92f));
+            UIAtlasHelper.AddTiledBackground(bottomHalfGO.transform);
             var bottomHalfContent = UIAtlasHelper.CreatePanelContent(bottomHalfGO.transform);
 
             // No SafeAreaHandler here — it overrides anchors to fill the safe area,

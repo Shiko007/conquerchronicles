@@ -566,6 +566,19 @@ namespace ConquerChronicles.Core.Equipment
             Description = "A katana forged in darkness. Only Ninjas can master its speed."
         };
 
+        public static EquipmentData TaoistBacksword => new()
+        {
+            ID = "taoist_backsword",
+            Name = "Mystic Backsword",
+            Slot = EquipmentSlot.MainHand,
+            Quality = EquipmentQuality.Unique,
+            RequiredLevel = 40,
+            RequiredClass = CharacterClass.WaterTaoist,
+            BaseStats = new CharacterStats { MATK = 48, ATK = 10, MP = 50 },
+            MaxSockets = 1,
+            Description = "A mystical backsword channeling both water and fire."
+        };
+
         // =====================================================================
         // Utility Methods
         // =====================================================================
@@ -599,7 +612,8 @@ namespace ConquerChronicles.Core.Equipment
 
                 // Class-Specific Weapons (Unique)
                 TrojanCleaver, WarriorHalberd, ArcherLongbow,
-                WaterTaoistStaff, FireTaoistWand, NinjaKatana
+                WaterTaoistStaff, FireTaoistWand, NinjaKatana,
+                TaoistBacksword
             };
         }
 

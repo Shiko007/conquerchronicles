@@ -192,7 +192,6 @@ namespace ConquerChronicles.Editor
             // --- Map system ---
             MapManager mapManager = null;
             WaveAnnouncerUI waveAnnouncer = null;
-            RunSummaryUI runSummary = null;
             GoldCoinPool goldCoinPool = null;
             EquipmentDropPool equipmentDropPool = null;
             LootVisualManager lootVisualManager = null;
@@ -205,9 +204,6 @@ namespace ConquerChronicles.Editor
 
                 // Area announcer (reusing WaveAnnouncerUI)
                 waveAnnouncer = CreateWaveAnnouncerUI();
-
-                // Session summary
-                runSummary = CreateRunSummaryUI();
 
                 // GoldCoinPool
                 var goldPoolGO = new GameObject("GoldCoinPool");
@@ -355,7 +351,6 @@ namespace ConquerChronicles.Editor
             {
                 tsSO.FindProperty("_mapManager").objectReferenceValue = mapManager;
                 tsSO.FindProperty("_waveAnnouncer").objectReferenceValue = waveAnnouncer;
-                tsSO.FindProperty("_runSummary").objectReferenceValue = runSummary;
                 tsSO.FindProperty("_testMapIndex").intValue = 0;
                 tsSO.FindProperty("_testAreaIndex").intValue = 0;
                 tsSO.FindProperty("_lootVisualManager").objectReferenceValue = lootVisualManager;
@@ -750,17 +745,17 @@ namespace ConquerChronicles.Editor
             // =============================================
             // Navigation Buttons — above skill slots, same horizontal span
             // =============================================
-            int navBtnSize = slotSize;
+            int navBtnSize = Mathf.FloorToInt(4f * slotSize / 5f); // 5 buttons fit in 4-slot span
             int navBtnSpacing = 0;
             float navY = slotY + slotSize + 4; // just above skill slots
 
-            string[] navNames = { "EquipmentButton", "InventoryButton", "MineButton", "MarketButton" };
-            string[] navIconNames = { "Equipment_Closed", "Inventory_Closed", "Mining_Closed", "Market_Closed" };
+            string[] navNames = { "EquipmentButton", "InventoryButton", "MineButton", "MarketButton", "TeleportButton" };
+            string[] navIconNames = { "Equipment_Closed", "Inventory_Closed", "Mining_Closed", "Market_Closed", "Teleport_Closed" };
 
-            Button[] navBtns = new Button[4];
-            Image[] navIcons = new Image[4];
+            Button[] navBtns = new Button[5];
+            Image[] navIcons = new Image[5];
 
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 5; i++)
             {
                 var btnGO = new GameObject(navNames[i], typeof(RectTransform));
                 btnGO.transform.SetParent(safeAreaGO.transform, false);
@@ -791,7 +786,307 @@ namespace ConquerChronicles.Editor
                 navIcons[i] = iconImg;
             }
 
-            // navBtns[0]=Equipment, [1]=Inventory, [2]=Mine, [3]=Market
+            // navBtns[0]=Equipment, [1]=Inventory, [2]=Mine, [3]=Market, [4]=Teleport
+
+            // =============================================
+            // Rebirth Button — top-left corner, same structure as nav buttons
+            // =============================================
+            var rebirthBtnGO = new GameObject("RebirthButton", typeof(RectTransform));
+            rebirthBtnGO.transform.SetParent(safeAreaGO.transform, false);
+            var rebirthBtnRT = rebirthBtnGO.GetComponent<RectTransform>();
+            rebirthBtnRT.anchorMin = new Vector2(0, 1);
+            rebirthBtnRT.anchorMax = new Vector2(0, 1);
+            rebirthBtnRT.pivot = new Vector2(0, 1);
+            rebirthBtnRT.anchoredPosition = new Vector2(10, -10);
+            rebirthBtnRT.sizeDelta = new Vector2(navBtnSize, navBtnSize);
+            var rebirthBtnImg = rebirthBtnGO.AddComponent<Image>();
+            rebirthBtnImg.color = new Color(0, 0, 0, 0);
+            var rebirthBtn = rebirthBtnGO.AddComponent<Button>();
+            rebirthBtn.targetGraphic = rebirthBtnImg;
+
+            // Rebirth icon child — same inset as nav icons
+            var rebirthIconGO = new GameObject("Icon", typeof(RectTransform));
+            rebirthIconGO.transform.SetParent(rebirthBtnGO.transform, false);
+            var rebirthIconRT = rebirthIconGO.GetComponent<RectTransform>();
+            rebirthIconRT.anchorMin = Vector2.zero;
+            rebirthIconRT.anchorMax = Vector2.one;
+            rebirthIconRT.offsetMin = new Vector2(iconInset, iconInset);
+            rebirthIconRT.offsetMax = new Vector2(-iconInset, -iconInset);
+            var rebirthIconImg = rebirthIconGO.AddComponent<Image>();
+            UIAtlasHelper.SetSimpleSprite(rebirthIconImg, "Rebirth_Closed");
+            rebirthIconImg.raycastTarget = false;
+
+            // =============================================
+            // Rebirth Panel — same size/tint as Inventory & Equipment panels
+            // =============================================
+            var rebirthPanelGO = new GameObject("RebirthPanel", typeof(RectTransform));
+            rebirthPanelGO.transform.SetParent(canvasGO.transform, false);
+            var rebirthPanelRT = rebirthPanelGO.GetComponent<RectTransform>();
+            rebirthPanelRT.anchorMin = new Vector2(0, 0.18f);
+            rebirthPanelRT.anchorMax = Vector2.one;
+            rebirthPanelRT.offsetMin = Vector2.zero;
+            rebirthPanelRT.offsetMax = new Vector2(0, -120);
+            var rebirthPanelImg = rebirthPanelGO.AddComponent<Image>();
+            UIAtlasHelper.SetSlicedPanel(rebirthPanelImg, new Color(0.85f, 0.85f, 0.9f, 0.92f));
+            UIAtlasHelper.AddTiledBackground(rebirthPanelGO.transform);
+            var rebirthContent = UIAtlasHelper.CreatePanelContent(rebirthPanelGO.transform);
+
+            // Close (X) button — top-right of panel (same as Inventory/Equipment)
+            var rebirthCloseBtnGO = new GameObject("CloseButton", typeof(RectTransform));
+            rebirthCloseBtnGO.transform.SetParent(rebirthPanelGO.transform, false);
+            var rebirthCloseBtnRT = rebirthCloseBtnGO.GetComponent<RectTransform>();
+            rebirthCloseBtnRT.anchorMin = new Vector2(1, 1);
+            rebirthCloseBtnRT.anchorMax = new Vector2(1, 1);
+            rebirthCloseBtnRT.pivot = new Vector2(1, 1);
+            rebirthCloseBtnRT.anchoredPosition = Vector2.zero;
+            rebirthCloseBtnRT.sizeDelta = new Vector2(50, 50);
+            var rebirthCloseBtnImg = rebirthCloseBtnGO.AddComponent<Image>();
+            var rebirthCloseBtn = rebirthCloseBtnGO.AddComponent<Button>();
+            UIAtlasHelper.SetXButton(rebirthCloseBtn, rebirthCloseBtnImg);
+
+            // Title
+            var rebirthTitleGO = new GameObject("Title", typeof(RectTransform));
+            rebirthTitleGO.transform.SetParent(rebirthContent, false);
+            var rebirthTitleRT = rebirthTitleGO.GetComponent<RectTransform>();
+            rebirthTitleRT.anchorMin = new Vector2(0, 1);
+            rebirthTitleRT.anchorMax = new Vector2(1, 1);
+            rebirthTitleRT.pivot = new Vector2(0.5f, 1);
+            rebirthTitleRT.anchoredPosition = new Vector2(0, 0);
+            rebirthTitleRT.sizeDelta = new Vector2(0, 40);
+            var rebirthTitleTMP = rebirthTitleGO.AddComponent<TextMeshProUGUI>();
+            rebirthTitleTMP.text = "REBIRTH";
+            rebirthTitleTMP.fontSize = 32;
+            rebirthTitleTMP.color = new Color(1f, 0.85f, 0.3f);
+            rebirthTitleTMP.alignment = TextAlignmentOptions.Center;
+            rebirthTitleTMP.fontStyle = FontStyles.Bold;
+            rebirthTitleTMP.raycastTarget = false;
+
+            // Description
+            var rebirthDescGO = new GameObject("Description", typeof(RectTransform));
+            rebirthDescGO.transform.SetParent(rebirthContent, false);
+            var rebirthDescRT = rebirthDescGO.GetComponent<RectTransform>();
+            rebirthDescRT.anchorMin = new Vector2(0, 0.45f);
+            rebirthDescRT.anchorMax = new Vector2(1, 0.92f);
+            rebirthDescRT.offsetMin = Vector2.zero;
+            rebirthDescRT.offsetMax = Vector2.zero;
+            var rebirthDescTMP = rebirthDescGO.AddComponent<TextMeshProUGUI>();
+            rebirthDescTMP.text = "";
+            rebirthDescTMP.fontSize = 16;
+            rebirthDescTMP.color = Color.white;
+            rebirthDescTMP.alignment = TextAlignmentOptions.TopLeft;
+            rebirthDescTMP.enableWordWrapping = true;
+            rebirthDescTMP.richText = true;
+            rebirthDescTMP.raycastTarget = false;
+
+            // Class buttons (up to 3) — same size as nav buttons
+            var rebirthClassBtns = new Button[3];
+            var rebirthClassLabels = new TextMeshProUGUI[3];
+            float classBtnHeight = navBtnSize;
+            float classBtnSpacing = 8;
+
+            for (int i = 0; i < 3; i++)
+            {
+                var classBtnGO = new GameObject($"ClassButton_{i}", typeof(RectTransform));
+                classBtnGO.transform.SetParent(rebirthContent, false);
+                var classBtnRT = classBtnGO.GetComponent<RectTransform>();
+                classBtnRT.anchorMin = new Vector2(0.05f, 0);
+                classBtnRT.anchorMax = new Vector2(0.95f, 0);
+                classBtnRT.pivot = new Vector2(0.5f, 0);
+                float btnY = 10 + i * (classBtnHeight + classBtnSpacing);
+                classBtnRT.anchoredPosition = new Vector2(0, btnY);
+                classBtnRT.sizeDelta = new Vector2(0, classBtnHeight);
+                var classBtnImg = classBtnGO.AddComponent<Image>();
+                UIAtlasHelper.SetSpriteSwapButton(
+                    classBtnGO.AddComponent<Button>(), classBtnImg,
+                    "Button_Unpressed", "Button_Pressed",
+                    new Color(0.3f, 0.5f, 0.9f));
+
+                rebirthClassBtns[i] = classBtnGO.GetComponent<Button>();
+
+                var classLblContent = UIAtlasHelper.CreateButtonContent(classBtnGO.transform, classBtnHeight);
+                var classLblGO = new GameObject("Label", typeof(RectTransform));
+                classLblGO.transform.SetParent(classLblContent, false);
+                var classLblRT = classLblGO.GetComponent<RectTransform>();
+                classLblRT.anchorMin = Vector2.zero;
+                classLblRT.anchorMax = Vector2.one;
+                classLblRT.offsetMin = Vector2.zero;
+                classLblRT.offsetMax = Vector2.zero;
+                var classLblTMP = classLblGO.AddComponent<TextMeshProUGUI>();
+                classLblTMP.text = "";
+                classLblTMP.fontSize = 18;
+                classLblTMP.color = Color.white;
+                classLblTMP.alignment = TextAlignmentOptions.Center;
+                classLblTMP.enableAutoSizing = true;
+                classLblTMP.fontSizeMin = 12;
+                classLblTMP.fontSizeMax = 18;
+                classLblTMP.richText = true;
+                classLblTMP.raycastTarget = false;
+
+                rebirthClassLabels[i] = classLblTMP;
+            }
+
+            rebirthPanelGO.SetActive(false);
+
+            // =============================================
+            // Map Panel — area teleportation (same structure as rebirth panel)
+            // =============================================
+            var mapPanelGO = new GameObject("MapPanel", typeof(RectTransform));
+            mapPanelGO.transform.SetParent(canvasGO.transform, false);
+            var mapPanelRT = mapPanelGO.GetComponent<RectTransform>();
+            mapPanelRT.anchorMin = new Vector2(0, 0.18f);
+            mapPanelRT.anchorMax = Vector2.one;
+            mapPanelRT.offsetMin = Vector2.zero;
+            mapPanelRT.offsetMax = new Vector2(0, -120);
+            var mapPanelImg = mapPanelGO.AddComponent<Image>();
+            UIAtlasHelper.SetSlicedPanel(mapPanelImg, new Color(0.85f, 0.85f, 0.9f, 0.92f));
+            UIAtlasHelper.AddTiledBackground(mapPanelGO.transform);
+            var mapContent = UIAtlasHelper.CreatePanelContent(mapPanelGO.transform);
+
+            // Close (X) button
+            var mapCloseBtnGO = new GameObject("CloseButton", typeof(RectTransform));
+            mapCloseBtnGO.transform.SetParent(mapPanelGO.transform, false);
+            var mapCloseBtnRT = mapCloseBtnGO.GetComponent<RectTransform>();
+            mapCloseBtnRT.anchorMin = new Vector2(1, 1);
+            mapCloseBtnRT.anchorMax = new Vector2(1, 1);
+            mapCloseBtnRT.pivot = new Vector2(1, 1);
+            mapCloseBtnRT.anchoredPosition = Vector2.zero;
+            mapCloseBtnRT.sizeDelta = new Vector2(50, 50);
+            var mapCloseBtnImg = mapCloseBtnGO.AddComponent<Image>();
+            var mapCloseBtn = mapCloseBtnGO.AddComponent<Button>();
+            UIAtlasHelper.SetXButton(mapCloseBtn, mapCloseBtnImg);
+
+            // Title
+            var mapTitleGO = new GameObject("Title", typeof(RectTransform));
+            mapTitleGO.transform.SetParent(mapContent, false);
+            var mapTitleRT = mapTitleGO.GetComponent<RectTransform>();
+            mapTitleRT.anchorMin = new Vector2(0, 1);
+            mapTitleRT.anchorMax = new Vector2(1, 1);
+            mapTitleRT.pivot = new Vector2(0.5f, 1);
+            mapTitleRT.anchoredPosition = Vector2.zero;
+            mapTitleRT.sizeDelta = new Vector2(0, 40);
+            var mapTitleTMP = mapTitleGO.AddComponent<TextMeshProUGUI>();
+            mapTitleTMP.text = "WORLD MAP";
+            mapTitleTMP.fontSize = 32;
+            mapTitleTMP.color = new Color(1f, 0.85f, 0.3f);
+            mapTitleTMP.alignment = TextAlignmentOptions.Center;
+            mapTitleTMP.fontStyle = FontStyles.Bold;
+            mapTitleTMP.raycastTarget = false;
+
+            // ScrollView for map list
+            var scrollGO = new GameObject("ScrollView", typeof(RectTransform));
+            scrollGO.transform.SetParent(mapContent, false);
+            var scrollRT = scrollGO.GetComponent<RectTransform>();
+            scrollRT.anchorMin = new Vector2(0, 0);
+            scrollRT.anchorMax = new Vector2(1, 0.92f);
+            scrollRT.offsetMin = Vector2.zero;
+            scrollRT.offsetMax = Vector2.zero;
+            var scrollRect = scrollGO.AddComponent<ScrollRect>();
+
+            // Viewport — uses RectMask2D for clipping (no Image alpha dependency)
+            var viewportGO = new GameObject("Viewport", typeof(RectTransform));
+            viewportGO.transform.SetParent(scrollGO.transform, false);
+            var viewportRT = viewportGO.GetComponent<RectTransform>();
+            viewportRT.anchorMin = Vector2.zero;
+            viewportRT.anchorMax = Vector2.one;
+            viewportRT.offsetMin = Vector2.zero;
+            viewportRT.offsetMax = Vector2.zero;
+            viewportGO.AddComponent<RectMask2D>();
+
+            // Content container with vertical layout
+            var listContentGO = new GameObject("Content", typeof(RectTransform));
+            listContentGO.transform.SetParent(viewportGO.transform, false);
+            var listContentRT = listContentGO.GetComponent<RectTransform>();
+            listContentRT.anchorMin = new Vector2(0, 1);
+            listContentRT.anchorMax = new Vector2(1, 1);
+            listContentRT.pivot = new Vector2(0.5f, 1);
+            listContentRT.anchoredPosition = Vector2.zero;
+            listContentRT.sizeDelta = new Vector2(0, 0); // height driven by ContentSizeFitter
+
+            var vlg = listContentGO.AddComponent<VerticalLayoutGroup>();
+            vlg.childAlignment = TextAnchor.UpperCenter;
+            vlg.spacing = 4;
+            vlg.padding = new RectOffset(8, 8, 4, 4);
+            vlg.childControlWidth = true;
+            vlg.childControlHeight = false;
+            vlg.childForceExpandWidth = true;
+            vlg.childForceExpandHeight = false;
+            var csf = listContentGO.AddComponent<ContentSizeFitter>();
+            csf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scrollRect.content = listContentRT;
+            scrollRect.viewport = viewportRT;
+            scrollRect.horizontal = false;
+            scrollRect.vertical = true;
+            scrollRect.movementType = ScrollRect.MovementType.Clamped;
+
+            // Create map headers (7) and area buttons (21 = 7 maps x 3 areas)
+            int totalMaps = 7;
+            int areasPerMap = 3;
+            var mapHeaderTMPs = new TextMeshProUGUI[totalMaps];
+            var areaBtns = new Button[totalMaps * areasPerMap];
+            var areaLabelTMPs = new TextMeshProUGUI[totalMaps * areasPerMap];
+            int areaBtnIdx = 0;
+
+            for (int m = 0; m < totalMaps; m++)
+            {
+                // Map header
+                var headerGO = new GameObject($"MapHeader_{m}", typeof(RectTransform));
+                headerGO.transform.SetParent(listContentGO.transform, false);
+                var headerLE = headerGO.AddComponent<LayoutElement>();
+                headerLE.preferredHeight = 36;
+                headerLE.minHeight = 36;
+                var headerTMP = headerGO.AddComponent<TextMeshProUGUI>();
+                headerTMP.text = "";
+                headerTMP.fontSize = 20;
+                headerTMP.color = new Color(1f, 0.85f, 0.3f);
+                headerTMP.alignment = TextAlignmentOptions.MidlineLeft;
+                headerTMP.fontStyle = FontStyles.Bold;
+                headerTMP.richText = true;
+                headerTMP.raycastTarget = false;
+                mapHeaderTMPs[m] = headerTMP;
+
+                // Area buttons
+                for (int a = 0; a < areasPerMap; a++)
+                {
+                    var areaBtnGO = new GameObject($"AreaButton_{m}_{a}", typeof(RectTransform));
+                    areaBtnGO.transform.SetParent(listContentGO.transform, false);
+                    var areaLE = areaBtnGO.AddComponent<LayoutElement>();
+                    areaLE.preferredHeight = navBtnSize;
+                    areaLE.minHeight = navBtnSize;
+
+                    var areaBtnImg = areaBtnGO.AddComponent<Image>();
+                    var areaBtn = areaBtnGO.AddComponent<Button>();
+                    UIAtlasHelper.SetSpriteSwapButton(
+                        areaBtn, areaBtnImg,
+                        "Button_Unpressed", "Button_Pressed",
+                        new Color(0.25f, 0.35f, 0.55f));
+
+                    var areaBtnContent = UIAtlasHelper.CreateButtonContent(areaBtnGO.transform, navBtnSize);
+                    var areaLblGO = new GameObject("Label", typeof(RectTransform));
+                    areaLblGO.transform.SetParent(areaBtnContent, false);
+                    var areaLblRT = areaLblGO.GetComponent<RectTransform>();
+                    areaLblRT.anchorMin = Vector2.zero;
+                    areaLblRT.anchorMax = Vector2.one;
+                    areaLblRT.offsetMin = new Vector2(10, 0);
+                    areaLblRT.offsetMax = new Vector2(-10, 0);
+                    var areaLblTMP = areaLblGO.AddComponent<TextMeshProUGUI>();
+                    areaLblTMP.text = "";
+                    areaLblTMP.fontSize = 18;
+                    areaLblTMP.color = Color.white;
+                    areaLblTMP.alignment = TextAlignmentOptions.MidlineLeft;
+                    areaLblTMP.enableAutoSizing = true;
+                    areaLblTMP.fontSizeMin = 12;
+                    areaLblTMP.fontSizeMax = 18;
+                    areaLblTMP.richText = true;
+                    areaLblTMP.raycastTarget = false;
+
+                    areaBtns[areaBtnIdx] = areaBtn;
+                    areaLabelTMPs[areaBtnIdx] = areaLblTMP;
+                    areaBtnIdx++;
+                }
+            }
+
+            mapPanelGO.SetActive(false);
 
             // =============================================
             // EXP Orb — right of skill slots, same size as HP orb
@@ -970,6 +1265,41 @@ namespace ConquerChronicles.Editor
             hudSO.FindProperty("_inventoryIcon").objectReferenceValue = navIcons[1];
             hudSO.FindProperty("_mineIcon").objectReferenceValue = navIcons[2];
             hudSO.FindProperty("_marketIcon").objectReferenceValue = navIcons[3];
+
+            // Teleport
+            hudSO.FindProperty("_teleportButton").objectReferenceValue = navBtns[4];
+            hudSO.FindProperty("_teleportIcon").objectReferenceValue = navIcons[4];
+            hudSO.FindProperty("_mapPanel").objectReferenceValue = mapPanelGO;
+            hudSO.FindProperty("_mapCloseButton").objectReferenceValue = mapCloseBtn;
+            hudSO.FindProperty("_mapListContent").objectReferenceValue = listContentRT;
+            var areaBtnsProp = hudSO.FindProperty("_areaButtons");
+            areaBtnsProp.arraySize = areaBtns.Length;
+            for (int i = 0; i < areaBtns.Length; i++)
+                areaBtnsProp.GetArrayElementAtIndex(i).objectReferenceValue = areaBtns[i];
+            var areaLblsProp = hudSO.FindProperty("_areaLabels");
+            areaLblsProp.arraySize = areaLabelTMPs.Length;
+            for (int i = 0; i < areaLabelTMPs.Length; i++)
+                areaLblsProp.GetArrayElementAtIndex(i).objectReferenceValue = areaLabelTMPs[i];
+            var mapHeadersProp = hudSO.FindProperty("_mapHeaders");
+            mapHeadersProp.arraySize = mapHeaderTMPs.Length;
+            for (int i = 0; i < mapHeaderTMPs.Length; i++)
+                mapHeadersProp.GetArrayElementAtIndex(i).objectReferenceValue = mapHeaderTMPs[i];
+
+            // Rebirth
+            hudSO.FindProperty("_rebirthButton").objectReferenceValue = rebirthBtn;
+            hudSO.FindProperty("_rebirthIcon").objectReferenceValue = rebirthIconImg;
+            hudSO.FindProperty("_rebirthPanel").objectReferenceValue = rebirthPanelGO;
+            hudSO.FindProperty("_rebirthDescription").objectReferenceValue = rebirthDescTMP;
+            var rebirthBtnsProp = hudSO.FindProperty("_rebirthClassButtons");
+            rebirthBtnsProp.arraySize = 3;
+            for (int i = 0; i < 3; i++)
+                rebirthBtnsProp.GetArrayElementAtIndex(i).objectReferenceValue = rebirthClassBtns[i];
+            var rebirthLblsProp = hudSO.FindProperty("_rebirthClassLabels");
+            rebirthLblsProp.arraySize = 3;
+            for (int i = 0; i < 3; i++)
+                rebirthLblsProp.GetArrayElementAtIndex(i).objectReferenceValue = rebirthClassLabels[i];
+            hudSO.FindProperty("_rebirthCloseButton").objectReferenceValue = rebirthCloseBtn;
+
             hudSO.ApplyModifiedPropertiesWithoutUndo();
 
             return hud;
@@ -1077,102 +1407,6 @@ namespace ConquerChronicles.Editor
             return announcer;
         }
 
-        private static RunSummaryUI CreateRunSummaryUI()
-        {
-            var canvasGO = new GameObject("RunSummary_Canvas");
-            var canvas = canvasGO.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 30;
-            var scaler = canvasGO.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080, 1920);
-            scaler.matchWidthOrHeight = 0f;
-            canvasGO.AddComponent<GraphicRaycaster>();
-
-            // Dark overlay panel
-            var panelGO = new GameObject("SummaryPanel", typeof(RectTransform));
-            panelGO.transform.SetParent(canvasGO.transform, false);
-            var panelRT = panelGO.GetComponent<RectTransform>();
-            panelRT.anchorMin = new Vector2(0.1f, 0.15f);
-            panelRT.anchorMax = new Vector2(0.9f, 0.85f);
-            panelRT.offsetMin = Vector2.zero;
-            panelRT.offsetMax = Vector2.zero;
-            var panelImg = panelGO.AddComponent<Image>();
-            panelImg.color = new Color(0.05f, 0.05f, 0.1f, 0.92f);
-
-            // Title (VICTORY / DEFEATED)
-            var titleGO = CreateUIText(panelGO.transform, "TitleText", "VICTORY!",
-                new Vector2(0, 1), new Vector2(1, 1),
-                new Vector2(0, -20), new Vector2(0, 80), 56);
-            var titleTMP = titleGO.GetComponent<TextMeshProUGUI>();
-            titleTMP.alignment = TextAlignmentOptions.Center;
-            titleTMP.fontStyle = FontStyles.Bold;
-            titleTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
-            var titleRT = titleGO.GetComponent<RectTransform>();
-            titleRT.anchorMin = new Vector2(0, 1);
-            titleRT.anchorMax = new Vector2(1, 1);
-            titleRT.pivot = new Vector2(0.5f, 1);
-            titleRT.anchoredPosition = new Vector2(0, -20);
-            titleRT.sizeDelta = new Vector2(0, 80);
-
-            // Stats texts (kills, time, gold, xp, stars)
-            float yOffset = -120f;
-            float lineHeight = 50f;
-
-            var killsGO = CreateStatText(panelGO.transform, "KillsText", "Enemies Killed: 0", yOffset);
-            yOffset -= lineHeight;
-            var timeGO = CreateStatText(panelGO.transform, "TimeText", "Time: 00:00", yOffset);
-            yOffset -= lineHeight;
-            var goldGO = CreateStatText(panelGO.transform, "GoldText", "Gold: +0", yOffset);
-            yOffset -= lineHeight;
-            var xpGO = CreateStatText(panelGO.transform, "XPText", "XP: +0", yOffset);
-            yOffset -= lineHeight;
-            var starsGO = CreateStatText(panelGO.transform, "StarsText", "Rating: [---]", yOffset);
-
-            // Continue button
-            var btnGO = new GameObject("ContinueButton", typeof(RectTransform));
-            btnGO.transform.SetParent(panelGO.transform, false);
-            var btnRT = btnGO.GetComponent<RectTransform>();
-            btnRT.anchorMin = new Vector2(0.2f, 0);
-            btnRT.anchorMax = new Vector2(0.8f, 0);
-            btnRT.pivot = new Vector2(0.5f, 0);
-            btnRT.anchoredPosition = new Vector2(0, 30);
-            btnRT.sizeDelta = new Vector2(0, 70);
-            var btnImg = btnGO.AddComponent<Image>();
-            btnImg.color = new Color(0.2f, 0.6f, 0.2f, 1f);
-            var btn = btnGO.AddComponent<Button>();
-            btn.targetGraphic = btnImg;
-
-            var btnTextGO = new GameObject("ButtonText", typeof(RectTransform));
-            btnTextGO.transform.SetParent(btnGO.transform, false);
-            var btnTextRT = btnTextGO.GetComponent<RectTransform>();
-            btnTextRT.anchorMin = Vector2.zero;
-            btnTextRT.anchorMax = Vector2.one;
-            btnTextRT.offsetMin = Vector2.zero;
-            btnTextRT.offsetMax = Vector2.zero;
-            var btnTMP = btnTextGO.AddComponent<TextMeshProUGUI>();
-            btnTMP.text = "Continue";
-            btnTMP.fontSize = 32;
-            btnTMP.color = Color.white;
-            btnTMP.alignment = TextAlignmentOptions.Center;
-
-            panelGO.SetActive(false);
-
-            // Wire RunSummaryUI
-            var summary = canvasGO.AddComponent<RunSummaryUI>();
-            var sso = new SerializedObject(summary);
-            sso.FindProperty("_panel").objectReferenceValue = panelGO;
-            sso.FindProperty("_titleText").objectReferenceValue = titleTMP;
-            sso.FindProperty("_killsText").objectReferenceValue = killsGO.GetComponent<TextMeshProUGUI>();
-            sso.FindProperty("_timeText").objectReferenceValue = timeGO.GetComponent<TextMeshProUGUI>();
-            sso.FindProperty("_goldText").objectReferenceValue = goldGO.GetComponent<TextMeshProUGUI>();
-            sso.FindProperty("_xpText").objectReferenceValue = xpGO.GetComponent<TextMeshProUGUI>();
-            sso.FindProperty("_starsText").objectReferenceValue = starsGO.GetComponent<TextMeshProUGUI>();
-            sso.FindProperty("_continueButton").objectReferenceValue = btn;
-            sso.ApplyModifiedPropertiesWithoutUndo();
-
-            return summary;
-        }
 
         private static GameObject CreateStatText(Transform parent, string name, string text, float yOffset)
         {

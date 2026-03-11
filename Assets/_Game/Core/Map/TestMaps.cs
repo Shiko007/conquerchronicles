@@ -152,6 +152,300 @@ namespace ConquerChronicles.Core.Map
             }
         };
 
+        // --- Volcano Family ---
+
+        public static EnemyData FireImp => new()
+        {
+            ID = "fire_imp",
+            Name = "Fire Imp",
+            Stats = new CharacterStats { HP = 6000, ATK = 80, DEF = 50 },
+            MoveSpeed = 1.5f,
+            AttackRange = 0.6f,
+            AttackCooldown = 1.2f,
+            XPReward = 140,
+            GoldReward = 45,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_phoenix", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_phoenix", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_phoenix", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_gold", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        public static EnemyData LavaGolem => new()
+        {
+            ID = "lava_golem",
+            Name = "Lava Golem",
+            Stats = new CharacterStats { HP = 10000, ATK = 100, DEF = 70 },
+            MoveSpeed = 0.8f,
+            AttackRange = 0.6f,
+            AttackCooldown = 1.8f,
+            XPReward = 200,
+            GoldReward = 60,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_phoenix", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_phoenix", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "offhand_phoenix_shield", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_gold", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        public static EnemyData MagmaWyrm => new()
+        {
+            ID = "magma_wyrm",
+            Name = "Magma Wyrm",
+            Stats = new CharacterStats { HP = 15000, ATK = 120, DEF = 85 },
+            MoveSpeed = 1.0f,
+            AttackRange = 0.8f,
+            AttackCooldown = 1.5f,
+            XPReward = 280,
+            GoldReward = 80,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "offhand_phoenix_shield", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_phoenix", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_gold", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_gold", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        // --- Frozen Family ---
+
+        public static EnemyData FrostWolf => new()
+        {
+            ID = "frost_wolf",
+            Name = "Frost Wolf",
+            Stats = new CharacterStats { HP = 22000, ATK = 150, DEF = 100 },
+            MoveSpeed = 1.6f,
+            AttackRange = 0.6f,
+            AttackCooldown = 1.0f,
+            XPReward = 380,
+            GoldReward = 100,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_phoenix", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_phoenix", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "helm_conqueror", DropRate = 0.005f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        public static EnemyData IceWraith => new()
+        {
+            ID = "ice_wraith",
+            Name = "Ice Wraith",
+            Stats = new CharacterStats { HP = 32000, MATK = 180, DEF = 80, MDEF = 120 },
+            MoveSpeed = 1.2f,
+            AttackRange = 1.2f,
+            AttackCooldown = 1.3f,
+            XPReward = 500,
+            GoldReward = 130,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_gold", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_gold", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_conqueror", DropRate = 0.005f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.003f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        public static EnemyData GlacierGiant => new()
+        {
+            ID = "glacier_giant",
+            Name = "Glacier Giant",
+            Stats = new CharacterStats { HP = 50000, ATK = 220, DEF = 150 },
+            MoveSpeed = 0.7f,
+            AttackRange = 0.8f,
+            AttackCooldown = 2.0f,
+            XPReward = 680,
+            GoldReward = 170,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "boots_phoenix", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "offhand_phoenix_shield", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "helm_conqueror", DropRate = 0.008f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_conqueror", DropRate = 0.008f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.005f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        // --- Shadow Family ---
+
+        public static EnemyData ShadowStalker => new()
+        {
+            ID = "shadow_stalker",
+            Name = "Shadow Stalker",
+            Stats = new CharacterStats { HP = 70000, ATK = 280, DEF = 180 },
+            MoveSpeed = 1.4f,
+            AttackRange = 0.6f,
+            AttackCooldown = 0.9f,
+            XPReward = 900,
+            GoldReward = 220,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_conqueror", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_conqueror", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_conqueror", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_conqueror", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        public static EnemyData VoidWeaver => new()
+        {
+            ID = "void_weaver",
+            Name = "Void Weaver",
+            Stats = new CharacterStats { HP = 100000, MATK = 350, DEF = 150, MDEF = 200 },
+            MoveSpeed = 1.1f,
+            AttackRange = 1.4f,
+            AttackCooldown = 1.3f,
+            XPReward = 1200,
+            GoldReward = 280,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_conqueror", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_conqueror", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        public static EnemyData AbyssalHorror => new()
+        {
+            ID = "abyssal_horror",
+            Name = "Abyssal Horror",
+            Stats = new CharacterStats { HP = 150000, ATK = 420, DEF = 250 },
+            MoveSpeed = 0.9f,
+            AttackRange = 0.8f,
+            AttackCooldown = 1.5f,
+            XPReward = 1600,
+            GoldReward = 360,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "offhand_conqueror_shield", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_conqueror", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        // --- Dragon Family ---
+
+        public static EnemyData Drake => new()
+        {
+            ID = "drake",
+            Name = "Drake",
+            Stats = new CharacterStats { HP = 200000, ATK = 520, DEF = 300 },
+            MoveSpeed = 1.3f,
+            AttackRange = 0.7f,
+            AttackCooldown = 1.2f,
+            XPReward = 2100,
+            GoldReward = 450,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        public static EnemyData ElderDragon => new()
+        {
+            ID = "elder_dragon",
+            Name = "Elder Dragon",
+            Stats = new CharacterStats { HP = 300000, ATK = 650, DEF = 380 },
+            MoveSpeed = 1.0f,
+            AttackRange = 1.0f,
+            AttackCooldown = 1.5f,
+            XPReward = 2800,
+            GoldReward = 580,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "offhand_conqueror_shield", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
+        public static EnemyData DragonLord => new()
+        {
+            ID = "dragon_lord",
+            Name = "Dragon Lord",
+            Stats = new CharacterStats { HP = 500000, ATK = 800, DEF = 500, MDEF = 300 },
+            MoveSpeed = 0.8f,
+            AttackRange = 1.0f,
+            AttackCooldown = 1.8f,
+            XPReward = 3800,
+            GoldReward = 750,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_conqueror", DropRate = 0.04f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_conqueror", DropRate = 0.04f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "offhand_conqueror_shield", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
         // --- Dark Family ---
 
         public static EnemyData DarkAcolyte => new()
@@ -212,7 +506,11 @@ namespace ConquerChronicles.Core.Map
         {
             GreenSlime, RedSlime, BlueSlime,
             Skeleton, SkeletonArcher, SkeletonKnight,
-            DarkAcolyte, DarkKnight
+            DarkAcolyte, DarkKnight,
+            FireImp, LavaGolem, MagmaWyrm,
+            FrostWolf, IceWraith, GlacierGiant,
+            ShadowStalker, VoidWeaver, AbyssalHorror,
+            Drake, ElderDragon, DragonLord
         };
 
         // =================================================================
@@ -532,10 +830,442 @@ namespace ConquerChronicles.Core.Map
         };
 
         // =================================================================
+        // Map 4: Volcano Depths (Lv 50-70)
+        // =================================================================
+
+        public static MapData VolcanoDepths => new()
+        {
+            ID = "map_volcano_depths",
+            Name = "Volcano Depths",
+            Description = "Molten caverns deep beneath an active volcano.",
+            MinLevel = 50,
+            MaxLevel = 70,
+            BackgroundID = "bg_volcano_depths",
+            Areas = new[]
+            {
+                // Area 1: Ember Caves (Lv 50-58)
+                new AreaData
+                {
+                    ID = "area_volcano_ember_caves",
+                    Name = "Ember Caves",
+                    MinLevel = 50,
+                    MaxLevel = 58,
+                    XPMultiplier = 1.0f,
+                    GoldMultiplier = 1.0f,
+                    MaxConcurrentEnemies = 18,
+                    SpawnInterval = 1.2f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "fire_imp", Weight = 1.0f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_phoenix", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_phoenix", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_phoenix", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_gold", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_gold", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                },
+
+                // Area 2: Magma Channels (Lv 58-65)
+                new AreaData
+                {
+                    ID = "area_volcano_magma_channels",
+                    Name = "Magma Channels",
+                    MinLevel = 58,
+                    MaxLevel = 65,
+                    XPMultiplier = 1.4f,
+                    GoldMultiplier = 1.3f,
+                    MaxConcurrentEnemies = 20,
+                    SpawnInterval = 1.0f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "fire_imp", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "lava_golem", Weight = 0.6f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_phoenix", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_phoenix", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "offhand_phoenix_shield", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_phoenix", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_gold", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_gold", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                },
+
+                // Area 3: Caldera Core (Lv 65-70)
+                new AreaData
+                {
+                    ID = "area_volcano_caldera_core",
+                    Name = "Caldera Core",
+                    MinLevel = 65,
+                    MaxLevel = 70,
+                    XPMultiplier = 1.8f,
+                    GoldMultiplier = 1.5f,
+                    MaxConcurrentEnemies = 24,
+                    SpawnInterval = 0.9f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "lava_golem", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "magma_wyrm", Weight = 0.6f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "offhand_phoenix_shield", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_phoenix", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_gold", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_gold", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.005f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.005f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                }
+            }
+        };
+
+        // =================================================================
+        // Map 5: Frozen Wastes (Lv 70-90)
+        // =================================================================
+
+        public static MapData FrozenWastes => new()
+        {
+            ID = "map_frozen_wastes",
+            Name = "Frozen Wastes",
+            Description = "An endless tundra where blizzards never cease.",
+            MinLevel = 70,
+            MaxLevel = 90,
+            BackgroundID = "bg_frozen_wastes",
+            Areas = new[]
+            {
+                // Area 1: Frost Plains (Lv 70-78)
+                new AreaData
+                {
+                    ID = "area_frozen_frost_plains",
+                    Name = "Frost Plains",
+                    MinLevel = 70,
+                    MaxLevel = 78,
+                    XPMultiplier = 1.0f,
+                    GoldMultiplier = 1.0f,
+                    MaxConcurrentEnemies = 20,
+                    SpawnInterval = 1.1f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "frost_wolf", Weight = 1.0f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_phoenix", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_phoenix", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_phoenix", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.008f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.008f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                },
+
+                // Area 2: Howling Peaks (Lv 78-85)
+                new AreaData
+                {
+                    ID = "area_frozen_howling_peaks",
+                    Name = "Howling Peaks",
+                    MinLevel = 78,
+                    MaxLevel = 85,
+                    XPMultiplier = 1.4f,
+                    GoldMultiplier = 1.3f,
+                    MaxConcurrentEnemies = 22,
+                    SpawnInterval = 1.0f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "frost_wolf", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "ice_wraith", Weight = 0.6f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "weapon_phoenix_blade", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "offhand_phoenix_shield", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.01f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_conqueror", DropRate = 0.008f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                },
+
+                // Area 3: Glacial Abyss (Lv 85-90)
+                new AreaData
+                {
+                    ID = "area_frozen_glacial_abyss",
+                    Name = "Glacial Abyss",
+                    MinLevel = 85,
+                    MaxLevel = 90,
+                    XPMultiplier = 1.8f,
+                    GoldMultiplier = 1.5f,
+                    MaxConcurrentEnemies = 24,
+                    SpawnInterval = 0.9f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "ice_wraith", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "glacier_giant", Weight = 0.6f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "offhand_conqueror_shield", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_conqueror", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_conqueror", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_conqueror", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                }
+            }
+        };
+
+        // =================================================================
+        // Map 6: Shadow Realm (Lv 90-110)
+        // =================================================================
+
+        public static MapData ShadowRealm => new()
+        {
+            ID = "map_shadow_realm",
+            Name = "Shadow Realm",
+            Description = "A dimension of pure darkness where nightmares take form.",
+            MinLevel = 90,
+            MaxLevel = 110,
+            BackgroundID = "bg_shadow_realm",
+            Areas = new[]
+            {
+                // Area 1: Twilight Border (Lv 90-98)
+                new AreaData
+                {
+                    ID = "area_shadow_twilight_border",
+                    Name = "Twilight Border",
+                    MinLevel = 90,
+                    MaxLevel = 98,
+                    XPMultiplier = 1.0f,
+                    GoldMultiplier = 1.0f,
+                    MaxConcurrentEnemies = 22,
+                    SpawnInterval = 1.0f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "shadow_stalker", Weight = 1.0f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_conqueror", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_conqueror", DropRate = 0.015f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                },
+
+                // Area 2: Void Corridors (Lv 98-105)
+                new AreaData
+                {
+                    ID = "area_shadow_void_corridors",
+                    Name = "Void Corridors",
+                    MinLevel = 98,
+                    MaxLevel = 105,
+                    XPMultiplier = 1.4f,
+                    GoldMultiplier = 1.3f,
+                    MaxConcurrentEnemies = 24,
+                    SpawnInterval = 0.9f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "shadow_stalker", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "void_weaver", Weight = 0.6f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "offhand_conqueror_shield", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_conqueror", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_conqueror", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                },
+
+                // Area 3: Abyssal Throne (Lv 105-110)
+                new AreaData
+                {
+                    ID = "area_shadow_abyssal_throne",
+                    Name = "Abyssal Throne",
+                    MinLevel = 105,
+                    MaxLevel = 110,
+                    XPMultiplier = 1.8f,
+                    GoldMultiplier = 1.5f,
+                    MaxConcurrentEnemies = 26,
+                    SpawnInterval = 0.8f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "void_weaver", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "abyssal_horror", Weight = 0.6f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "offhand_conqueror_shield", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                }
+            }
+        };
+
+        // =================================================================
+        // Map 7: Dragon's Domain (Lv 110-130)
+        // =================================================================
+
+        public static MapData DragonsDomain => new()
+        {
+            ID = "map_dragons_domain",
+            Name = "Dragon's Domain",
+            Description = "The ancient nesting grounds of the world's mightiest dragons.",
+            MinLevel = 110,
+            MaxLevel = 130,
+            BackgroundID = "bg_dragons_domain",
+            Areas = new[]
+            {
+                // Area 1: Scorched Foothills (Lv 110-118)
+                new AreaData
+                {
+                    ID = "area_dragon_scorched_foothills",
+                    Name = "Scorched Foothills",
+                    MinLevel = 110,
+                    MaxLevel = 118,
+                    XPMultiplier = 1.0f,
+                    GoldMultiplier = 1.0f,
+                    MaxConcurrentEnemies = 24,
+                    SpawnInterval = 0.9f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "drake", Weight = 1.0f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "offhand_conqueror_shield", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_conqueror", DropRate = 0.025f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                },
+
+                // Area 2: Dragon Roost (Lv 118-125)
+                new AreaData
+                {
+                    ID = "area_dragon_roost",
+                    Name = "Dragon Roost",
+                    MinLevel = 118,
+                    MaxLevel = 125,
+                    XPMultiplier = 1.4f,
+                    GoldMultiplier = 1.3f,
+                    MaxConcurrentEnemies = 26,
+                    SpawnInterval = 0.8f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "drake", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "elder_dragon", Weight = 0.6f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.04f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.04f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "offhand_conqueror_shield", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_conqueror", DropRate = 0.04f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_conqueror", DropRate = 0.03f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                },
+
+                // Area 3: Sovereign's Lair (Lv 125-130)
+                new AreaData
+                {
+                    ID = "area_dragon_sovereigns_lair",
+                    Name = "Sovereign's Lair",
+                    MinLevel = 125,
+                    MaxLevel = 130,
+                    XPMultiplier = 2.0f,
+                    GoldMultiplier = 1.8f,
+                    MaxConcurrentEnemies = 28,
+                    SpawnInterval = 0.7f,
+                    EnemyPool = new[]
+                    {
+                        new EnemySpawnWeight { EnemyID = "elder_dragon", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "dragon_lord", Weight = 0.6f }
+                    },
+                    AreaDropTable = new DropTable
+                    {
+                        Entries = new[]
+                        {
+                            new DropEntry { ItemID = "helm_conqueror", DropRate = 0.05f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "armor_conqueror", DropRate = 0.05f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "weapon_conqueror_blade", DropRate = 0.04f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "offhand_conqueror_shield", DropRate = 0.04f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "boots_conqueror", DropRate = 0.05f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "neck_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 },
+                            new DropEntry { ItemID = "ring_conqueror", DropRate = 0.035f, MinQuantity = 1, MaxQuantity = 1 }
+                        }
+                    }
+                }
+            }
+        };
+
+        // =================================================================
         // All Maps
         // =================================================================
 
-        public static MapData[] AllMaps => new[] { SlimeFields, BoneYard, DarkTower };
+        public static MapData[] AllMaps => new[]
+        {
+            SlimeFields, BoneYard, DarkTower,
+            VolcanoDepths, FrozenWastes, ShadowRealm, DragonsDomain
+        };
 
         // =================================================================
         // Utility Methods
@@ -572,6 +1302,26 @@ namespace ConquerChronicles.Core.Map
                 }
             }
             return default;
+        }
+
+        /// <summary>
+        /// Finds the map and area for a given area ID. Returns (map, area) tuple.
+        /// Both will be default if not found.
+        /// </summary>
+        public static (MapData Map, AreaData Area) FindAreaByID(string areaID)
+        {
+            var maps = AllMaps;
+            for (int i = 0; i < maps.Length; i++)
+            {
+                var areas = maps[i].Areas;
+                if (areas == null) continue;
+                for (int j = 0; j < areas.Length; j++)
+                {
+                    if (areas[j].ID == areaID)
+                        return (maps[i], areas[j]);
+                }
+            }
+            return (default, default);
         }
 
         /// <summary>

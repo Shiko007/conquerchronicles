@@ -66,6 +66,20 @@ namespace ConquerChronicles.Core.Inventory
             return true;
         }
 
+        public bool CanEquip(EquipmentInstance item, int characterLevel, int[] unlockedClasses)
+        {
+            if (item == null)
+                return false;
+
+            if (characterLevel < item.Data.RequiredLevel)
+                return false;
+
+            if (!item.Data.CanBeEquippedBy(unlockedClasses))
+                return false;
+
+            return true;
+        }
+
         public bool Equip(EquipmentInstance item, EquipmentSlot slot)
         {
             if (item == null)

@@ -48,6 +48,7 @@ namespace ConquerChronicles.Editor
             topHalfRT.offsetMax = new Vector2(0, -120); // safe area: clears dynamic island / notch
             var topHalfImg = topHalfGO.AddComponent<Image>();
             UIAtlasHelper.SetSlicedPanel(topHalfImg, new Color(0.85f, 0.85f, 0.9f, 0.92f));
+            UIAtlasHelper.AddTiledBackground(topHalfGO.transform);
             var topHalfContent = UIAtlasHelper.CreatePanelContent(topHalfGO.transform);
 
             // ============================================================
@@ -195,22 +196,33 @@ namespace ConquerChronicles.Editor
             statsContentRT.offsetMin = Vector2.zero;
             statsContentRT.offsetMax = Vector2.zero;
 
-            // --- Info Panel (top ~18% of stats content) ---
+            // --- Info Panel (top ~26% of stats content) ---
             var statsInfoPanel = CreateUIImage(statsContentContent, "StatsInfoPanel",
-                new Vector2(0, 0.82f), new Vector2(1, 1f),
+                new Vector2(0, 0.74f), new Vector2(1, 1f),
                 Vector2.zero, Vector2.zero,
                 Color.white);
-            statsInfoPanel.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.12f, 0.3f);
+            var statsInfoPanelImg = statsInfoPanel.GetComponent<Image>();
+            var uiTileSprite = UIAtlasHelper.GetSprite("UI_tile");
+            if (uiTileSprite != null)
+            {
+                statsInfoPanelImg.sprite = uiTileSprite;
+                statsInfoPanelImg.type = Image.Type.Tiled;
+                statsInfoPanelImg.color = new Color(0.08f, 0.08f, 0.12f, 0.3f);
+            }
+            else
+            {
+                statsInfoPanelImg.color = new Color(0.08f, 0.08f, 0.12f, 0.3f);
+            }
             var statsInfoContent = statsInfoPanel.transform;
             var statsInfoPanelRT = statsInfoPanel.GetComponent<RectTransform>();
             statsInfoPanelRT.offsetMin = new Vector2(0, 0);
             statsInfoPanelRT.offsetMax = new Vector2(0, 0);
 
             var classGO = CreateUIText(statsInfoContent, "ClassText", "Trojan",
-                new Vector2(0, 0.5f), new Vector2(1, 1),
+                new Vector2(0, 0.66f), new Vector2(1, 1),
                 Vector2.zero, Vector2.zero, 36);
             var classRT = classGO.GetComponent<RectTransform>();
-            classRT.anchorMin = new Vector2(0, 0.5f);
+            classRT.anchorMin = new Vector2(0, 0.66f);
             classRT.anchorMax = new Vector2(1, 1);
             classRT.offsetMin = new Vector2(10, 0);
             classRT.offsetMax = new Vector2(-10, -5);
@@ -220,22 +232,47 @@ namespace ConquerChronicles.Editor
             classTMP.color = new Color(1f, 0.85f, 0.2f, 1f);
 
             var levelGO = CreateUIText(statsInfoContent, "LevelText", "Level 1",
-                new Vector2(0, 0), new Vector2(1, 0.5f),
+                new Vector2(0, 0.33f), new Vector2(1, 0.66f),
                 Vector2.zero, Vector2.zero, 32);
             var levelRT = levelGO.GetComponent<RectTransform>();
-            levelRT.anchorMin = new Vector2(0, 0);
-            levelRT.anchorMax = new Vector2(1, 0.5f);
-            levelRT.offsetMin = new Vector2(10, 5);
+            levelRT.anchorMin = new Vector2(0, 0.33f);
+            levelRT.anchorMax = new Vector2(1, 0.66f);
+            levelRT.offsetMin = new Vector2(10, 0);
             levelRT.offsetMax = new Vector2(-10, 0);
             var levelTMP = levelGO.GetComponent<TextMeshProUGUI>();
             levelTMP.alignment = TextAlignmentOptions.Center;
 
-            // --- Combat Stats Panel (middle ~47%) ---
+            var rebirthInfoGO = CreateUIText(statsInfoContent, "RebirthInfoText", "Rebirths: 0 / 3\nClasses: Trojan",
+                new Vector2(0, 0), new Vector2(1, 0.33f),
+                Vector2.zero, Vector2.zero, 24);
+            var rebirthInfoRT = rebirthInfoGO.GetComponent<RectTransform>();
+            rebirthInfoRT.anchorMin = new Vector2(0, 0);
+            rebirthInfoRT.anchorMax = new Vector2(1, 0.33f);
+            rebirthInfoRT.offsetMin = new Vector2(10, 5);
+            rebirthInfoRT.offsetMax = new Vector2(-10, 0);
+            var rebirthInfoTMP = rebirthInfoGO.GetComponent<TextMeshProUGUI>();
+            rebirthInfoTMP.alignment = TextAlignmentOptions.Center;
+            rebirthInfoTMP.enableAutoSizing = true;
+            rebirthInfoTMP.fontSizeMin = 16;
+            rebirthInfoTMP.fontSizeMax = 24;
+            rebirthInfoTMP.color = new Color(0.7f, 0.85f, 1f, 1f);
+
+            // --- Combat Stats Panel (middle ~40%) ---
             var statsCombatPanel = CreateUIImage(statsContentContent, "StatsCombatPanel",
-                new Vector2(0, 0.35f), new Vector2(1, 0.82f),
+                new Vector2(0, 0.34f), new Vector2(1, 0.74f),
                 Vector2.zero, Vector2.zero,
                 Color.white);
-            statsCombatPanel.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.12f, 0.3f);
+            var statsCombatPanelImg = statsCombatPanel.GetComponent<Image>();
+            if (uiTileSprite != null)
+            {
+                statsCombatPanelImg.sprite = uiTileSprite;
+                statsCombatPanelImg.type = Image.Type.Tiled;
+                statsCombatPanelImg.color = new Color(0.08f, 0.08f, 0.12f, 0.3f);
+            }
+            else
+            {
+                statsCombatPanelImg.color = new Color(0.08f, 0.08f, 0.12f, 0.3f);
+            }
             var statsCombatContent = statsCombatPanel.transform;
             var statsCombatPanelRT = statsCombatPanel.GetComponent<RectTransform>();
             statsCombatPanelRT.offsetMin = new Vector2(0, 5);
@@ -270,12 +307,22 @@ namespace ConquerChronicles.Editor
             statsTextTMP.fontSizeMin = 20;
             statsTextTMP.fontSizeMax = 34;
 
-            // --- Allocation Panel (bottom ~35%) ---
+            // --- Allocation Panel (bottom ~34%) ---
             var statsAllocPanel = CreateUIImage(statsContentContent, "StatsAllocPanel",
-                new Vector2(0, 0), new Vector2(1, 0.35f),
+                new Vector2(0, 0), new Vector2(1, 0.34f),
                 Vector2.zero, Vector2.zero,
                 Color.white);
-            statsAllocPanel.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.12f, 0.3f);
+            var statsAllocPanelImg = statsAllocPanel.GetComponent<Image>();
+            if (uiTileSprite != null)
+            {
+                statsAllocPanelImg.sprite = uiTileSprite;
+                statsAllocPanelImg.type = Image.Type.Tiled;
+                statsAllocPanelImg.color = new Color(0.08f, 0.08f, 0.12f, 0.3f);
+            }
+            else
+            {
+                statsAllocPanelImg.color = new Color(0.08f, 0.08f, 0.12f, 0.3f);
+            }
             var statsAllocContent = statsAllocPanel.transform;
             var statsAllocPanelRT = statsAllocPanel.GetComponent<RectTransform>();
             statsAllocPanelRT.offsetMin = new Vector2(0, 0);
@@ -639,6 +686,7 @@ namespace ConquerChronicles.Editor
             // Stats fields
             uiSO.FindProperty("_classText").objectReferenceValue = classTMP;
             uiSO.FindProperty("_levelText").objectReferenceValue = levelTMP;
+            uiSO.FindProperty("_rebirthInfoText").objectReferenceValue = rebirthInfoTMP;
             uiSO.FindProperty("_statsText").objectReferenceValue = statsTextTMP;
             uiSO.FindProperty("_statPointsText").objectReferenceValue = statPointsTMP;
             uiSO.FindProperty("_vitalityText").objectReferenceValue = statTexts[0];

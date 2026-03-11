@@ -3,6 +3,7 @@ using UnityEngine;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Combat;
 using ConquerChronicles.Core.Enemy;
+using ConquerChronicles.Core.Equipment;
 using ConquerChronicles.Core.Map;
 using ConquerChronicles.Core.MetaProgression;
 using ConquerChronicles.Core.Save;
@@ -43,7 +44,6 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         [Header("Map")]
         [SerializeField] private MapManager _mapManager;
         [SerializeField] private WaveAnnouncerUI _waveAnnouncer;
-        [SerializeField] private RunSummaryUI _runSummary;
 
         [Header("Loot")]
         [SerializeField] private LootVisualManager _lootVisualManager;
@@ -68,6 +68,9 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         private SaveManager _saveManager;
         private MetaProgressionState _metaState;
         private readonly System.Collections.Generic.HashSet<string> _activeSubScenes = new();
+        private string _currentAreaID;
+        private MapData _currentMap;
+        private AreaData _currentArea;
 
         // Incremental save tracking — delta counters reset each area session
         private int _savedGoldFromSession;
@@ -155,11 +158,32 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     var sd = _saveManager?.LoadGame();
                     return sd != null && (sd.BagItems?.Length ?? 0) >= ConquerChronicles.Core.Inventory.InventoryState.BagCapacity;
                 });
+                _lootVisualManager.SetDeadChecker(() =>
+                    _characterView != null && _characterView.State != null && _characterView.State.IsDead);
             }
 
-            // Set up class skills
+            // Determine weapon class from equipped MainHand
+            var weaponClass = CharacterClass.None;
+            if (existingSave?.EquippedItems != null && existingSave.EquippedItems.Length > (int)EquipmentSlot.MainHand)
+            {
+                var mainHand = existingSave.EquippedItems[(int)EquipmentSlot.MainHand];
+                if (!mainHand.IsEmpty)
+                {
+                    var allEquipment = TestEquipment.GetAll();
+                    for (int i = 0; i < allEquipment.Length; i++)
+                    {
+                        if (allEquipment[i].ID == mainHand.DataID)
+                        {
+                            weaponClass = allEquipment[i].RequiredClass;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Set up weapon-based skills
             var skills = new List<SkillState>();
-            foreach (var skillData in ClassSkills.GetSkillsForClass(_testClass))
+            foreach (var skillData in ClassSkills.GetSkillsForWeapon(weaponClass))
             {
                 skills.Add(new SkillState(skillData));
             }
@@ -184,6 +208,32 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 _playerHUD.OnInventoryPressed = () => ToggleSubScene("Inventory");
                 _playerHUD.OnMinePressed = () => ToggleSubScene("Mining");
                 _playerHUD.OnMarketPressed = () => ToggleSubScene("Market");
+
+                _playerHUD.OnRebirthClassSelected = (newClass) =>
+                {
+                    var save = _saveManager.LoadGame() ?? SaveData.CreateDefault();
+                    RebirthSystem.PerformRebirth(save, newClass);
+                    _saveManager.SaveGame(save);
+                    Debug.Log($"[Rebirth] Reborn as {newClass}! Rebirth #{save.RebirthCount}");
+
+                    // Reset character state in-memory
+                    var state = _characterView.State;
+                    state.Level = 1;
+                    state.XP = 0;
+                    state.StatPointsAvailable = save.StatPointsAvailable; // refunded from rebirth
+                    state.Vitality = 0;
+                    state.Mana = 0;
+                    state.Strength = 0;
+                    state.Agility = 0;
+                    state.Spirit = 0;
+                    var computed = state.ComputeStats();
+                    state.CurrentHP = computed.HP;
+                    state.CurrentMP = computed.MP;
+
+                    // Refresh skills to default (no weapon equipped after rebirth)
+                    if (_combatManager != null)
+                        _combatManager.RefreshSkills(ClassSkills.GetSkillsForWeapon(CharacterClass.None));
+                };
 
                 if (_combatManager != null)
                     _combatManager.OnPlayerXPGained += (xp, _) => _playerHUD.ShowXPGain(xp);
@@ -220,14 +270,6 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _mapManager.OnAreaAnnouncement += _waveAnnouncer.ShowAnnouncement;
                 }
 
-                // Wire run summary
-                if (_runSummary != null)
-                {
-                    _runSummary.Initialize();
-                    _mapManager.OnAreaSessionEnd += _runSummary.Show;
-                    _runSummary.OnContinue += OnAreaContinue;
-                }
-
                 // Wire enemy death from CombatManager to MapManager
                 if (_combatManager != null)
                 {
@@ -249,20 +291,62 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _mapManager.OnPlayerRevived += _playerHUD.HideReviveTimer;
                 }
 
-                // Enter the test area
-                var maps = TestMaps.AllMaps;
-                int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
-                var map = maps[mapIdx];
-                int areaIdx = Mathf.Clamp(_testAreaIndex, 0, map.Areas.Length - 1);
-                Debug.Log($"[GameplaySetup] Entering area: {map.Name} / {map.Areas[areaIdx].Name}");
-                _mapManager.EnterArea(map, map.Areas[areaIdx]);
+                // Determine starting area — restore from save or fall back to test indices
+                string lastAreaID = existingSave?.LastAreaID;
+                if (!string.IsNullOrEmpty(lastAreaID))
+                {
+                    var (savedMap, savedArea) = TestMaps.FindAreaByID(lastAreaID);
+                    if (savedArea.ID != null)
+                    {
+                        _currentMap = savedMap;
+                        _currentArea = savedArea;
+                        _currentAreaID = lastAreaID;
+                    }
+                }
+
+                if (_currentAreaID == null)
+                {
+                    var maps = TestMaps.AllMaps;
+                    int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
+                    _currentMap = maps[mapIdx];
+                    int areaIdx2 = Mathf.Clamp(_testAreaIndex, 0, _currentMap.Areas.Length - 1);
+                    _currentArea = _currentMap.Areas[areaIdx2];
+                    _currentAreaID = _currentArea.ID;
+                }
+
+                Debug.Log($"[GameplaySetup] Entering area: {_currentMap.Name} / {_currentArea.Name}");
+                _mapManager.EnterArea(_currentMap, _currentArea);
+                if (_playerHUD != null) _playerHUD.SetCurrentArea(_currentAreaID);
                 Debug.Log("[GameplaySetup] Area entered successfully");
             }
 
-            // Wire session ending to auto-collect remaining loot before result is calculated
-            if (_mapManager != null && _lootVisualManager != null)
+            // Wire teleportation
+            if (_playerHUD != null && _mapManager != null)
             {
-                _mapManager.OnAreaSessionEnding += OnAutoCollectLoot;
+                _playerHUD.OnAreaSelected = (areaID) =>
+                {
+                    var (map, area) = TestMaps.FindAreaByID(areaID);
+                    if (area.ID == null) return;
+                    if (_lootVisualManager != null) _lootVisualManager.DiscardAllDrops();
+                    _mapManager.LeaveArea();
+                    _currentMap = map;
+                    _currentArea = area;
+                    _currentAreaID = areaID;
+                    _mapManager.EnterArea(map, area);
+                    _playerHUD.SetCurrentArea(areaID);
+                    _playerHUD.HideReviveTimer();
+
+                    // Reset session counters
+                    _savedGoldFromSession = 0;
+                    _savedCoinsFromSession = 0;
+                    _savedItemCountFromSession = 0;
+                    _collectedItemsThisSession.Clear();
+
+                    // Save location
+                    var save = _saveManager.LoadGame() ?? SaveData.CreateDefault();
+                    save.LastAreaID = areaID;
+                    _saveManager.SaveGame(save);
+                };
             }
 
             // Save system — incremental saves on every enemy kill and item pickup
@@ -357,12 +441,6 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             state.CurrentMP = computed.MP;
         }
 
-        private void OnAutoCollectLoot()
-        {
-            if (_lootVisualManager != null)
-                _lootVisualManager.ReturnAllDrops();
-        }
-
         private void OnEnemyKilledSave(int enemiesKilled)
         {
             IncrementalSave();
@@ -384,6 +462,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             // Character state
             saveData.Version = 2;
             saveData.SelectedClass = _testClass;
+            if (_currentAreaID != null) saveData.LastAreaID = _currentAreaID;
             if (_characterView.State != null)
             {
                 saveData.CharacterLevel = _characterView.State.Level;
@@ -470,24 +549,12 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             _collectedItemsThisSession.Clear();
         }
 
-        private void OnAreaContinue()
-        {
-            // Re-enter the same area
-            var maps = TestMaps.AllMaps;
-            int mapIdx = Mathf.Clamp(_testMapIndex, 0, maps.Length - 1);
-            var map = maps[mapIdx];
-            int areaIdx = Mathf.Clamp(_testAreaIndex, 0, map.Areas.Length - 1);
-            _mapManager.EnterArea(map, map.Areas[areaIdx]);
-        }
-
         private void OnDestroy()
         {
             if (_mapManager != null)
             {
                 if (_waveAnnouncer != null)
                     _mapManager.OnAreaAnnouncement -= _waveAnnouncer.ShowAnnouncement;
-                if (_runSummary != null)
-                    _mapManager.OnAreaSessionEnd -= _runSummary.Show;
                 if (_autoSave)
                 {
                     _mapManager.OnEnemyKilledInArea -= OnEnemyKilledSave;
@@ -501,7 +568,6 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _mapManager.OnGoldDropped -= _lootVisualManager.SpawnGoldCoin;
                     _mapManager.OnEquipmentDropped -= _lootVisualManager.SpawnEquipmentDrop;
                     _lootVisualManager.OnEquipmentCollected -= _mapManager.CollectItem;
-                    _mapManager.OnAreaSessionEnding -= OnAutoCollectLoot;
                 }
                 if (_playerHUD != null)
                 {
@@ -509,8 +575,6 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     _mapManager.OnPlayerRevived -= _playerHUD.HideReviveTimer;
                 }
             }
-            if (_runSummary != null)
-                _runSummary.OnContinue -= OnAreaContinue;
             SceneManager.sceneUnloaded -= OnSceneUnloaded;
         }
     }

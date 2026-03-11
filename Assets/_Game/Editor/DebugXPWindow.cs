@@ -1,9 +1,12 @@
 using UnityEngine;
 using UnityEditor;
+using System.Collections.Generic;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Equipment;
 using ConquerChronicles.Core.Inventory;
+using ConquerChronicles.Core.Map;
 using ConquerChronicles.Core.Save;
+using ConquerChronicles.Gameplay.Bootstrap;
 using ConquerChronicles.Gameplay.Character;
 using ConquerChronicles.Gameplay.Save;
 
@@ -17,6 +20,7 @@ namespace ConquerChronicles.Editor
         private int _gemTier = 1;
         private GemType _gemType;
         private Vector2 _scrollPos;
+        private int _selectedAreaIndex;
 
         // Equipment catalog (built once per play session)
         private EquipmentData[] _allEquipment;
@@ -163,6 +167,105 @@ namespace ConquerChronicles.Editor
 
             if (GUILayout.Button("+ Bolide"))
                 AddMaterialToSave(saveManager, "mat_bolide", "Bolide");
+
+            EditorGUILayout.Space(10);
+
+            // === Rebirth Section ===
+            EditorGUILayout.LabelField("Rebirth", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("Rebirth Count", saveData.RebirthCount.ToString());
+
+            // Show unlocked classes
+            var unlockedNames = new List<string>();
+            if (saveData.UnlockedRebirthClasses != null)
+            {
+                for (int i = 0; i < saveData.UnlockedRebirthClasses.Length; i++)
+                    unlockedNames.Add(((CharacterClass)saveData.UnlockedRebirthClasses[i]).ToString());
+            }
+            EditorGUILayout.LabelField("Unlocked", string.Join(", ", unlockedNames));
+
+            if (GUILayout.Button("Set Level to 100"))
+            {
+                long needed = 0;
+                while (state.Level < 100)
+                {
+                    needed = LevelUpTable.GetRequiredXP(state.Level) - state.XP;
+                    if (needed > 0) player.GainXP(needed);
+                    if (state.Level >= 130) break;
+                }
+            }
+
+            // Rebirth buttons for available classes
+            var availableClasses = RebirthSystem.GetAvailableClasses(saveData.UnlockedRebirthClasses);
+            if (availableClasses.Length > 0 && RebirthSystem.CanRebirth(state.Level, saveData.RebirthCount))
+            {
+                EditorGUILayout.BeginHorizontal();
+                for (int i = 0; i < availableClasses.Length; i++)
+                {
+                    if (GUILayout.Button($"Rebirth: {availableClasses[i]}"))
+                    {
+                        RebirthSystem.PerformRebirth(saveData, availableClasses[i]);
+                        saveManager.SaveGame(saveData);
+                        Debug.Log($"[Debug] Reborn as {availableClasses[i]}! Rebirth #{saveData.RebirthCount}");
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+            else if (saveData.RebirthCount >= RebirthSystem.MaxRebirths)
+            {
+                EditorGUILayout.HelpBox("All rebirths complete!", MessageType.Info);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox($"Reach level {RebirthSystem.RebirthLevel} to rebirth.", MessageType.Info);
+            }
+
+            if (GUILayout.Button("Reset Rebirths"))
+            {
+                saveData.RebirthCount = 0;
+                saveData.UnlockedRebirthClasses = new[] { (int)CharacterClass.Trojan };
+                saveManager.SaveGame(saveData);
+                Debug.Log("[Debug] Rebirths reset.");
+            }
+
+            EditorGUILayout.Space(10);
+
+            // === Area Teleport ===
+            EditorGUILayout.LabelField("Area Teleport", EditorStyles.boldLabel);
+            var allMaps = TestMaps.AllMaps;
+            var areaNames = new List<string>();
+            var areaIDs = new List<string>();
+            for (int m = 0; m < allMaps.Length; m++)
+            {
+                if (allMaps[m].Areas == null) continue;
+                for (int a = 0; a < allMaps[m].Areas.Length; a++)
+                {
+                    var area = allMaps[m].Areas[a];
+                    areaNames.Add($"{allMaps[m].Name} / {area.Name}  (Lv {area.MinLevel}-{area.MaxLevel})");
+                    areaIDs.Add(area.ID);
+                }
+            }
+
+            _selectedAreaIndex = EditorGUILayout.Popup("Area", _selectedAreaIndex, areaNames.ToArray());
+            EditorGUILayout.LabelField("Current Area", saveData.LastAreaID ?? "(none)");
+
+            if (GUILayout.Button("Teleport") && _selectedAreaIndex < areaIDs.Count)
+            {
+                string targetID = areaIDs[_selectedAreaIndex];
+                var setup = Object.FindAnyObjectByType<GameplayTestSetup>();
+                if (setup != null)
+                {
+                    var hud = Object.FindAnyObjectByType<ConquerChronicles.Gameplay.UI.HUD.PlayerHUD>();
+                    if (hud != null && hud.OnAreaSelected != null)
+                    {
+                        hud.OnAreaSelected.Invoke(targetID);
+                        Debug.Log($"[Debug] Teleported to {areaNames[_selectedAreaIndex]}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[Debug] PlayerHUD.OnAreaSelected not wired.");
+                    }
+                }
+            }
 
             EditorGUILayout.Space(10);
 

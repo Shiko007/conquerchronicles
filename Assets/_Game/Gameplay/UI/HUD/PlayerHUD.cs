@@ -2,9 +2,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using ConquerChronicles.Core.Character;
+using ConquerChronicles.Core.Map;
+using ConquerChronicles.Core.Save;
 using ConquerChronicles.Gameplay.Character;
 using ConquerChronicles.Gameplay.Combat;
 using ConquerChronicles.Gameplay.Animation;
+using ConquerChronicles.Gameplay.Save;
 
 namespace ConquerChronicles.Gameplay.UI.HUD
 {
@@ -52,14 +55,45 @@ namespace ConquerChronicles.Gameplay.UI.HUD
         [SerializeField] private Image _mineIcon;
         [SerializeField] private Image _marketIcon;
 
+        [Header("Teleport")]
+        [SerializeField] private Button _teleportButton;
+        [SerializeField] private Image _teleportIcon;
+        [SerializeField] private GameObject _mapPanel;
+        [SerializeField] private Button _mapCloseButton;
+        [SerializeField] private RectTransform _mapListContent;
+        [SerializeField] private Button[] _areaButtons;
+        [SerializeField] private TextMeshProUGUI[] _areaLabels;
+        [SerializeField] private TextMeshProUGUI[] _mapHeaders;
+
+        [Header("Rebirth")]
+        [SerializeField] private Button _rebirthButton;
+        [SerializeField] private Image _rebirthIcon;
+        [SerializeField] private GameObject _rebirthPanel;
+        [SerializeField] private TextMeshProUGUI _rebirthDescription;
+        [SerializeField] private Button[] _rebirthClassButtons;
+        [SerializeField] private TextMeshProUGUI[] _rebirthClassLabels;
+        [SerializeField] private Button _rebirthCloseButton;
+
         public System.Action OnEquipmentPressed;
         public System.Action OnInventoryPressed;
         public System.Action OnMinePressed;
         public System.Action OnMarketPressed;
+        public System.Action<string> OnAreaSelected;
+        public System.Action<CharacterClass> OnRebirthClassSelected;
 
         private CharacterView _player;
         private CombatManager _combatManager;
         private bool _isSplitOrb;
+        private bool _rebirthPanelOpen;
+        private CharacterClass[] _availableRebirthClasses;
+        private Sprite _rebirthClosedSprite;
+        private Sprite _rebirthOpenedSprite;
+        private bool _mapPanelOpen;
+        private string _currentAreaID;
+        private Sprite _teleportClosedSprite;
+        private Sprite _teleportOpenedSprite;
+        private bool _playerDead;
+        private float _reviveSecondsRemaining;
         private int _lastHP = -1;
         private int _lastMaxHP = -1;
         private int _lastMP = -1;
@@ -120,6 +154,31 @@ namespace ConquerChronicles.Gameplay.UI.HUD
                 _mineButton.onClick.AddListener(() => OnMinePressed?.Invoke());
             if (_marketButton != null)
                 _marketButton.onClick.AddListener(() => OnMarketPressed?.Invoke());
+
+            // Teleport button
+            _teleportClosedSprite = SpriteAtlasLoader.GetSprite("Teleport_Closed");
+            _teleportOpenedSprite = SpriteAtlasLoader.GetSprite("Teleport_Opened");
+
+            if (_teleportButton != null)
+                _teleportButton.onClick.AddListener(ToggleMapPanel);
+            if (_mapPanel != null)
+                _mapPanel.SetActive(false);
+            if (_mapCloseButton != null)
+                _mapCloseButton.onClick.AddListener(CloseMapPanel);
+
+            // Rebirth button
+            _rebirthClosedSprite = SpriteAtlasLoader.GetSprite("Rebirth_Closed");
+            _rebirthOpenedSprite = SpriteAtlasLoader.GetSprite("Rebirth_Opened");
+
+            if (_rebirthButton != null)
+            {
+                _rebirthButton.onClick.AddListener(ToggleRebirthPanel);
+                _rebirthButton.gameObject.SetActive(false); // hidden until level 100
+            }
+            if (_rebirthPanel != null)
+                _rebirthPanel.SetActive(false);
+            if (_rebirthCloseButton != null)
+                _rebirthCloseButton.onClick.AddListener(CloseRebirthPanel);
 
             // Cache RectTransforms
             if (_hpFill != null) _hpFillRT = _hpFill.GetComponent<RectTransform>();
@@ -222,7 +281,8 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             // XP / Level
             long xp = state.XP;
             int level = state.Level;
-            if (xp != _lastXP || level != _lastLevel)
+            bool levelChanged = level != _lastLevel;
+            if (xp != _lastXP || levelChanged)
             {
                 _lastXP = xp;
                 _lastLevel = level;
@@ -241,6 +301,15 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             {
                 _xpCurrent = Mathf.MoveTowards(_xpCurrent, _xpTarget, dt * FillSpeed);
                 ApplyXPFill(_xpCurrent);
+            }
+
+            // Show rebirth button when eligible (only check on level change)
+            if (_rebirthButton != null && levelChanged)
+            {
+                var saveManager = SaveSystemBridge.GetOrCreate();
+                var save = saveManager.LoadGame();
+                bool canRebirth = save != null && RebirthSystem.CanRebirth(level, save.RebirthCount);
+                _rebirthButton.gameObject.SetActive(canRebirth);
             }
 
             // Animate XP gain popups
@@ -311,6 +380,217 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             }
         }
 
+        public void SetCurrentArea(string areaID)
+        {
+            _currentAreaID = areaID;
+        }
+
+        private void ToggleMapPanel()
+        {
+            if (_mapPanelOpen)
+            {
+                CloseMapPanel();
+                return;
+            }
+
+            // Block teleport while dead unless revive timer is under 5 seconds
+            if (_playerDead && _reviveSecondsRemaining > 5f)
+                return;
+
+            OpenMapPanel();
+        }
+
+        private void OpenMapPanel()
+        {
+            if (_mapPanel == null) return;
+
+            int playerLevel = _player != null && _player.State != null ? _player.State.Level : 1;
+            var allMaps = TestMaps.AllMaps;
+
+            // Update icon
+            if (_teleportIcon != null && _teleportOpenedSprite != null)
+                _teleportIcon.sprite = _teleportOpenedSprite;
+
+            int areaIdx = 0;
+            int headerIdx = 0;
+
+            for (int m = 0; m < allMaps.Length; m++)
+            {
+                var map = allMaps[m];
+
+                // Map header
+                if (_mapHeaders != null && headerIdx < _mapHeaders.Length && _mapHeaders[headerIdx] != null)
+                {
+                    _mapHeaders[headerIdx].text = $"{map.Name}  <size=70%>Lv {map.MinLevel}-{map.MaxLevel}</size>";
+                    _mapHeaders[headerIdx].gameObject.SetActive(true);
+                }
+                headerIdx++;
+
+                // Area buttons
+                if (map.Areas != null)
+                {
+                    for (int a = 0; a < map.Areas.Length; a++)
+                    {
+                        if (_areaButtons == null || areaIdx >= _areaButtons.Length) break;
+                        var area = map.Areas[a];
+                        var btn = _areaButtons[areaIdx];
+                        var lbl = _areaLabels != null && areaIdx < _areaLabels.Length ? _areaLabels[areaIdx] : null;
+
+                        if (btn != null) btn.gameObject.SetActive(true);
+
+                        bool isCurrent = area.ID == _currentAreaID;
+                        bool isUnlocked = playerLevel >= area.MinLevel;
+
+                        if (lbl != null)
+                        {
+                            string suffix = isCurrent ? "  <color=#FFD700>(Current)</color>" : "";
+                            lbl.text = $"{area.Name}  <size=80%>Lv {area.MinLevel}-{area.MaxLevel}</size>{suffix}";
+                            lbl.color = isCurrent ? new Color(1f, 0.84f, 0f) :
+                                        isUnlocked ? Color.white :
+                                        new Color(0.5f, 0.5f, 0.5f);
+                        }
+
+                        if (btn != null)
+                        {
+                            btn.interactable = isUnlocked && !isCurrent;
+                            btn.onClick.RemoveAllListeners();
+                            if (isUnlocked && !isCurrent)
+                            {
+                                string id = area.ID;
+                                btn.onClick.AddListener(() =>
+                                {
+                                    OnAreaSelected?.Invoke(id);
+                                    CloseMapPanel();
+                                });
+                            }
+                        }
+
+                        areaIdx++;
+                    }
+                }
+            }
+
+            // Hide unused entries
+            if (_mapHeaders != null)
+                for (int i = headerIdx; i < _mapHeaders.Length; i++)
+                    if (_mapHeaders[i] != null)
+                        _mapHeaders[i].gameObject.SetActive(false);
+            if (_areaButtons != null)
+                for (int i = areaIdx; i < _areaButtons.Length; i++)
+                    if (_areaButtons[i] != null)
+                        _areaButtons[i].gameObject.SetActive(false);
+
+            _mapPanel.SetActive(true);
+            _mapPanelOpen = true;
+        }
+
+        public void CloseMapPanel()
+        {
+            if (_mapPanel != null)
+                _mapPanel.SetActive(false);
+            if (_teleportIcon != null && _teleportClosedSprite != null)
+                _teleportIcon.sprite = _teleportClosedSprite;
+            _mapPanelOpen = false;
+        }
+
+        private void ToggleRebirthPanel()
+        {
+            if (_rebirthPanelOpen)
+                CloseRebirthPanel();
+            else
+                OpenRebirthPanel();
+        }
+
+        private void OpenRebirthPanel()
+        {
+            if (_rebirthPanel == null) return;
+
+            var saveManager = SaveSystemBridge.GetOrCreate();
+            var save = saveManager.LoadGame();
+            if (save == null) return;
+
+            _availableRebirthClasses = RebirthSystem.GetAvailableClasses(save.UnlockedRebirthClasses);
+            if (_availableRebirthClasses.Length == 0) return;
+
+            // Update icon
+            if (_rebirthIcon != null && _rebirthOpenedSprite != null)
+                _rebirthIcon.sprite = _rebirthOpenedSprite;
+
+            // Build unlocked classes string
+            string unlockedStr = "";
+            if (save.UnlockedRebirthClasses != null)
+            {
+                var names = new System.Collections.Generic.List<string>();
+                for (int i = 0; i < save.UnlockedRebirthClasses.Length; i++)
+                {
+                    var c = (CharacterClass)save.UnlockedRebirthClasses[i];
+                    names.Add(c == CharacterClass.WaterTaoist ? "Taoist" : c.ToString());
+                }
+                unlockedStr = string.Join(", ", names);
+            }
+
+            // Update description
+            if (_rebirthDescription != null)
+            {
+                _rebirthDescription.text =
+                    $"<b>Rebirth {save.RebirthCount + 1} / {RebirthSystem.MaxRebirths}</b>\n\n" +
+                    "Choose a new class to unlock.\n\n" +
+                    $"<b>Unlocked classes:</b> {unlockedStr}\n\n" +
+                    "<b>What resets:</b>\n" +
+                    "  Level \u2192 1, Stats \u2192 0, Equipment unequipped\n\n" +
+                    "<b>What stays:</b>\n" +
+                    "  Gold, Bag items, Previous classes\n\n" +
+                    "<b>New class weapons become equippable!</b>";
+            }
+
+            // Set up class buttons
+            if (_rebirthClassButtons != null)
+            {
+                for (int i = 0; i < _rebirthClassButtons.Length; i++)
+                {
+                    if (i < _availableRebirthClasses.Length)
+                    {
+                        _rebirthClassButtons[i].gameObject.SetActive(true);
+                        var cls = _availableRebirthClasses[i];
+                        string label = cls == CharacterClass.WaterTaoist ? "Taoist" : cls.ToString();
+                        string weapons = cls switch
+                        {
+                            CharacterClass.Archer => "Bows",
+                            CharacterClass.Warrior => "Sword + Shield",
+                            CharacterClass.WaterTaoist => "Backsword + Spells",
+                            _ => ""
+                        };
+                        if (_rebirthClassLabels != null && i < _rebirthClassLabels.Length)
+                            _rebirthClassLabels[i].text = $"{label}\n<size=70%>{weapons}</size>";
+
+                        _rebirthClassButtons[i].onClick.RemoveAllListeners();
+                        int idx = i;
+                        _rebirthClassButtons[i].onClick.AddListener(() =>
+                        {
+                            OnRebirthClassSelected?.Invoke(_availableRebirthClasses[idx]);
+                            CloseRebirthPanel();
+                        });
+                    }
+                    else
+                    {
+                        _rebirthClassButtons[i].gameObject.SetActive(false);
+                    }
+                }
+            }
+
+            _rebirthPanel.SetActive(true);
+            _rebirthPanelOpen = true;
+        }
+
+        public void CloseRebirthPanel()
+        {
+            if (_rebirthPanel != null)
+                _rebirthPanel.SetActive(false);
+            if (_rebirthIcon != null && _rebirthClosedSprite != null)
+                _rebirthIcon.sprite = _rebirthClosedSprite;
+            _rebirthPanelOpen = false;
+        }
+
         private void ApplyHPFill(float t)
         {
             if (_hpFillRT == null) return;
@@ -340,8 +620,14 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             _xpFillRT.offsetMax = Vector2.zero;
         }
 
+        public bool IsPlayerDead => _playerDead;
+        public float ReviveSecondsRemaining => _reviveSecondsRemaining;
+
         public void ShowReviveTimer(float secondsRemaining)
         {
+            _playerDead = true;
+            _reviveSecondsRemaining = secondsRemaining;
+
             if (_reviveOverlay != null && !_reviveOverlay.activeSelf)
             {
                 _reviveOverlay.SetActive(true);
@@ -359,6 +645,9 @@ namespace ConquerChronicles.Gameplay.UI.HUD
 
         public void HideReviveTimer()
         {
+            _playerDead = false;
+            _reviveSecondsRemaining = 0f;
+
             if (_reviveOverlay != null)
                 _reviveOverlay.SetActive(false);
         }
@@ -370,10 +659,11 @@ namespace ConquerChronicles.Gameplay.UI.HUD
             string prefix = null;
             switch (sceneName)
             {
-                case "Equipment": icon = _equipmentIcon; prefix = "Equipment"; break;
-                case "Inventory": icon = _inventoryIcon; prefix = "Inventory"; break;
-                case "Mining":    icon = _mineIcon;      prefix = "Mining";    break;
-                case "Market":    icon = _marketIcon;     prefix = "Market";    break;
+                case "Equipment": icon = _equipmentIcon;  prefix = "Equipment"; break;
+                case "Inventory": icon = _inventoryIcon;  prefix = "Inventory"; break;
+                case "Mining":    icon = _mineIcon;       prefix = "Mining";    break;
+                case "Market":    icon = _marketIcon;      prefix = "Market";    break;
+                case "Teleport":  icon = _teleportIcon;   prefix = "Teleport";  break;
             }
             if (icon == null) return;
             var sprite = SpriteAtlasLoader.GetSprite(prefix + suffix);
@@ -416,6 +706,22 @@ namespace ConquerChronicles.Gameplay.UI.HUD
                 _mineButton.onClick.RemoveAllListeners();
             if (_marketButton != null)
                 _marketButton.onClick.RemoveAllListeners();
+            if (_teleportButton != null)
+                _teleportButton.onClick.RemoveAllListeners();
+            if (_mapCloseButton != null)
+                _mapCloseButton.onClick.RemoveAllListeners();
+            if (_areaButtons != null)
+                for (int i = 0; i < _areaButtons.Length; i++)
+                    if (_areaButtons[i] != null)
+                        _areaButtons[i].onClick.RemoveAllListeners();
+            if (_rebirthButton != null)
+                _rebirthButton.onClick.RemoveAllListeners();
+            if (_rebirthCloseButton != null)
+                _rebirthCloseButton.onClick.RemoveAllListeners();
+            if (_rebirthClassButtons != null)
+                for (int i = 0; i < _rebirthClassButtons.Length; i++)
+                    if (_rebirthClassButtons[i] != null)
+                        _rebirthClassButtons[i].onClick.RemoveAllListeners();
         }
     }
 }

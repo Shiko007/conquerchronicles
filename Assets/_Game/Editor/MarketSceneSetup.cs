@@ -42,6 +42,7 @@ namespace ConquerChronicles.Editor
             safeAreaRT.offsetMax = new Vector2(0, -120); // safe area: clears dynamic island / notch
             var contentBgImg = safeAreaGO.AddComponent<Image>();
             UIAtlasHelper.SetSlicedPanel(contentBgImg, new Color(0.85f, 0.85f, 0.9f, 0.92f));
+            UIAtlasHelper.AddTiledBackground(safeAreaGO.transform);
             var safeAreaContent = UIAtlasHelper.CreatePanelContent(safeAreaGO.transform);
 
             // ============================================================

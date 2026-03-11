@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using TMPro;
 using ConquerChronicles.Core.Character;
 using ConquerChronicles.Core.Equipment;
@@ -48,6 +49,9 @@ namespace ConquerChronicles.Gameplay.Equipment
         [Header("Stats - Character Info")]
         [SerializeField] private TextMeshProUGUI _classText;
         [SerializeField] private TextMeshProUGUI _levelText;
+
+        [Header("Stats - Rebirth Info")]
+        [SerializeField] private TextMeshProUGUI _rebirthInfoText;
 
         [Header("Stats - Combat Stats")]
         [SerializeField] private TextMeshProUGUI _statsText;
@@ -110,6 +114,13 @@ namespace ConquerChronicles.Gameplay.Equipment
         private static readonly Color ActiveTabText = new Color(1f, 0.85f, 0.2f, 1f);
         private static readonly Color InactiveTabText = new Color(0.5f, 0.5f, 0.5f, 1f);
 
+        // Hold-to-repeat state
+        private const float HoldInitialDelay = 0.4f;
+        private const float HoldRepeatInterval = 0.05f;
+        private string _heldStat;
+        private float _holdTimer;
+        private float _holdDelay;
+
         public void Initialize()
         {
             // Wire header buttons
@@ -131,11 +142,11 @@ namespace ConquerChronicles.Gameplay.Equipment
             _equipmentTabButton.onClick.AddListener(() => SwitchToTab(0));
             _statsTabButton.onClick.AddListener(() => SwitchToTab(1));
 
-            // Wire stat allocation buttons
-            _vitalityButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Vitality"));
-            _strengthButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Strength"));
-            _agilityButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Agility"));
-            _spiritButton.onClick.AddListener(() => OnAllocateStat?.Invoke("Spirit"));
+            // Wire stat allocation buttons with hold-to-repeat
+            SetupHoldButton(_vitalityButton, "Vitality");
+            SetupHoldButton(_strengthButton, "Strength");
+            SetupHoldButton(_agilityButton, "Agility");
+            SetupHoldButton(_spiritButton, "Spirit");
 
             // Wire minus buttons
             if (_vitalityMinusButton != null)
@@ -259,6 +270,13 @@ namespace ConquerChronicles.Gameplay.Equipment
 
         // --- Helpers ---
 
+        private static string GetClassDisplayName(CharacterClass cls)
+        {
+            if (cls == CharacterClass.WaterTaoist || cls == CharacterClass.FireTaoist)
+                return "Taoist";
+            return cls.ToString();
+        }
+
         private static Color GetEquipmentQualityColor(EquipmentQuality quality)
         {
             return QualityColors.TryGetValue(quality, out var c) ? c : Color.gray;
@@ -303,10 +321,24 @@ namespace ConquerChronicles.Gameplay.Equipment
 
         public void RefreshStats(CharacterClass characterClass, int level,
             CharacterStats stats, int statPointsAvailable,
-            int vitality, int strength, int agility, int spirit)
+            int vitality, int strength, int agility, int spirit,
+            int rebirthCount, int[] unlockedClasses)
         {
             _classText.text = characterClass.ToString();
             _levelText.text = $"Level {level}";
+
+            if (_rebirthInfoText != null)
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"Rebirths: {rebirthCount} / 3");
+                sb.Append("Classes: ");
+                for (int i = 0; i < unlockedClasses.Length; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    sb.Append(GetClassDisplayName((CharacterClass)unlockedClasses[i]));
+                }
+                _rebirthInfoText.text = sb.ToString();
+            }
 
             _statsText.text =
                 $"Health: {stats.HP}\n" +
@@ -356,6 +388,43 @@ namespace ConquerChronicles.Gameplay.Equipment
         {
             if (_confirmStatsButton != null)
                 _confirmStatsButton.gameObject.SetActive(false);
+        }
+
+        private void SetupHoldButton(Button btn, string statName)
+        {
+            var trigger = btn.gameObject.AddComponent<EventTrigger>();
+
+            var down = new EventTrigger.Entry { eventID = EventTriggerType.PointerDown };
+            down.callback.AddListener((_) =>
+            {
+                if (!btn.interactable) return;
+                _heldStat = statName;
+                _holdTimer = 0f;
+                _holdDelay = HoldInitialDelay;
+                OnAllocateStat?.Invoke(statName);
+            });
+            trigger.triggers.Add(down);
+
+            var up = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
+            up.callback.AddListener((_) => _heldStat = null);
+            trigger.triggers.Add(up);
+
+            var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+            exit.callback.AddListener((_) => _heldStat = null);
+            trigger.triggers.Add(exit);
+        }
+
+        private void Update()
+        {
+            if (_heldStat == null) return;
+
+            _holdTimer += Time.deltaTime;
+            if (_holdTimer >= _holdDelay)
+            {
+                _holdTimer = 0f;
+                _holdDelay = HoldRepeatInterval;
+                OnAllocateStat?.Invoke(_heldStat);
+            }
         }
 
         private void OnDestroy()
