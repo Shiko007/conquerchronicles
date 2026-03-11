@@ -170,8 +170,8 @@ TextureImporter:
       name: Button_Pressed
       rect:
         serializedVersion: 2
-        x: 722
-        y: 318
+        x: 235
+        y: 199
         width: 124
         height: 124
       alignment: 0
@@ -192,8 +192,8 @@ TextureImporter:
       name: Button_Unpressed
       rect:
         serializedVersion: 2
-        x: 848
-        y: 318
+        x: 361
+        y: 199
         width: 124
         height: 124
       alignment: 0
@@ -258,8 +258,8 @@ TextureImporter:
       name: Drake_LAttack_00
       rect:
         serializedVersion: 2
-        x: 435
-        y: 444
+        x: 611
+        y: 445
         width: 120
         height: 118
       alignment: 9
@@ -285,7 +285,7 @@ TextureImporter:
         width: 122
         height: 97
       alignment: 9
-      pivot: {x: 0.5081967, y: 0.5979381}
+      pivot: {x: 0.4918033, y: 0.5979381}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -302,12 +302,12 @@ TextureImporter:
       name: Drake_LAttack_02
       rect:
         serializedVersion: 2
-        x: 557
-        y: 444
+        x: 733
+        y: 445
         width: 121
         height: 118
       alignment: 9
-      pivot: {x: 0.5041322, y: 0.4915254}
+      pivot: {x: 0.49586776, y: 0.4915254}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -324,8 +324,8 @@ TextureImporter:
       name: Drake_LDeath_00
       rect:
         serializedVersion: 2
-        x: 680
-        y: 444
+        x: 856
+        y: 445
         width: 120
         height: 118
       alignment: 9
@@ -351,7 +351,7 @@ TextureImporter:
         width: 91
         height: 97
       alignment: 9
-      pivot: {x: 0.52747256, y: 0.5979381}
+      pivot: {x: 0.47252747, y: 0.5979381}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -373,7 +373,7 @@ TextureImporter:
         width: 91
         height: 98
       alignment: 9
-      pivot: {x: 0.51648355, y: 0.59183675}
+      pivot: {x: 0.48351648, y: 0.59183675}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -390,8 +390,8 @@ TextureImporter:
       name: Drake_LDeath_03
       rect:
         serializedVersion: 2
-        x: 230
-        y: 448
+        x: 406
+        y: 449
         width: 90
         height: 114
       alignment: 9
@@ -417,7 +417,7 @@ TextureImporter:
         width: 101
         height: 43
       alignment: 9
-      pivot: {x: 0.48514852, y: 1.255814}
+      pivot: {x: 0.5148515, y: 1.255814}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -434,8 +434,8 @@ TextureImporter:
       name: Drake_LIdle_00
       rect:
         serializedVersion: 2
-        x: 802
-        y: 444
+        x: 362
+        y: 325
         width: 120
         height: 118
       alignment: 9
@@ -456,12 +456,12 @@ TextureImporter:
       name: Drake_LIdle_01
       rect:
         serializedVersion: 2
-        x: 1
-        y: 324
+        x: 484
+        y: 325
         width: 119
         height: 118
       alignment: 9
-      pivot: {x: 0.49579832, y: 0.4915254}
+      pivot: {x: 0.5042017, y: 0.4915254}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -483,7 +483,7 @@ TextureImporter:
         width: 114
         height: 105
       alignment: 9
-      pivot: {x: 0.47368422, y: 0.42857143}
+      pivot: {x: 0.5263158, y: 0.42857143}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -500,8 +500,8 @@ TextureImporter:
       name: Drake_LIdle_03
       rect:
         serializedVersion: 2
-        x: 122
-        y: 324
+        x: 605
+        y: 325
         width: 120
         height: 118
       alignment: 9
@@ -527,7 +527,7 @@ TextureImporter:
         width: 124
         height: 104
       alignment: 9
-      pivot: {x: 0.5080645, y: 0.46153846}
+      pivot: {x: 0.4919355, y: 0.46153846}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -544,8 +544,8 @@ TextureImporter:
       name: Drake_LWalk_01
       rect:
         serializedVersion: 2
-        x: 244
-        y: 324
+        x: 727
+        y: 325
         width: 120
         height: 118
       alignment: 9
@@ -571,7 +571,7 @@ TextureImporter:
         width: 91
         height: 89
       alignment: 9
-      pivot: {x: 0.51648355, y: 0.6516854}
+      pivot: {x: 0.48351648, y: 0.6516854}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -593,7 +593,7 @@ TextureImporter:
         width: 81
         height: 88
       alignment: 9
-      pivot: {x: 0.45679012, y: 0.65909094}
+      pivot: {x: 0.54320985, y: 0.65909094}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -610,8 +610,8 @@ TextureImporter:
       name: Drake_LWalk_04
       rect:
         serializedVersion: 2
-        x: 366
-        y: 324
+        x: 849
+        y: 325
         width: 120
         height: 118
       alignment: 9
@@ -632,8 +632,8 @@ TextureImporter:
       name: Drake_LWalk_05
       rect:
         serializedVersion: 2
-        x: 488
-        y: 323
+        x: 1
+        y: 204
         width: 120
         height: 119
       alignment: 9
@@ -1270,8 +1270,8 @@ TextureImporter:
       name: Male_Base_EAttack_04
       rect:
         serializedVersion: 2
-        x: 322
-        y: 447
+        x: 498
+        y: 448
         width: 41
         height: 115
       alignment: 9
@@ -1292,8 +1292,8 @@ TextureImporter:
       name: Male_Base_EHit_01
       rect:
         serializedVersion: 2
-        x: 365
-        y: 447
+        x: 541
+        y: 448
         width: 33
         height: 115
       alignment: 9
@@ -1336,8 +1336,8 @@ TextureImporter:
       name: Male_Base_EHit_03
       rect:
         serializedVersion: 2
-        x: 186
-        y: 449
+        x: 362
+        y: 450
         width: 42
         height: 113
       alignment: 9
@@ -1358,8 +1358,8 @@ TextureImporter:
       name: Male_Base_EHit_04
       rect:
         serializedVersion: 2
-        x: 400
-        y: 447
+        x: 576
+        y: 448
         width: 33
         height: 115
       alignment: 9
@@ -1468,8 +1468,8 @@ TextureImporter:
       name: Male_Base_SIdle_01
       rect:
         serializedVersion: 2
-        x: 951
-        y: 564
+        x: 116
+        y: 451
         width: 59
         height: 112
       alignment: 9
@@ -1490,8 +1490,8 @@ TextureImporter:
       name: Male_Base_SIdle_02
       rect:
         serializedVersion: 2
-        x: 1
-        y: 450
+        x: 177
+        y: 451
         width: 59
         height: 112
       alignment: 9
@@ -1512,8 +1512,8 @@ TextureImporter:
       name: Male_Base_SIdle_03
       rect:
         serializedVersion: 2
-        x: 62
-        y: 450
+        x: 238
+        y: 451
         width: 61
         height: 112
       alignment: 9
@@ -1534,8 +1534,8 @@ TextureImporter:
       name: Male_Base_SIdle_04
       rect:
         serializedVersion: 2
-        x: 125
-        y: 450
+        x: 301
+        y: 451
         width: 59
         height: 112
       alignment: 9
@@ -1556,8 +1556,8 @@ TextureImporter:
       name: Male_Base_SIdle_05
       rect:
         serializedVersion: 2
-        x: 62
-        y: 450
+        x: 238
+        y: 451
         width: 61
         height: 112
       alignment: 9
@@ -1578,8 +1578,8 @@ TextureImporter:
       name: Male_Base_SIdle_06
       rect:
         serializedVersion: 2
-        x: 1
-        y: 450
+        x: 177
+        y: 451
         width: 59
         height: 112
       alignment: 9
@@ -1776,8 +1776,8 @@ TextureImporter:
       name: Panels
       rect:
         serializedVersion: 2
-        x: 1
-        y: 140
+        x: 487
+        y: 147
         width: 176
         height: 176
       alignment: 0
@@ -2326,8 +2326,8 @@ TextureImporter:
       name: Rebirth_Opened
       rect:
         serializedVersion: 2
-        x: 610
-        y: 323
+        x: 123
+        y: 204
         width: 110
         height: 119
       alignment: 9
@@ -2454,6 +2454,94 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: Drake_LHit_00
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 325
+        width: 120
+        height: 118
+      alignment: 9
+      pivot: {x: 0.5, y: 0.4915254}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: ec88cd01cba6a4f4eaf73a10bb524584
+      internalID: 1808335687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Drake_LHit_01
+      rect:
+        serializedVersion: 2
+        x: 123
+        y: 325
+        width: 120
+        height: 118
+      alignment: 9
+      pivot: {x: 0.5, y: 0.4915254}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 90d9578bb0d5f4968aff2aaa98f38197
+      internalID: -1432101761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Drake_LHit_02
+      rect:
+        serializedVersion: 2
+        x: 1
+        y: 451
+        width: 113
+        height: 112
+      alignment: 9
+      pivot: {x: 0.53097343, y: 0.51785713}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c0dbf953600c4fd58bb26f0ad0adcf3
+      internalID: 828070016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Drake_LHit_03
+      rect:
+        serializedVersion: 2
+        x: 245
+        y: 325
+        width: 115
+        height: 118
+      alignment: 9
+      pivot: {x: 0.5217391, y: 0.4915254}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b434ec62a59d4130a64b3524df337fd
+      internalID: 293211714
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -2482,6 +2570,10 @@ TextureImporter:
       Drake_LDeath_02: 711667525
       Drake_LDeath_03: -1850929133
       Drake_LDeath_05: -1763862424
+      Drake_LHit_00: 1808335687
+      Drake_LHit_01: -1432101761
+      Drake_LHit_02: 828070016
+      Drake_LHit_03: 293211714
       Drake_LIdle_00: 1027571321
       Drake_LIdle_01: 266070783
       Drake_LIdle_02: -622350786

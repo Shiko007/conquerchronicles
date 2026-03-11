@@ -60,6 +60,21 @@ namespace ConquerChronicles.Gameplay.Enemy
             UpdateHealthBar();
             UpdateNameLabel(data.Name, playerLevel, areaLevel);
 
+            // Apply tint color (0 alpha = default white)
+            if (data.TintA > 0f)
+                _spriteRenderer.color = new Color(data.TintR, data.TintG, data.TintB, data.TintA);
+            else
+                _spriteRenderer.color = Color.white;
+
+            // Apply scale to sprite, counter-scale UI so only the sprite looks bigger
+            float s = data.Scale > 0f ? data.Scale : 1f;
+            transform.localScale = new Vector3(s, s, 1f);
+            float inv = 1f / s;
+            if (_healthBarRoot != null)
+                _healthBarRoot.transform.localScale = new Vector3(inv, inv, 1f);
+            if (_nameLabel != null)
+                _nameLabel.transform.localScale = new Vector3(inv, inv, 1f);
+
             // Load sprites for this enemy type (cache if same type)
             LoadSprites(data.ID);
             PlayWalk();
@@ -110,7 +125,7 @@ namespace ConquerChronicles.Gameplay.Enemy
 
             // Check for known prefixes in the enemy ID
             if (enemyID.Contains("rat")) return "Rat_L";
-            if (enemyID.Contains("slime")) return "Rat_L"; // TODO: Slime_L when sprites exist
+            if (enemyID.Contains("drake") || enemyID.Contains("dragon")) return "Drake_L";
             if (enemyID.Contains("skeleton")) return "Rat_L"; // TODO: Skeleton_L
             if (enemyID.Contains("dark")) return "Rat_L"; // TODO: Cultivator_L
 

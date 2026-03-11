@@ -13,12 +13,12 @@ namespace ConquerChronicles.Core.Map
         // Enemy Definitions
         // =================================================================
 
-        // --- Slime Family ---
+        // --- Rat Family ---
 
-        public static EnemyData GreenSlime => new()
+        public static EnemyData Rat => new()
         {
-            ID = "slime_green",
-            Name = "Green Slime",
+            ID = "rat",
+            Name = "Rat",
             Stats = new CharacterStats { HP = 500, ATK = 5, DEF = 2 },
             MoveSpeed = 1.2f,
             AttackRange = 0.6f,
@@ -36,10 +36,11 @@ namespace ConquerChronicles.Core.Map
             }
         };
 
-        public static EnemyData RedSlime => new()
+        public static EnemyData InfectedRat => new()
         {
-            ID = "slime_red",
-            Name = "Red Slime",
+            ID = "rat_infected",
+            Name = "Infected Rat",
+            TintR = 0.6f, TintG = 1f, TintB = 0.6f, TintA = 1f, Scale = 1.2f,
             Stats = new CharacterStats { HP = 600, ATK = 10, DEF = 4 },
             MoveSpeed = 1.4f,
             AttackRange = 0.6f,
@@ -58,10 +59,11 @@ namespace ConquerChronicles.Core.Map
             }
         };
 
-        public static EnemyData BlueSlime => new()
+        public static EnemyData BloodyRat => new()
         {
-            ID = "slime_blue",
-            Name = "Blue Slime",
+            ID = "rat_bloody",
+            Name = "Bloody Rat",
+            TintR = 1f, TintG = 0.5f, TintB = 0.5f, TintA = 1f, Scale = 1.5f,
             Stats = new CharacterStats { HP = 1000, ATK = 15, DEF = 8 },
             MoveSpeed = 1.6f,
             AttackRange = 0.6f,
@@ -504,7 +506,7 @@ namespace ConquerChronicles.Core.Map
 
         public static EnemyData[] AllEnemies => new[]
         {
-            GreenSlime, RedSlime, BlueSlime,
+            Rat, InfectedRat, BloodyRat,
             Skeleton, SkeletonArcher, SkeletonKnight,
             DarkAcolyte, DarkKnight,
             FireImp, LavaGolem, MagmaWyrm,
@@ -540,7 +542,7 @@ namespace ConquerChronicles.Core.Map
                     SpawnInterval = 2.5f,
                     EnemyPool = new[]
                     {
-                        new EnemySpawnWeight { EnemyID = "slime_green", Weight = 1.0f }
+                        new EnemySpawnWeight { EnemyID = "rat", Weight = 1.0f }
                     },
                     AreaDropTable = new DropTable
                     {
@@ -567,8 +569,8 @@ namespace ConquerChronicles.Core.Map
                     SpawnInterval = 2.0f,
                     EnemyPool = new[]
                     {
-                        new EnemySpawnWeight { EnemyID = "slime_green", Weight = 0.6f },
-                        new EnemySpawnWeight { EnemyID = "slime_red", Weight = 0.4f }
+                        new EnemySpawnWeight { EnemyID = "rat", Weight = 0.6f },
+                        new EnemySpawnWeight { EnemyID = "rat_infected", Weight = 0.4f }
                     },
                     AreaDropTable = new DropTable
                     {
@@ -598,9 +600,9 @@ namespace ConquerChronicles.Core.Map
                     SpawnInterval = 1.8f,
                     EnemyPool = new[]
                     {
-                        new EnemySpawnWeight { EnemyID = "slime_red", Weight = 0.5f },
-                        new EnemySpawnWeight { EnemyID = "slime_blue", Weight = 0.3f },
-                        new EnemySpawnWeight { EnemyID = "slime_green", Weight = 0.2f }
+                        new EnemySpawnWeight { EnemyID = "rat_infected", Weight = 0.5f },
+                        new EnemySpawnWeight { EnemyID = "rat_bloody", Weight = 0.3f },
+                        new EnemySpawnWeight { EnemyID = "rat", Weight = 0.2f }
                     },
                     AreaDropTable = new DropTable
                     {

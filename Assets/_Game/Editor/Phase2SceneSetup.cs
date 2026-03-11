@@ -1026,6 +1026,7 @@ namespace ConquerChronicles.Editor
             var areaBtns = new Button[totalMaps * areasPerMap];
             var areaLabelTMPs = new TextMeshProUGUI[totalMaps * areasPerMap];
             int areaBtnIdx = 0;
+            float areaBtnHeight = navBtnSize * 1.4f;
 
             for (int m = 0; m < totalMaps; m++)
             {
@@ -1033,11 +1034,11 @@ namespace ConquerChronicles.Editor
                 var headerGO = new GameObject($"MapHeader_{m}", typeof(RectTransform));
                 headerGO.transform.SetParent(listContentGO.transform, false);
                 var headerLE = headerGO.AddComponent<LayoutElement>();
-                headerLE.preferredHeight = 36;
-                headerLE.minHeight = 36;
+                headerLE.preferredHeight = 40;
+                headerLE.minHeight = 40;
                 var headerTMP = headerGO.AddComponent<TextMeshProUGUI>();
                 headerTMP.text = "";
-                headerTMP.fontSize = 20;
+                headerTMP.fontSize = 26;
                 headerTMP.color = new Color(1f, 0.85f, 0.3f);
                 headerTMP.alignment = TextAlignmentOptions.MidlineLeft;
                 headerTMP.fontStyle = FontStyles.Bold;
@@ -1045,14 +1046,26 @@ namespace ConquerChronicles.Editor
                 headerTMP.raycastTarget = false;
                 mapHeaderTMPs[m] = headerTMP;
 
-                // Area buttons
+                // Horizontal row for area buttons
+                var rowGO = new GameObject($"AreaRow_{m}", typeof(RectTransform));
+                rowGO.transform.SetParent(listContentGO.transform, false);
+                var rowLE = rowGO.AddComponent<LayoutElement>();
+                rowLE.preferredHeight = areaBtnHeight;
+                rowLE.minHeight = areaBtnHeight;
+                var hlg = rowGO.AddComponent<HorizontalLayoutGroup>();
+                hlg.childAlignment = TextAnchor.MiddleCenter;
+                hlg.spacing = 6;
+                hlg.padding = new RectOffset(0, 0, 0, 0);
+                hlg.childControlWidth = true;
+                hlg.childControlHeight = true;
+                hlg.childForceExpandWidth = true;
+                hlg.childForceExpandHeight = true;
+
+                // Area buttons — 3 per row
                 for (int a = 0; a < areasPerMap; a++)
                 {
                     var areaBtnGO = new GameObject($"AreaButton_{m}_{a}", typeof(RectTransform));
-                    areaBtnGO.transform.SetParent(listContentGO.transform, false);
-                    var areaLE = areaBtnGO.AddComponent<LayoutElement>();
-                    areaLE.preferredHeight = navBtnSize;
-                    areaLE.minHeight = navBtnSize;
+                    areaBtnGO.transform.SetParent(rowGO.transform, false);
 
                     var areaBtnImg = areaBtnGO.AddComponent<Image>();
                     var areaBtn = areaBtnGO.AddComponent<Button>();
@@ -1061,22 +1074,22 @@ namespace ConquerChronicles.Editor
                         "Button_Unpressed", "Button_Pressed",
                         new Color(0.25f, 0.35f, 0.55f));
 
-                    var areaBtnContent = UIAtlasHelper.CreateButtonContent(areaBtnGO.transform, navBtnSize);
+                    var areaBtnContent = UIAtlasHelper.CreateButtonContent(areaBtnGO.transform, areaBtnHeight);
                     var areaLblGO = new GameObject("Label", typeof(RectTransform));
                     areaLblGO.transform.SetParent(areaBtnContent, false);
                     var areaLblRT = areaLblGO.GetComponent<RectTransform>();
                     areaLblRT.anchorMin = Vector2.zero;
                     areaLblRT.anchorMax = Vector2.one;
-                    areaLblRT.offsetMin = new Vector2(10, 0);
-                    areaLblRT.offsetMax = new Vector2(-10, 0);
+                    areaLblRT.offsetMin = new Vector2(4, 0);
+                    areaLblRT.offsetMax = new Vector2(-4, 0);
                     var areaLblTMP = areaLblGO.AddComponent<TextMeshProUGUI>();
                     areaLblTMP.text = "";
-                    areaLblTMP.fontSize = 18;
+                    areaLblTMP.fontSize = 22;
                     areaLblTMP.color = Color.white;
-                    areaLblTMP.alignment = TextAlignmentOptions.MidlineLeft;
+                    areaLblTMP.alignment = TextAlignmentOptions.Center;
                     areaLblTMP.enableAutoSizing = true;
-                    areaLblTMP.fontSizeMin = 12;
-                    areaLblTMP.fontSizeMax = 18;
+                    areaLblTMP.fontSizeMin = 14;
+                    areaLblTMP.fontSizeMax = 22;
                     areaLblTMP.richText = true;
                     areaLblTMP.raycastTarget = false;
 

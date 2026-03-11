@@ -439,22 +439,19 @@ namespace ConquerChronicles.Gameplay.UI.HUD
                         if (btn != null) btn.gameObject.SetActive(true);
 
                         bool isCurrent = area.ID == _currentAreaID;
-                        bool isUnlocked = playerLevel >= area.MinLevel;
 
                         if (lbl != null)
                         {
-                            string suffix = isCurrent ? "  <color=#FFD700>(Current)</color>" : "";
-                            lbl.text = $"{area.Name}  <size=80%>Lv {area.MinLevel}-{area.MaxLevel}</size>{suffix}";
-                            lbl.color = isCurrent ? new Color(1f, 0.84f, 0f) :
-                                        isUnlocked ? Color.white :
-                                        new Color(0.5f, 0.5f, 0.5f);
+                            string suffix = isCurrent ? "\n<color=#FFD700>(Current)</color>" : "";
+                            lbl.text = $"{area.Name}\n<size=80%>Lv {area.MinLevel}-{area.MaxLevel}</size>{suffix}";
+                            lbl.color = isCurrent ? new Color(1f, 0.84f, 0f) : Color.white;
                         }
 
                         if (btn != null)
                         {
-                            btn.interactable = isUnlocked && !isCurrent;
+                            btn.interactable = !isCurrent;
                             btn.onClick.RemoveAllListeners();
-                            if (isUnlocked && !isCurrent)
+                            if (!isCurrent)
                             {
                                 string id = area.ID;
                                 btn.onClick.AddListener(() =>
