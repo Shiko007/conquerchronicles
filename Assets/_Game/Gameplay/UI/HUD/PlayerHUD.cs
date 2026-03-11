@@ -625,8 +625,13 @@ namespace ConquerChronicles.Gameplay.UI.HUD
 
         public void ShowReviveTimer(float secondsRemaining)
         {
+            bool wasAlive = !_playerDead;
             _playerDead = true;
             _reviveSecondsRemaining = secondsRemaining;
+
+            // Close map panel on death so player can't teleport while dead
+            if (wasAlive && _mapPanelOpen)
+                CloseMapPanel();
 
             if (_reviveOverlay != null && !_reviveOverlay.activeSelf)
             {
