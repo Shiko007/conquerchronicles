@@ -439,10 +439,12 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             state.StatPointsAvailable = save.StatPointsAvailable;
             _savedStatPointsFromSession = save.StatPointsAvailable;
 
-            // Recompute HP/MP with new stats
+            // Clamp current HP/MP to new max (don't heal, don't revive)
             var computed = state.ComputeStats();
-            state.CurrentHP = computed.HP;
-            state.CurrentMP = computed.MP;
+            if (state.CurrentHP > computed.HP)
+                state.CurrentHP = computed.HP;
+            if (state.CurrentMP > computed.MP)
+                state.CurrentMP = computed.MP;
         }
 
         private void OnEnemyKilledSave(int enemiesKilled)

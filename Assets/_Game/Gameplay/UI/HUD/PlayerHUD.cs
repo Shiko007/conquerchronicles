@@ -393,8 +393,8 @@ namespace ConquerChronicles.Gameplay.UI.HUD
                 return;
             }
 
-            // Block teleport while dead unless revive timer is under 5 seconds
-            if (_playerDead && _reviveSecondsRemaining > 5f)
+            // Block teleport while dead
+            if (_playerDead)
                 return;
 
             OpenMapPanel();
