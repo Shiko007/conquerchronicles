@@ -76,6 +76,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
         private int _savedGoldFromSession;
         private int _savedCoinsFromSession;
         private int _savedItemCountFromSession;
+        private int _savedStatPointsFromSession;
         private readonly List<string> _collectedItemsThisSession = new();
 
 
@@ -107,6 +108,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                 {
                     state.Level = existingSave.CharacterLevel;
                     state.StatPointsAvailable = existingSave.StatPointsAvailable;
+                    _savedStatPointsFromSession = existingSave.StatPointsAvailable;
                     state.Vitality = existingSave.Vitality;
                     state.Mana = existingSave.Mana;
                     state.Strength = existingSave.Strength;
@@ -221,6 +223,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
                     state.Level = 1;
                     state.XP = 0;
                     state.StatPointsAvailable = save.StatPointsAvailable; // refunded from rebirth
+                    _savedStatPointsFromSession = save.StatPointsAvailable;
                     state.Vitality = 0;
                     state.Mana = 0;
                     state.Strength = 0;
@@ -434,6 +437,7 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             state.Agility = save.Agility;
             state.Spirit = save.Spirit;
             state.StatPointsAvailable = save.StatPointsAvailable;
+            _savedStatPointsFromSession = save.StatPointsAvailable;
 
             // Recompute HP/MP with new stats
             var computed = state.ComputeStats();
@@ -467,9 +471,15 @@ namespace ConquerChronicles.Gameplay.Bootstrap
             {
                 saveData.CharacterLevel = _characterView.State.Level;
                 saveData.CharacterXP = _characterView.State.XP;
-                // Save stat points earned from level-ups during combat.
-                // Stat allocations (Vitality, etc.) are saved by EquipmentController only.
-                saveData.StatPointsAvailable = _characterView.State.StatPointsAvailable;
+                // Only add stat points gained from level-ups since last save.
+                // Equipment scene manages spending; we must not overwrite its changes.
+                int currentStatPoints = _characterView.State.StatPointsAvailable;
+                int statPointsDelta = currentStatPoints - _savedStatPointsFromSession;
+                if (statPointsDelta > 0)
+                {
+                    saveData.StatPointsAvailable += statPointsDelta;
+                    _savedStatPointsFromSession = currentStatPoints;
+                }
             }
 
             // Gold delta

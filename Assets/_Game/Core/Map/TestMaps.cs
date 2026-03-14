@@ -474,6 +474,31 @@ namespace ConquerChronicles.Core.Map
             }
         };
 
+        public static EnemyData Gargoyle => new()
+        {
+            ID = "gargoyle",
+            Name = "Gargoyle",
+            Stats = new CharacterStats { HP = 3000, ATK = 50, DEF = 30, MDEF = 15 },
+            MoveSpeed = 1.0f,
+            AttackRange = 0.7f,
+            AttackCooldown = 1.4f,
+            XPReward = 85,
+            GoldReward = 30,
+            IsBoss = false,
+            DropTable = new DropTable
+            {
+                Entries = new[]
+                {
+                    new DropEntry { ItemID = "helm_dragon", DropRate = 0.022f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "armor_dragon", DropRate = 0.022f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "boots_dragon", DropRate = 0.02f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "weapon_dragon_blade", DropRate = 0.018f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "neck_jade", DropRate = 0.012f, MinQuantity = 1, MaxQuantity = 1 },
+                    new DropEntry { ItemID = "ring_jade", DropRate = 0.012f, MinQuantity = 1, MaxQuantity = 1 }
+                }
+            }
+        };
+
         public static EnemyData DarkKnight => new()
         {
             ID = "dark_knight",
@@ -508,7 +533,7 @@ namespace ConquerChronicles.Core.Map
         {
             Rat, InfectedRat, BloodyRat,
             Skeleton, Gladiator, SkeletonKnight,
-            DarkAcolyte, DarkKnight,
+            DarkAcolyte, Gargoyle, DarkKnight,
             FireImp, LavaGolem, InfernoBeetle,
             FrostWolf, IceWraith, GlacierGiant,
             ShadowStalker, VoidWeaver, AbyssalHorror,
@@ -757,7 +782,8 @@ namespace ConquerChronicles.Core.Map
                     SpawnInterval = 1.2f,
                     EnemyPool = new[]
                     {
-                        new EnemySpawnWeight { EnemyID = "dark_acolyte", Weight = 1.0f }
+                        new EnemySpawnWeight { EnemyID = "dark_acolyte", Weight = 0.7f },
+                        new EnemySpawnWeight { EnemyID = "gargoyle", Weight = 0.3f }
                     },
                     AreaDropTable = new DropTable
                     {
@@ -784,8 +810,9 @@ namespace ConquerChronicles.Core.Map
                     SpawnInterval = 1.0f,
                     EnemyPool = new[]
                     {
-                        new EnemySpawnWeight { EnemyID = "dark_acolyte", Weight = 0.4f },
-                        new EnemySpawnWeight { EnemyID = "dark_knight", Weight = 0.6f }
+                        new EnemySpawnWeight { EnemyID = "dark_acolyte", Weight = 0.3f },
+                        new EnemySpawnWeight { EnemyID = "gargoyle", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "dark_knight", Weight = 0.3f }
                     },
                     AreaDropTable = new DropTable
                     {
@@ -815,7 +842,8 @@ namespace ConquerChronicles.Core.Map
                     SpawnInterval = 1.0f,
                     EnemyPool = new[]
                     {
-                        new EnemySpawnWeight { EnemyID = "dark_knight", Weight = 1.0f }
+                        new EnemySpawnWeight { EnemyID = "gargoyle", Weight = 0.4f },
+                        new EnemySpawnWeight { EnemyID = "dark_knight", Weight = 0.6f }
                     },
                     AreaDropTable = new DropTable
                     {

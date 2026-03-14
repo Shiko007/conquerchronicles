@@ -129,6 +129,7 @@ namespace ConquerChronicles.Gameplay.Enemy
             if (enemyID.Contains("skeleton")) return "Skeleton_L";
             if (enemyID.Contains("gladiator")) return "Gladiator_L";
             if (enemyID.Contains("acolyte")) return "Acolyte_L";
+            if (enemyID.Contains("gargoyle")) return "Gargoyle_L";
             if (enemyID.Contains("dark")) return "DarkKnight_L";
             if (enemyID.Contains("fire_imp")) return "FireImp_L";
             if (enemyID.Contains("lava") || enemyID.Contains("golem")) return "LavaGolem_L";
