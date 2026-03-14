@@ -123,13 +123,24 @@ namespace ConquerChronicles.Gameplay.Enemy
         {
             if (string.IsNullOrEmpty(enemyID)) return "Rat_L";
 
-            // Check for known prefixes in the enemy ID
             if (enemyID.Contains("rat")) return "Rat_L";
             if (enemyID.Contains("drake") || enemyID.Contains("dragon")) return "Drake_L";
-            if (enemyID.Contains("skeleton")) return "Rat_L"; // TODO: Skeleton_L
-            if (enemyID.Contains("dark")) return "Rat_L"; // TODO: Cultivator_L
+            if (enemyID == "skeleton_knight") return "SkeletonKnight_L";
+            if (enemyID.Contains("skeleton")) return "Skeleton_L";
+            if (enemyID.Contains("gladiator")) return "Gladiator_L";
+            if (enemyID.Contains("acolyte")) return "Acolyte_L";
+            if (enemyID.Contains("dark")) return "DarkKnight_L";
+            if (enemyID.Contains("fire_imp")) return "FireImp_L";
+            if (enemyID.Contains("lava") || enemyID.Contains("golem")) return "LavaGolem_L";
+            if (enemyID.Contains("inferno") || enemyID.Contains("beetle")) return "InfernoBeetle_L";
+            if (enemyID.Contains("frost_wolf")) return "FrostWolf_L";
+            if (enemyID.Contains("ice_wraith")) return "IceWraith_L";
+            if (enemyID.Contains("glacier")) return "GlacierGiant_L";
+            if (enemyID.Contains("shadow")) return "ShadowStalker_L";
+            if (enemyID.Contains("void")) return "VoidWeaver_L";
+            if (enemyID.Contains("abyssal")) return "AbyssalHorror_L";
 
-            return "Rat_L"; // fallback to rat for all enemies until more sprites are created
+            return "Rat_L";
         }
 
         public void PlayIdle()

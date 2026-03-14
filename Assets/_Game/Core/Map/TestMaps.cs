@@ -108,13 +108,13 @@ namespace ConquerChronicles.Core.Map
             }
         };
 
-        public static EnemyData SkeletonArcher => new()
+        public static EnemyData Gladiator => new()
         {
-            ID = "skeleton_archer",
-            Name = "Skeleton Archer",
+            ID = "gladiator",
+            Name = "Gladiator",
             Stats = new CharacterStats { HP = 1200, ATK = 30, DEF = 8 },
             MoveSpeed = 1.1f,
-            AttackRange = 1.5f,
+            AttackRange = 0.7f,
             AttackCooldown = 1.2f,
             XPReward = 45,
             GoldReward = 15,
@@ -203,10 +203,10 @@ namespace ConquerChronicles.Core.Map
             }
         };
 
-        public static EnemyData MagmaWyrm => new()
+        public static EnemyData InfernoBeetle => new()
         {
-            ID = "magma_wyrm",
-            Name = "Magma Wyrm",
+            ID = "inferno_beetle",
+            Name = "Inferno Beetle",
             Stats = new CharacterStats { HP = 15000, ATK = 120, DEF = 85 },
             MoveSpeed = 1.0f,
             AttackRange = 0.8f,
@@ -507,9 +507,9 @@ namespace ConquerChronicles.Core.Map
         public static EnemyData[] AllEnemies => new[]
         {
             Rat, InfectedRat, BloodyRat,
-            Skeleton, SkeletonArcher, SkeletonKnight,
+            Skeleton, Gladiator, SkeletonKnight,
             DarkAcolyte, DarkKnight,
-            FireImp, LavaGolem, MagmaWyrm,
+            FireImp, LavaGolem, InfernoBeetle,
             FrostWolf, IceWraith, GlacierGiant,
             ShadowStalker, VoidWeaver, AbyssalHorror,
             Drake, ElderDragon, DragonLord
@@ -649,7 +649,7 @@ namespace ConquerChronicles.Core.Map
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "skeleton", Weight = 0.7f },
-                        new EnemySpawnWeight { EnemyID = "skeleton_archer", Weight = 0.3f }
+                        new EnemySpawnWeight { EnemyID = "gladiator", Weight = 0.3f }
                     },
                     AreaDropTable = new DropTable
                     {
@@ -680,7 +680,7 @@ namespace ConquerChronicles.Core.Map
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "skeleton", Weight = 0.4f },
-                        new EnemySpawnWeight { EnemyID = "skeleton_archer", Weight = 0.3f },
+                        new EnemySpawnWeight { EnemyID = "gladiator", Weight = 0.3f },
                         new EnemySpawnWeight { EnemyID = "skeleton_knight", Weight = 0.3f }
                     },
                     AreaDropTable = new DropTable
@@ -712,7 +712,7 @@ namespace ConquerChronicles.Core.Map
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "skeleton_knight", Weight = 0.5f },
-                        new EnemySpawnWeight { EnemyID = "skeleton_archer", Weight = 0.5f }
+                        new EnemySpawnWeight { EnemyID = "gladiator", Weight = 0.5f }
                     },
                     AreaDropTable = new DropTable
                     {
@@ -919,7 +919,7 @@ namespace ConquerChronicles.Core.Map
                     EnemyPool = new[]
                     {
                         new EnemySpawnWeight { EnemyID = "lava_golem", Weight = 0.4f },
-                        new EnemySpawnWeight { EnemyID = "magma_wyrm", Weight = 0.6f }
+                        new EnemySpawnWeight { EnemyID = "inferno_beetle", Weight = 0.6f }
                     },
                     AreaDropTable = new DropTable
                     {
